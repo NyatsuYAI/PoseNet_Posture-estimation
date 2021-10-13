@@ -1,0 +1,699 @@
+<html>
+
+<head>
+  <meta http-equiv="content-type" charset="UTF-8">
+
+
+  <!-- TensorFlow.jsの読み込み -->
+
+  <!-- PoseNetモデルの読み込み -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+
+  <style type="text/css">
+    html {}
+
+    body {
+      height: 100%;
+      margin: 0%;
+      padding: 0;
+    }
+
+
+    video {
+      position: absolute;
+      place-content: center;
+      height: 80vh;
+
+    }
+
+    canvas {
+      position: absolute;
+      place-content: center;
+      z-index: 10;
+      height: 80vh;
+    }
+
+    table {
+      height: 100vh;
+    }
+
+    #p1 {
+      /*カメラ*/
+      position: relative;
+      place-content: center;
+      margin: 5%;
+      height: 100vh;
+      left: 28vw;
+      z-index: 20;
+    }
+
+
+    #form {
+      justify-content: space-evenly;
+    }
+
+    #p2 {
+      position: absolute;
+      left: 70%;
+      top: 10vh;
+      width: 20vw;
+      font-size: 2vw;
+      z-index: 20;
+    }
+
+    #p3 {
+
+      position: absolute;
+      left: 70%;
+      top: 20vh;
+      font-size: 1vw;
+      z-index: 20;
+
+    }
+
+    #p4 {
+
+      position: absolute;
+      left: 70%;
+      top: 35vh;
+      width: 20vw;
+      font-size: 2vw;
+      z-index: 20;
+    }
+
+    #p5 {
+      display: inline-block;
+      position: absolute;
+      left: 70%;
+      top: 50vh;
+      font-size: 3vw;
+      border: solid;
+      border: 4px solid;
+      border-color: #ff0000;
+      z-index: 20;
+    }
+
+    #p6 {
+      position: absolute;
+      left: 70%;
+      top: 60vh;
+      font-size: 2vw;
+      z-index: 20;
+
+    }
+
+    #p7 {
+      position: absolute;
+      left: 70%;
+      top: 70vh;
+      z-index: 20;
+
+    }
+  </style>
+
+
+</head>
+
+
+<body>
+
+
+  <div id="p1">
+    <canvas id="canvas"></canvas>
+    <video id="webcam" autoplay playsinline></video>
+  </div>
+  <div id="p2">
+
+    <label for="tentacles">(10-100):</label>
+    <input type="number" id="tentacles" name="tentacles" min="10" max="100" style="height: 3vh;">
+    <!--<input type="button" onclick="showMessage()" value="適応">-->
+
+  </div>
+  <div id="p3">
+    <b>ワイドスクワットチェック</b>
+    <input type="button" id="check_haba_set" onclick="checkhaba(this)" value="OFF">
+    <p id="output3-message"></p>
+  </div>
+
+  <div id="p4">
+    <form name="timer">
+      <input type="text" value="" style="font-size: 40px;width: 70%;">秒<br>
+      <input type="button" value="スタート" onclick="cntStart()">
+      <input type="button" value="ストップ" onclick="cntStop()">
+    </form>
+  </div>
+
+  <div id="p5">
+    <label>信用度:<b id="reliance"></b></label>
+  </div>
+
+  <div id=p6>
+    <label>成功回数:<b id="sk_counter"></b></label>
+
+  </div>
+  <div id=p7>
+    <img src="img/Round.gif" id="Round">
+  </div>
+</body>
+<script>
+  // 定数
+  var kpscore = 0.8
+  const nose = 0
+  const leftEye = 1
+  const rightEye = 2
+  const leftEar = 3
+  const rightEar = 4
+  const leftShoulder = 5
+  const rightShoulder = 6
+  const leftElbow = 7
+  const rightElbo = 8
+  const leftWrist = 9
+  const rightWrist = 10
+  const leftHip = 11
+  const rightHip = 12
+  const leftKnee = 13
+  const rightKnee = 14
+  const leftAnkle = 15
+  const rightAnkle = 16
+  var CountTime = 0
+  var textnumber
+  var realpar
+  var enter_set_number
+  var check_shisei
+  var timer1   //タイマーを格納する変数（タイマーID）の宣言
+  var start_time
+  var flg = false;
+  var flg2 = false;
+  var sk_point_counter = 0
+  var pointData = []
+  var img_up = new Image();    //画像オブジェクト作成
+  img_up.src = "img/img_up1.png";
+  var img_down = new Image();
+  img_down.src = "img/img_down1.png"
+  var fire = new Image();
+  fire.src = "img/honoo_hi_fire.png"
+  let shift = 0;
+
+  // テンソルの描画
+
+  const renderToCanvas = async (ctx, a) => {
+    const [height, width] = a.shape
+    const imageData = new ImageData(width, height)
+    const data = await a.data()
+    for (let i = 0; i < height * width; ++i) {
+      const j = i * 4
+      const k = i * 3
+      imageData.data[j + 0] = data[k + 0]
+      imageData.data[j + 1] = data[k + 1]
+      imageData.data[j + 2] = data[k + 2]
+      imageData.data[j + 3] = 255
+    }
+    ctx.putImageData(imageData, 0, 0)
+  }
+
+
+  // ラインの描画設定
+  const drawLine = (ctx, kp0, kp1) => {
+    if (kp0.score < kpscore || kp1.score < kpscore) return
+    ctx.strokeStyle = 'yellow'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(kp0.position.x, kp0.position.y)
+    ctx.lineTo(kp1.position.x, kp1.position.y)
+    ctx.stroke();
+  }
+
+  // ポイントの描画
+  const drawPoint = (ctx, kp) => {
+    if (kp.score < kpscore) return
+    ctx.fillStyle = 'yellow'
+    ctx.beginPath()
+    ctx.arc(kp.position.x, kp.position.y, 3, 0, 2 * Math.PI);
+    ctx.fill()
+  }
+
+  //画像の挿入
+
+
+  const set_pointData = () => {
+    var Dpoont = 0
+    for (i = 0; i < 8; i++) {
+      Dpoont += pointData[i]
+    }
+    Dpoont = (Dpoont / 8) * 100
+    document.getElementById('reliance').innerHTML = Dpoont + "%"
+  }
+
+  //位置の表示
+  const keyposition = (kp) => {
+    //if (kp.score < kpscore) return
+    //  var n = kp.part
+    //  var nx = n+'x'
+    //  var ny = n+'y'
+    //  console.log(nx)
+    //if(kp.part == 'nose'){
+    //  nx = kp.position.x
+    //  document.getElementById('nosex').innerHTML = nx
+    //  ny = kp.position.y
+    //  document.getElementById('nosey').innerHTML = ny
+    //}
+    if (kp.part == 'leftShoulder') {
+      if (kp.score < kpscore) pointData[0] = 0
+      else {
+        pointData[0] = 1
+        var leftShoulderx = kp.position.x
+        var leftShouldery = kp.position.y
+      }
+    }
+    if (kp.part == 'rightShoulder') {
+      if (kp.score < kpscore) pointData[1] = 0
+      else {
+        pointData[1] = 1
+        var rightShoulderx = kp.position.x
+        var rightShouldery = kp.position.y
+      }
+    }
+    if (kp.part == 'leftHip') {
+      if (kp.score < kpscore) pointData[2] = 0
+      else {
+        pointData[2] = 1
+        var leftHipx = kp.position.x
+        var leftHipy = kp.position.y
+      }
+    }
+    if (kp.part == 'rightHip') {
+      if (kp.score < kpscore) pointData[3] = 0
+      else {
+        pointData[3] = 1
+        var rightHipx = kp.position.x
+        var rightHipy = kp.position.y
+      }
+    }
+    if (kp.part == 'leftKnee') {
+      if (kp.score < kpscore) pointData[4] = 0
+      else {
+        pointData[4] = 1
+        var leftKneex = kp.position.x
+        var leftKneey = kp.position.y
+      }
+    }
+    if (kp.part == 'rightKnee') {
+      if (kp.score < kpscore) pointData[5] = 0
+      else {
+        pointData[5] = 1
+        var rightKneex = kp.position.x
+        var rightKneey = kp.position.y
+      }
+    }
+    if (kp.part == 'leftAnkle') {
+      if (kp.score < kpscore) pointData[6] = 0
+      else {
+        pointData[6] = 1
+        var leftAnklex = kp.position.x
+        var leftAnkley = kp.position.y
+      }
+    }
+    if (kp.part == 'rightAnkle') {
+      if (kp.score < kpscore) pointData[7] = 0
+      else {
+        pointData[7] = 1
+        var rightAnklex = kp.position.x
+        var rightAnkley = kp.position.y
+      }
+    }
+  }
+
+
+
+  // 姿勢推定の開始
+  const startEstimateSinglePose = () => {
+    posenet.load()
+      .then(model => {
+        const webcamElement = document.getElementById('webcam')
+        window.requestAnimationFrame(onFrame.bind(null, model, webcamElement))
+      })
+  }
+
+  /*
+  const net = await posenet.load({
+    architecture: 'ResNet50',
+    outputStride: 32,
+    inputResolution: { width: 257, height: 200 },
+    quantBytes: 2
+    });
+    */
+
+
+
+  function changeBoxColor(newColor) {
+    document.getElementById('p2').style.backgroundColor = newColor;
+  }
+
+
+  // フレーム毎に呼ばれる
+  const onFrame = async (model, webcamElement) => {
+
+    //カウント
+
+    CountTime += 1
+    console.log(CountTime)
+
+    // 姿勢推論
+    let tensor = tf.browser.fromPixels(webcamElement)
+    // tensor = tensor.resizeBilinear(28,28)
+    let ratio = 0.66;
+    var vwidth = webcamElement.videoWidth;
+    let new_width = Math.min(Math.round(webcamElement.videoHeight * ratio), webcamElement.videoWidth);
+    shift = Math.round((vwidth - new_width) / 2);
+    ratio = new_width / vwidth;
+    tensor = tf.image.cropAndResize(tensor.expandDims(), [[0, shift / vwidth, 1, shift / vwidth + ratio]], [0], [webcamElement.videoHeight, new_width]).squeeze();
+
+    const predictions = await model.estimateSinglePose(tensor, {
+      flipHorizontal: false
+    })
+
+
+
+    let checkbox = document.getElementById("check_haba_set");
+    var check_haba = checkbox.value
+    if (check_haba == "ON") {
+      const output3_1 = "GOOD!!!"
+      const output3_2 = "足をもっと広げて！"
+      if (katamuki_5 < 0.95) { document.getElementById("output3-message").innerHTML = output3_1; document.getElementById('p3').style.backgroundColor = '#33ff00'; }
+
+
+      else { document.getElementById("output3-message").innerHTML = output3_2; document.getElementById('p3').style.backgroundColor = '#ff0000'; }
+    } else {
+      document.getElementById("output3-message").innerHTML = null
+      document.getElementById('p3').style.backgroundColor = '#ffffff'
+    }
+
+
+
+
+    // キャンバスの準備
+    const canvas = document.getElementById('canvas')
+    const [height, width] = tensor.shape
+    //キャンバスのサイズ変更
+    canvas.width = width
+    canvas.height = height
+
+    var video_shift = shift / webcamElement.videoWidth * webcamElement.clientWidth;
+    var clip = "rect(0px," + (video_shift + (webcamElement.videoWidth - shift * 2) / webcamElement.videoWidth * webcamElement.clientWidth) + "px," + canvas.clientHeight + "px," + video_shift + "px)";
+    var trans = "translate(" + (-video_shift) + "px, 0px)"
+    $(function () {
+      $("#webcam").css({
+        "clip": clip,
+        "transform": trans
+      });
+    });
+    // キャンバスの描画
+    const ctx = canvas.getContext('2d')
+    //await renderToCanvas(ctx, tensor)
+    const kp = predictions.keypoints
+
+
+
+    // ポイントの描画
+    drawPoint(ctx, kp[nose])
+    keyposition(kp[nose])
+    //drawPoint(ctx, kp[leftEye])
+    //drawPoint(ctx, kp[rightEye])
+    //drawPoint(ctx, kp[leftEar])
+    //drawPoint(ctx, kp[rightEar])
+    drawPoint(ctx, kp[leftShoulder])
+    keyposition(kp[leftShoulder])
+    //drawPoint(ctx, kp[leftElbow])
+    //drawPoint(ctx, kp[leftWrist])
+    drawPoint(ctx, kp[rightShoulder])
+    keyposition(kp[rightShoulder])
+    //drawPoint(ctx, kp[rightElbo])
+    //drawPoint(ctx, kp[rightWrist])
+    drawPoint(ctx, kp[leftHip])
+    keyposition(kp[leftHip])
+    drawPoint(ctx, kp[rightHip])
+    keyposition(kp[rightHip])
+    drawPoint(ctx, kp[leftKnee])
+    keyposition(kp[leftKnee])
+    drawPoint(ctx, kp[leftAnkle])
+    keyposition(kp[leftAnkle])
+    drawPoint(ctx, kp[rightKnee])
+    keyposition(kp[rightKnee])
+    drawPoint(ctx, kp[rightAnkle])
+    keyposition(kp[rightAnkle])
+    set_pointData()
+
+    //位置表示からの計算準備
+
+    //console.log(kp[nose])
+
+    function calcAngle(a_x, a_y, b_x, b_y, c_x, c_y) {
+      var pow1 = Math.pow((c_x - b_x), 2) + Math.pow((c_y - b_y), 2)
+      var pow2 = Math.pow((a_x - b_x), 2) + Math.pow((b_y - a_y), 2)
+      var pow3 = Math.pow((c_x - a_x), 2) + Math.pow((c_y - a_y), 2)
+      var len1 = Math.sqrt(pow1)
+      var len2 = Math.sqrt(pow2)
+      var hypotenuse = Math.sqrt(pow1, pow2)
+      //console.log(adjacent)
+      var long = Math.acos((pow1 + pow2 - pow3) / (2 * len1 * len2))
+      return long * 180 / Math.PI
+    }
+
+    const katamuki = (kp0, kp1, kp2, kp3, kp4, kp5, kp6, kp7) => {
+      var Shoulder_to_Ankle_l = kp6.position.y - kp0.position.y
+      var Shoulder_to_Ankle_r = kp7.position.y - kp1.position.y
+      var Hip_to_Knee_l = kp4.position.y - kp2.position.y
+      var Hip_to_Knee_r = kp5.position.y - kp3.position.y
+      var Shoulder_to_Hip_l = kp2.position.y - kp0.position.y
+      var Shoulder_to_Hip_r = kp3.position.y - kp1.position.y
+      var Hip_to_Ankle_l = kp6.position.y - kp2.position.y
+      var Hip_to_Ankle_r = kp7.position.y - kp3.position.y
+      var Knee_to_Ankle_l = kp6.position.y - kp4.position.y
+      var Knee_to_Ankle_r = kp7.position.y - kp5.position.y
+      var Angle_l = calcAngle(kp2.position.x, kp2.position.y, kp4.position.x, kp4.position.y, kp6.position.x, kp6.position.y)
+      var Angle_r = calcAngle(kp3.position.x, kp3.position.y, kp5.position.x, kp5.position.y, kp7.position.x, kp7.position.y)
+
+      katamuki_1 = (Hip_to_Knee_l + Hip_to_Knee_r) / 2
+      katamuki_2 = (Shoulder_to_Hip_l + Shoulder_to_Hip_r) / 2
+      katamuki_3 = (Knee_to_Ankle_l + Knee_to_Ankle_r) / 2
+      katamuki_4 = (Angle_l + Angle_r) / 2
+      katamuki_5 = (kp0.position.x - kp1.position.x) / (kp6.position.x - kp7.position.x)
+
+
+    }
+
+    katamuki(kp[leftShoulder], kp[rightShoulder], kp[leftHip], kp[rightHip], kp[leftKnee], kp[rightKnee], kp[leftAnkle], kp[rightAnkle])
+
+
+    //判定の設定
+    hantei(ctx, kp[leftKnee], kp[rightKnee])
+
+
+
+    //console.log(leftShouldery)
+    // 次フレーム
+    setTimeout(() => {
+      window.requestAnimationFrame(onFrame.bind(null, model, webcamElement))
+    }, 50)//フレーム数低いと画像数が増える
+  }
+
+  // Webカメラの開始
+  const constraints = {
+    audio: false,
+    video: true
+  }
+  navigator.mediaDevices.getUserMedia(constraints)
+    // 成功時に呼ばれる
+    .then((stream) => {
+      const video = document.querySelector('video')
+      video.srcObject = stream
+
+      // 姿勢推定出の開始
+      //net
+      //startEstimateSinglePose()
+    })
+    // エラー時に呼ばれる
+    .catch((error) => {
+      const errorMsg = document.querySelector('#errorMsg')
+      errorMsg.innerHTML += `<p>${error.name}</p>`
+    })
+
+  document.getElementById("webcam").addEventListener('loadeddata', (event) => {
+    startEstimateSinglePose()
+  });
+
+
+
+  //入力された値から判定
+
+  const enternumber = () => {
+    enter_set_number = katamuki_1
+    check_shisei = katamuki_2
+
+  }
+
+
+  const showMessage = () => {
+    let textbox = document.getElementById("tentacles");
+    textnumber = textbox.value
+
+  }
+
+  function picPoint(ctx, kp, a) {
+    if (a === "up") {
+
+      var width = img_up.naturalWidth
+      var height = img_up.naturalHeight
+      ctx.drawImage(img_up, kp.position.x - width / 2, kp.position.y - height / 2)
+    }
+    if (a === "good") {
+      var width = fire.naturalWidth
+      var height = fire.naturalHeight
+      ctx.drawImage(fire, kp.position.x - width / 2, kp.position.y - height / 2)
+    }
+    if (a === "down") {
+      var width = img_down.naturalWidth
+      var height = img_down.naturalHeight
+      ctx.drawImage(img_down, kp.position.x - width / 2, kp.position.y - height / 2)
+    }
+    else { return }
+
+  }
+
+  const hantei = (ctx, kp0, kp1) => {
+    if (textnumber != null) {
+      var tmp = textnumber / 100
+      var tmp2 = tmp - 0.2
+      var number_tmp = enter_set_number * tmp
+      var number_tmp2 = enter_set_number * tmp2
+      realpar = katamuki_1 / enter_set_number
+      var shisei = check_shisei * 0.8
+
+      var now_time = new Date().getTime();
+      console.log(now_time)
+      console.log(start_time)
+      if (katamuki_2 < shisei) {
+
+        changeBoxColor('#ff0000')
+        var img = document.getElementById('Round')
+        img.src = ""
+        start_time = now_time
+        flg = true
+        flg2 = false
+      } else if (number_tmp > katamuki_1 && katamuki_1 > number_tmp2) {
+
+        changeBoxColor('#33ff00')
+        picPoint(ctx, kp0, "good")
+        picPoint(ctx, kp1, "good")
+        if (flg2 === false) {
+          var img = document.getElementById('Round')
+          img.src = "円タイマー.gif?" + String(new Date().getTime());
+        }
+        if (start_time + 2000 < now_time && flg) {
+          flg = false
+          sk_point_counter++
+          document.getElementById('sk_counter').innerHTML = sk_point_counter
+        }
+        flg2 = true;
+
+      } else if (katamuki_1 > number_tmp) {
+
+        changeBoxColor('#ffff00')
+        picPoint(ctx, kp0, "down")
+        picPoint(ctx, kp1, "down")
+        var img = document.getElementById('Round')
+        img.src = ""
+        start_time = now_time
+        flg = true
+        flg2 = false
+      } else {
+
+        changeBoxColor('#ff0000')
+        picPoint(ctx, kp0, "up")
+        picPoint(ctx, kp1, "up")
+        var img = document.getElementById('Round')
+        img.src = ""
+        start_time = now_time
+        flg = true
+        flg2 = false
+
+      }
+    }
+
+  }
+
+  function checkhaba(lol) {
+    if (lol.value == "OFF") {
+      lol.value = "ON";
+    } else {
+      lol.value = "OFF";
+    }
+  }
+
+
+
+
+  //カウントダウン関数を1000ミリ秒毎に呼び出す関数
+  function cntStart() {
+    document.timer.elements[2].disabled = true;
+    timer1 = setInterval("countDown()", 1000);
+  }
+
+  //タイマー停止関数
+  function cntStop() {
+    document.timer.elements[1].disabled = false;
+    clearInterval(timer1);
+  }
+
+  //カウントダウン関数
+  function countDown() {
+    var sec = document.timer.elements[0].value;
+
+    if (sec == "") {
+      alert("時刻を設定してください！");
+      reSet();
+    }
+    else {
+      if (sec == "") sec = 0;
+      sec = parseInt(sec);
+
+      tmWrite(sec - 1);
+    }
+  }
+
+  //残り時間を書き出す関数
+  function tmWrite(int) {
+    int = parseInt(int);
+
+    if (int <= 0) {
+      enternumber();
+      showMessage();
+      reSet();
+
+    }
+    else {
+      //残り秒数はintを60で割った余り
+      document.timer.elements[0].value = int;
+      //残り秒数はintを60で割った余り
+    }
+  }
+
+  //フォームを初期状態に戻す（リセット）関数
+  function reSet() {
+    document.timer.elements[0].value = "0";
+    document.timer.elements[1].disabled = false;
+    clearInterval(timer1);
+  }
+
+
+
+
+
+
+</script>
+
+</html>
