@@ -4,6 +4,7 @@
   <meta http-equiv="content-type" charset="UTF-8">
 
 
+
   <!-- TensorFlow.jsの読み込み -->
 
   <!-- PoseNetモデルの読み込み -->
@@ -175,6 +176,8 @@
 <script>
   // 定数
   var kpscore = 0.6
+  var check_shisei_par = 0.7
+  var textnumber
   const nose = 0
   const leftEye = 1
   const rightEye = 2
@@ -193,7 +196,6 @@
   const leftAnkle = 15
   const rightAnkle = 16
   //var CountTime = 0
-  var textnumber
   var realpar
   var enter_set_number
   var check_shisei
@@ -404,24 +406,27 @@
 
 
   var csv_head = [
-    "sk_point_counter",
-    "now_time",
-    "katamuki_1",
-    "katamuki_2",
-    "katamuki_3",
-    "katamuki_4",
-    "katamuki_5"
+    'スクワットの回数',
+    '基準の腰膝間',
+    '%',
+    '実際の腰膝間',
+    '基準の姿勢の長さ',
+    '%',
+    '実際の姿勢',
+    '肩幅/足幅'
+
   ]
 
   const csv_obj_arry = () => {
     var csv_in_obj =
       [sk_point_counter,
-        now_time,
+        enter_set_number,
         katamuki_1,
+        textnumber,
+        check_shisei,
+        check_shisei_par,
         katamuki_2,
-        katamuki_3,
-        katamuki_4,
-        katamuki_5]
+        katamuki_5,]
 
 
     csv_arry[csv_line] = csv_in_obj
@@ -616,9 +621,12 @@
       var number_tmp = enter_set_number * tmp
       var number_tmp2 = enter_set_number * tmp2
       realpar = katamuki_1 / enter_set_number
-      var shisei = check_shisei * 0.7
+      var shisei = check_shisei * check_shisei_par
 
       var now_time = new Date().getTime();
+      csv_obj_arry()
+      console.log(csv_arry)
+
       if (katamuki_2 < shisei) {
 
         changeBoxColor('#ff0000')
@@ -757,8 +765,8 @@
       }
     }
 
-
-    var blob = new Blob([str], { type: "text/csv" }); //配列に上記の文字列(str)を設定
+    var bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+    var blob = new Blob([bom, str], { type: "text/csv" }); //配列に上記の文字列(str)を設定
     var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = "sample.csv";
