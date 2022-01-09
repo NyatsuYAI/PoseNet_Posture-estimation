@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+
+<html>
+<header>
+  <meta http-equiv="content-type" charset="UTF-8">
+
+
+
+  <!-- TensorFlow.jsの読み込み -->
+
+  <!-- PoseNetモデルの読み込み -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.2/dist/posenet.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    
+</header>
+
+
+<style>
+  body {
+      height: 100%;
+      margin: 0%;
+      padding: 0;
+    }
+
+
+    video {
+      position: absolute;
+      place-content: center;
+      height: 80vh;
+
+    }
+
+    canvas {
+      position: absolute;
+      place-content: center;
+      z-index: 10;
+      height: 80vh;
+    }
+
+    table {
+      height: 80vh;
+    }
+
+    #wrap {
+      height: 80vh;
+    }
+
+    #p1 {
+      /*カメラ*/
+      position: relative;
+      place-content: center;
+      margin: 5%;
+      height: 80vh;
+      left: 28vw;
+      z-index: 20;
+    }
+
+
+    #form {
+      justify-content: space-evenly;
+    }
+
+    #backcolor {
+      position: absolute;
+      width: 80vmax;
+      left: 20vw;
+      bottom: 0;
+      height: 100vh;
+      z-index: 0;
+    }
+
+    #start_button {
+      position: absolute;
+      left: 80%;
+      top: 50vh;
+      width: 15%;
+      z-index: 30;
+      display: block;
+    }
+
+    #close_button {
+      position: absolute;
+      left: 80%;
+      top: 50vh;
+      width: 15%;
+      z-index: 30;
+      display: none;
+    }
+
+    #load_img {
+      width: 100vw;
+      height: 100vh;
+
+      /* 以下のコードを追加 */
+      position: absolute;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    #finish_img
+    {
+      width: 100vw;
+      height: 100vh;
+
+      /* 以下のコードを追加 */
+      position: absolute;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      display:none;
+    }
+
+    #p6 {
+      position: absolute;
+      left: 5%;
+      top: 10vh;
+      font-size: 4vw;
+      z-index: 20;
+    }
+
+    #Round {
+      position: absolute;
+      left: 20%;
+      top: 40vh;
+      z-index: 20;
+
+    }
+
+
+
+    #p8 {
+      position: absolute;
+      /*←絶対位置*/
+      top: 0vh;
+      /*下に固定*/
+      background-color: #fff;
+      width: 100%;
+      height: 9vw;
+      text-align: center;
+      z-index: 20;
+    }
+
+    /* #howto_button {
+      position: absolute;
+      left: 10%;
+      top: 70vh;
+      z-index: 20;
+    } */
+
+    
+    #omikuji_back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-color: black;
+      visibility: hidden;
+      z-index: 200;
+      opacity: 0;
+
+    }
+
+    #omikuji {
+      position: absolute;
+      align-items: center;
+      display: flex;
+      height: 70vh;
+      z-index: 300;
+      opacity: 0;
+
+      background-color: black;
+    }
+
+    .inner {
+      left: 50%;
+      position: absolute;
+      top: 50%;
+    }
+
+    .content {
+      padding: 20px;
+      transform: translate(-50%, -50%);
+    }
+  </style>
+
+
+
+
+<body onload="window_loaded();">
+
+   <base href="https://nyatsuyai.github.io/PoseNet_Posture-estimation/" target="_self">
+
+
+  <img id="load_img" src="img/loading.png">
+  <img id="finish_img" src ="img/finish.jpg">
+
+  <div id="p1">
+    <canvas id="canvas"></canvas>
+    <video id="webcam" autoplay playsinline></video>
+  </div>
+  <div id="backcolor">
+
+  </div>
+
+
+  <input id="start_button" type="image" src="img/text_start.png" value="スタート" onclick="cntStart()">
+
+  <input id="close_button" type="image" src="img/finish.png" value="おわる" onclick="windowClose()">
+
+  <!-- <div id=p6>
+      <label>成功回数:<b id="sk_counter"></b></label>
+
+    </div> -->
+
+  <img src="" id="Round">
+
+
+  <div id="p8">
+    <b id="board" style="font-size: 7vw;"></b>
+  </div>
+
+  <!-- <input id="howto_button" type="image" src="img/question_head_boy.png" onclick="location.href='./start_site.html'"> -->
+<section class="omikuji_menu">
+<img id="omikuji_back"></div>
+  <div class='inner'>
+    <img id="omikuji" class='content' src="">
+
+    <audio id="audio">
+      <source src="" type="audio/mp3">
+    </audio>
+</section>
+  </div>
+
+</body>
+<script>
+  
+  'use strict';//ストリクトモードの開始
+
+  const kpscore = 0.5//ポイントの判定の厳しさ
+  const check_shisei_par = 0.7;//姿勢が悪いと判定する長さ
+  const textnumber = 0.90;//スクワット判定する腰膝間の長さ
+  const omikuji_limit = 10;//大吉が出る可能性を持つ回数 
+
+  const nose = 0;
+  const leftEye = 1;
+  const rightEye = 2;
+  const leftEar = 3;
+  const rightEar = 4;
+  const leftShoulder = 5;
+  const rightShoulder = 6;
+  const leftElbow = 7;
+  const rightElbo = 8;
+  const leftWrist = 9;
+  const rightWrist = 10;
+  const leftHip = 11;
+  const rightHip = 12;
+  const leftKnee = 13;
+  const rightKnee = 14;
+  const leftAnkle = 15;
+  const rightAnkle = 16;
+
+  const position_to_index = {
+    leftShoulder: 0,
+    rightShoulder: 1,
+    leftHip: 2,
+    rightHip: 3,
+    leftKnee: 4,
+    rightKnee: 5,
+    leftAnkle: 6,
+    rightAnkle: 7,
+  };
+
+  let katamuki_1
+  let katamuki_2
+  let katamuki_3
+  let katamuki_4
+  let katamuki_5
+
+  let pointData = [];
+
+  let realpar;
+  let enter_set_number;
+  let check_shisei;
+  let timer1;   //タイマーを格納する変数（タイマーID）の宣言
+  let start_time;
+  let now_time;
+
+  let flg_Knee = true;//体の膝ポイントが感知を最初に出来ている時は１、出来ていないときは０
+  let flg_timer = false;//start_time-nowtimeが２秒を越したら1
+  let flg_Estimate = false;//最初にカウントが０に達したら１になって描画を開始
+  let flg_interval = false;//膝が映っている5秒間の時１
+  let flg_Round = false;//Round画像が再生されたら１
+  let omikuji_flg = false
+  let flg_hantei=false;//平均値から基準値をセットしたらtrue
+  let flg_pinpon=false;//ピンポンがなったらTure
+
+ let hantei_data = new Array(5);
+  let hantei_data_ary = 0;
+  let data_averege;
+
+  let sk_point_counter = 0;
+  let img_up = new Image();    //画像オブジェクト作成
+  img_up.src = "img/img_up1.png";
+  let img_down = new Image();
+  img_down.src = "img/img_down1.png";
+  let fire = new Image();
+  fire.src = "img/honoo_hi_fire.png";
+  let shift = 0;
+  let csv_arry = [];
+  let csv_line = 1;
+
+
+  let omikuji_img = document.getElementById("omikuji");
+
+
+  const renderToCanvas = async (ctx, a) => {
+    const [height, width] = a.shape;
+    const imageData = new ImageData(width, height);
+    const data = await a.data();
+    for (let i = 0; i < height * width; ++i) {
+      const j = i * 4;
+      const k = i * 3;
+      imageData.data[j + 0] = data[k + 0];
+      imageData.data[j + 1] = data[k + 1];
+      imageData.data[j + 2] = data[k + 2];
+      imageData.data[j + 3] = 255;
+    }
+    //ctx.putImageData(imageData, 0, 0)
+  }
+
+  const drawPoint = (ctx, kp) => {
+    if (kp.score < kpscore) return
+    ctx.fillStyle = 'yellow'
+    ctx.beginPath();
+    ctx.arc(kp.position.x, kp.position.y, 3, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+
+
+  const set_pointData = () => {
+    var Dpoont = 0;
+    var i;
+    for (i = 0; i < 8; i++) {
+      Dpoont += pointData[i];
+    }
+    Dpoont = (Dpoont / 8) * 100;
+    // document.getElementById('reliance').innerHTML = Dpoont + "%";
+  }
+
+  const keyposition = (kp) => {
+    //存在する場合の処理
+    if (kp.score < kpscore) pointData[position_to_index[kp.part]] = 0;
+    else pointData[position_to_index[kp.part]] = 1;
+
+  }
+
+  const startEstimateSinglePose = () => {
+    posenet.load()
+      .then(model => {
+        const webcamElement = document.getElementById('webcam')
+        window.requestAnimationFrame(onFrame.bind(null, model, webcamElement))
+      })
+  }
+
+  const calcAngle = (a_x, a_y, b_x, b_y, c_x, c_y) => {
+    var pow1 = Math.pow((c_x - b_x), 2) + Math.pow((c_y - b_y), 2);
+    var pow2 = Math.pow((a_x - b_x), 2) + Math.pow((b_y - a_y), 2);
+    var pow3 = Math.pow((c_x - a_x), 2) + Math.pow((c_y - a_y), 2);
+    var len1 = Math.sqrt(pow1);
+    var len2 = Math.sqrt(pow2);
+    var hypotenuse = Math.sqrt(pow1, pow2);
+    //console.log(adjacent)
+    var long = Math.acos((pow1 + pow2 - pow3) / (2 * len1 * len2));
+    return long * 180 / Math.PI;
+  }
+
+  const katamuki = (kp0, kp1, kp2, kp3, kp4, kp5, kp6, kp7) => {
+    var Shoulder_to_Ankle_l = kp6.position.y - kp0.position.y;
+    var Shoulder_to_Ankle_r = kp7.position.y - kp1.position.y;
+    var Hip_to_Knee_l = kp4.position.y - kp2.position.y;
+    var Hip_to_Knee_r = kp5.position.y - kp3.position.y;
+    var Shoulder_to_Hip_l = kp2.position.y - kp0.position.y;
+    var Shoulder_to_Hip_r = kp3.position.y - kp1.position.y;
+    var Hip_to_Ankle_l = kp6.position.y - kp2.position.y;
+    var Hip_to_Ankle_r = kp7.position.y - kp3.position.y;
+    var Knee_to_Ankle_l = kp6.position.y - kp4.position.y;
+    var Knee_to_Ankle_r = kp7.position.y - kp5.position.y;
+    var Angle_l = calcAngle(kp2.position.x, kp2.position.y, kp4.position.x, kp4.position.y, kp6.position.x, kp6.position.y);
+    var Angle_r = calcAngle(kp3.position.x, kp3.position.y, kp5.position.x, kp5.position.y, kp7.position.x, kp7.position.y);
+
+    katamuki_1 = (Hip_to_Knee_l + Hip_to_Knee_r) / 2;
+    katamuki_2 = (Shoulder_to_Hip_l + Shoulder_to_Hip_r) / 2;
+    katamuki_3 = (Knee_to_Ankle_l + Knee_to_Ankle_r) / 2;
+    katamuki_4 = (Angle_l + Angle_r) / 2;
+    katamuki_5 = (kp0.position.x - kp1.position.x) / (kp6.position.x - kp7.position.x);
+  }
+
+  const changeBoxColor = (newColor) => {
+    document.getElementById('backcolor').style.backgroundColor = newColor;
+  }
+
+  var csv_head = [
+    'スクワットの回数',
+    '基準の腰膝間',
+    '%',
+    '実際の腰膝間',
+    '腰膝間の平均',
+    '実際の％',
+    '基準の姿勢の長さ',
+    '%',
+    '実際の姿勢',
+    '肩幅/足幅',
+    '現在時刻',
+  ];
+
+  const csv_obj_arry = () => {
+    var csv_in_obj =
+      [sk_point_counter,
+        enter_set_number,
+        textnumber,
+        katamuki_1,
+        data_averege,
+        realpar,
+        check_shisei,
+        check_shisei_par,
+        katamuki_2,
+        katamuki_5,
+        now_time,
+        ]
+
+
+    csv_arry[csv_line] = csv_in_obj;
+    csv_line++;
+  };
+
+  const enternumber = () => {
+    enter_set_number = katamuki_1;
+    check_shisei = katamuki_2;
+  }
+
+
+  const picPoint = (ctx, kp, a) => {
+    var a;
+    var target;
+    if (a === "up") {
+      target = img_up;
+    } else if (a === "good") {
+      target = fire;
+    } else if (a === "down") {
+      target = img_down;
+    } else { return }
+    ctx.drawImage(target, kp.position.x - target.naturalWidth / 2, kp.position.y - target.naturalWidth / 2)
+
+  }
+
+ 
+
+  const average1 = () => {
+    let total = hantei_data.reduce(function (sum, element) {
+      return sum + element;
+    }, 0);
+
+    data_averege = total / hantei_data.length;
+  }
+
+  const average2 = () => {
+    let total = hantei_data.reduce(function (sum, element) {
+      return sum + element;
+    }, 0);
+
+    data_averege = total / hantei_data_ary;
+  }
+
+  const data_calculat = () => {
+    if (hantei_data_ary < 5) {
+      hantei_data[hantei_data_ary] = katamuki_1;
+      average2(hantei_data);
+      hantei_data_ary++;
+    } else {
+      if (hantei_data_ary<7) {
+        hantei_data_ary++;
+        }else if(!flg_hantei){
+        enter_set_number = data_averege;
+        flg_hantei=true;
+        }
+      for (let i = 0; i < 4; i++)hantei_data[i] = hantei_data[i + 1];
+      hantei_data[4] = katamuki_1;
+      average1(hantei_data);
+
+    }
+  }
+
+  const hantei = (ctx, kp0, kp1) => {
+    if (pointData.indexOf(1, 4) === -1) {
+      flg_Knee = false;
+      board.style.color = "#ff0000";
+      document.getElementById("board").innerHTML = "後ろに下がる";
+      reSet();
+    } else if (!flg_Knee && !flg_interval) {
+      flg_Knee = true;//膝が見えていることを認証
+      flg_interval = true;//5秒間待つ
+      board.style.color = "#000000";
+      cntStart();
+    } else if (flg_interval) {
+      return;
+    } else {
+      data_calculat();
+
+      flg_interval = false;
+      var tmp = textnumber;
+      var tmp2 = tmp - 0.2;
+      var number_tmp = enter_set_number * tmp;
+      var number_tmp2 = enter_set_number * tmp2;
+      realpar = data_averege / enter_set_number;
+      var shisei = check_shisei * check_shisei_par;
+
+      now_time = new Date().getTime();
+
+     
+      if (start_time + 2000 < now_time && !flg_timer) {
+        flg_timer = true;
+        sk_point_counter++
+        // document.getElementById('sk_counter').innerHTML = sk_point_counter
+      }
+
+      csv_obj_arry();                                //CSVファイルに情報を入力
+      // console.log(csv_arry);
+
+      var board_target;
+      var img_target;
+      var Round_img = document.getElementById('Round');
+      var backgroundColor_target;
+
+      if (katamuki_2 < shisei) {
+        board_target = "背筋を伸ばして";
+        img_target = "";
+        Round_img.src = "";
+        backgroundColor_target = '#ff0000';
+        start_time = now_time;
+        flg_timer = false;
+        flg_Round = false;
+      } else if (number_tmp > data_averege && data_averege > number_tmp2 && !flg_timer) {
+        board_target = "そのままキープ";
+        img_target = "good";
+        if (!flg_Round) {
+          flg_Round = true;
+          Round_img.src = "img/Round.gif?" + String(new Date().getTime());
+        }
+        backgroundColor_target = '#33ff00';
+      } else if (number_tmp > data_averege && data_averege > number_tmp2 && flg_timer) {
+        if(!flg_pinpon){
+          flg_pinpon=true;
+          let music = document.getElementById("audio");
+          music.src = "mp3/pinpon.mp3";
+          document.getElementById('audio').play();
+        }
+        board_target = sk_point_counter + "回成功!立ち上がって";
+        img_target = "";
+        Round_img.src = "";
+        backgroundColor_target = '';
+      } else if (data_averege > number_tmp) {
+        board_target = "ゆっくり膝を曲げて";
+        img_target = "down";
+        Round_img.src = "";
+        backgroundColor_target = '#ffff00';
+        start_time = now_time;
+
+        $(function(){
+          setTimeout(function(){
+        flg_timer = false;
+        flg_pinpon=false;
+          },500);
+          });
+
+        flg_Round = false;
+      } else if (data_averege < number_tmp2) {
+        board_target = "腰をあげて";
+        img_target = "up";
+        Round_img.src = "";
+        backgroundColor_target = '#ff0000';
+        start_time = now_time;
+        flg_timer = false;
+        flg_Round = false;
+      } else { return }
+      document.getElementById("board").innerHTML = board_target;
+      picPoint(ctx, kp0, img_target);
+      picPoint(ctx, kp1, img_target);
+      changeBoxColor(backgroundColor_target);
+    }
+  }
+
+  const cntStart = () => {
+
+    if (flg_Estimate) {
+      document.getElementById("board").innerHTML = "ストップ";
+      setTimeout("cntS_D()", 3000);
+    } else {
+      cntS_D();
+    }
+  }
+
+  let sec;
+
+  const cntS_D = () => {
+
+    document.getElementById("board").innerHTML = "カウント開始";
+    sec = 5;
+    clearInterval(timer1);
+    timer1 = setInterval("countDown()", 1000);
+  }
+
+  const countDown = () => {
+
+    console.log(sec);
+
+
+    if (sec == "") {
+      alert("時刻を設定してください");
+      reSet();
+    }
+    else {
+      if (sec == "") sec = 0;
+      sec = sec - 1;
+
+      tmWrite(sec);
+    }
+  }
+
+  const reSet = () => {
+    flg_interval = false;
+    flg_hantei=false;
+    hantei_data_ary=0;
+    clearInterval(timer1);
+  }
+
+  const tmWrite = (int) => {
+    int = parseInt(int);
+
+    if (int <= 0) {
+
+      if (!flg_Estimate) {
+        flg_Estimate = true;
+        document.getElementById("start_button").style.display = "none";
+        document.getElementById("close_button").style.display = "block";
+        startEstimateSinglePose()
+
+      }
+
+      reSet();
+      enternumber();
+      document.getElementById("board").innerHTML = "";
+
+    }
+    else {
+      //残り秒数はintを60で割った余り
+      document.getElementById("board").innerHTML = int;
+      //残り秒数はintを60で割った余り
+    }
+  }
+
+
+  const omikuji_go = () => {
+    //うしろを黒にフェードイン
+
+    document.getElementById("omikuji_back").style.visibility = "visible";
+    $("#omikuji_back").animate({ opacity: 1 }, { duration: 1000, easing: 'swing' })
+  }
+
+  const omikuji_end = () => {
+
+
+    document.getElementById("omikuji_back").style.visibility = "hidden";
+    $("#omikuji_back").animate({ opacity: 0 }, { duration: 1000, easing: 'swing' })
+
+  }
+
+  const omikuji_gara_in = () => {
+
+    let music = document.getElementById("audio");
+    music.src = "mp3/syakasyaka.mp3";
+
+    omikuji_img.src = "img/syougatsu_omijikuji.png";
+
+    document.getElementById('audio').play();
+    $("#omikuji").animate({ opacity: 1 }, { duration: 1000, easing: 'swing' })
+
+  }
+
+  const omikuji_gara_out = () => {
+
+    $("#omikuji").animate({ opacity: 0 }, { duration: 1000, easing: 'swing' })
+  }
+
+
+
+  const omikuji_rand_in = () => {
+    let rand = Math.floor(Math.random() * 10);
+    // console.log(rand)
+
+    
+    let music = document.getElementById("audio");
+
+
+    if (rand === 1 && sk_point_counter > omikuji_limit) {
+      omikuji_img.src = "./img/omikuji_daikichi.png";
+      music.src = "mp3/daikiti.mp3";
+    } else if (1 < rand && rand < 6) {
+      omikuji_img.src = "./img/omikuji_chuukichi.png";
+      music.src = "mp3/chuukiti.mp3";
+    } else {
+      omikuji_img.src = "./img/omikuji_kichi.png";
+      music.src = "mp3/kiti.mp3";
+    }
+    document.getElementById('audio').play();
+    $("#omikuji").animate({ opacity: 1 }, { duration: 1000, easing: 'swing' })
+
+  }
+  const omikuji_out = () => {
+    $("#omikuji").animate({ opacity: 0 }, { duration: 1000, easing: 'swing' })
+  }
+
+
+  const csv_Downlod = () => {
+    var str = "";
+    var len_csv = Object.keys(csv_head).length;
+    for (var i = 0; i < len_csv; i++) {
+      if (i == len_csv - 1) {
+        str += csv_head[i] + "\n"; //Satで改行する
+      } else {
+        str += csv_head[i] + ","; //カンマで区切る
+      }
+    }
+    var len_element = Object.keys(csv_arry).length;
+    for (var j = 0; j < len_element; j++) {
+      for (var i = 0; i < len_csv; i++) {
+        if (i == len_csv - 1) {
+          str += csv_arry[j + 1][i] + "\n"; //Satで改行する
+        } else {
+          str += csv_arry[j + 1][i] + ","; //カンマで区切る
+        }
+      }
+    }
+
+//      const fileName = now_time+'.csv'
+//    var bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+//     var blob = new Blob([bom, str], { type: "text/csv" }); //配列に上記の文字列(str)を設定
+
+//   google.script.run.withSuccessHandler(function(){
+//  //urlは共有リンク
+//         console.log("up ok");
+//         // document.getElementById("output").innerHTML = url;
+//         //アップロードが完了したらこの関数が実行される
+//   }).upload(blob);
+
+  console.log(typeof(str))
+  console.log(str.length)
+  console.log(str.slice(0,100));
+
+//    google.script.run.withSuccessHandler(function(){
+//           console.log("up ok");
+          
+//           // google.script.run.withSuccessHandler(function(url){
+//           //   console.log(url + "?name=finish" )
+//           //   location.href = url + "?name=finish" 
+//           // }).getScriptUrl();
+//     }).upload(str);
+    
+    // (1)XMLHttpRequestオブジェクトを作成
+    var xmlHttpRequest = new XMLHttpRequest();
+    var formData = new FormData();
+
+    formData.append("str",str);
+
+    // (2)onreadystatechangeイベントで処理の状況変化を監視
+    xmlHttpRequest.onreadystatechange = function(){
+        if(this.readyState == 4 && this.status == 200){
+            console.log("success!");
+        }
+    }
+
+    // (3)HTTPのGETメソッドとアクセスする場所を指定
+    xmlHttpRequest.open('POST','https://script.google.com/macros/s/AKfycbxrn-eBtM_-gj6YPdhYFLaPlL35mTTX8Qs9D3wGAHol9n-XTtrbd1t8aOxz_jvRpwpq/exec',true);
+
+    // (4)HTTPリクエストを送信
+    xmlHttpRequest.send(formData);
+
+
+  }
+
+  const windowClose = () => {
+    csv_Downlod();   
+    setTimeout(function(){
+      
+          document.getElementById("finish_img").style.display = "block";
+    },1000)
+    // setTimeout(window.open('', '_self').close(), 3000);
+  }
+
+
+
+  const window_loaded = () => {
+    //setTimeout(loaded_img, 5000);
+    loaded_img()
+  }
+
+  const loaded_img = () => {
+    if (shift === 0) {
+      setTimeout(loaded_img, 100);
+    } else {
+      $("#load_img").animate({
+        'opacity': '0'
+      }, 1000);
+      setTimeout(function () {
+        document.getElementById("load_img").style.display = "none";
+      }, 1100);
+    }
+  }
+
+
+  //////////////////////////////////////////////////////////////// フレーム毎に呼ばれる/////////////////////////////////////////////////////////////////////////
+
+  const onFrame = async (model, webcamElement) => {
+
+    //カウント
+    //CountTime += 1
+
+    // 姿勢推論
+    let tensor = tf.browser.fromPixels(webcamElement)
+    // tensor = tensor.resizeBilinear(28,28)
+    let ratio = 0.66;
+    var vwidth = webcamElement.videoWidth;
+    let new_width = Math.min(Math.round(webcamElement.videoHeight * ratio), webcamElement.videoWidth);
+    shift = Math.round((vwidth - new_width) / 2);
+    ratio = new_width / vwidth;
+    tensor = tf.image.cropAndResize(tensor.expandDims(), [[0, shift / vwidth, 1, shift / vwidth + ratio]], [0], [webcamElement.videoHeight, new_width]).squeeze();
+
+    const predictions = await model.estimateSinglePose(tensor, {
+      flipHorizontal: false
+    })
+
+
+
+    // キャンバスの準備
+    const canvas = document.getElementById('canvas')
+    const [height, width] = tensor.shape
+    //キャンバスのサイズ変更
+    canvas.width = width
+    canvas.height = height
+
+    var video_shift = shift / webcamElement.videoWidth * webcamElement.clientWidth;
+    var clip = "rect(0px," + (video_shift + (webcamElement.videoWidth - shift * 2) / webcamElement.videoWidth * webcamElement.clientWidth) + "px," + canvas.clientHeight + "px," + video_shift + "px)";
+    var trans = "translate(" + (-video_shift) + "px, 0px)"
+    $(function () {
+      $("#webcam").css({
+        "clip": clip,
+        "transform": trans
+      });
+    });
+
+
+    // キャンバスの描画
+    const ctx = canvas.getContext('2d')
+    // await renderToCanvas(ctx, tensor)
+    const kp = predictions.keypoints
+
+    //位置表示からの計算準備
+
+    katamuki(kp[leftShoulder], kp[rightShoulder], kp[leftHip], kp[rightHip], kp[leftKnee], kp[rightKnee], kp[leftAnkle], kp[rightAnkle])
+
+
+    if (flg_Estimate) {
+
+
+
+
+      // ポイントの描画
+      //drawPoint(ctx, kp[nose])
+      //drawPoint(ctx, kp[leftEye])
+      //drawPoint(ctx, kp[rightEye])
+      //drawPoint(ctx, kp[leftEar])
+      //drawPoint(ctx, kp[rightEar])
+      //drawPoint(ctx, kp[leftShoulder])
+      keyposition(kp[leftShoulder])
+      //drawPoint(ctx, kp[leftElbow])
+      //drawPoint(ctx, kp[leftWrist])
+      //drawPoint(ctx, kp[rightShoulder])
+      keyposition(kp[rightShoulder])
+      //drawPoint(ctx, kp[rightElbo])
+      //drawPoint(ctx, kp[rightWrist])
+      //drawPoint(ctx, kp[leftHip])
+      keyposition(kp[leftHip])
+      //drawPoint(ctx, kp[rightHip])
+      keyposition(kp[rightHip])
+      //drawPoint(ctx, kp[leftKnee])
+      keyposition(kp[leftKnee])
+      //drawPoint(ctx, kp[leftAnkle])
+      keyposition(kp[leftAnkle])
+      //drawPoint(ctx, kp[rightKnee])
+      keyposition(kp[rightKnee])
+      //drawPoint(ctx, kp[rightAnkle])
+      keyposition(kp[rightAnkle])
+      set_pointData()
+
+
+
+      //判定の設定
+      hantei(ctx, kp[leftKnee], kp[rightKnee])
+
+
+
+    }
+
+
+    if (sk_point_counter % 5 === 0 && sk_point_counter > 1 && !omikuji_flg) {
+      omikuji_flg = true;
+      omikuji_go();
+      setTimeout(omikuji_gara_in, 1000);
+      setTimeout(omikuji_gara_out, 3000);
+      setTimeout(omikuji_rand_in, 5000);
+      setTimeout(omikuji_out, 8000);
+      setTimeout(omikuji_end, 9000);
+    }
+    else if (sk_point_counter % 5 !== 0) omikuji_flg = false;
+
+
+    //console.log(leftShouldery)
+    // 次フレーム
+    setTimeout(() => {
+      window.requestAnimationFrame(onFrame.bind(null, model, webcamElement))
+    }, 100)//フレーム数低いと画像数が増える
+  }
+
+  // Webカメラの開始
+  const constraints = {
+    audio: false,
+    video: true
+  }
+  navigator.mediaDevices.getUserMedia(constraints)
+    // 成功時に呼ばれる
+    .then((stream) => {
+      const video = document.querySelector('video')
+      video.srcObject = stream
+
+      // 姿勢推定出の開始
+      //net
+      //startEstimateSinglePose()
+    })
+    // エラー時に呼ばれる
+    .catch((error) => {
+      //const errorMsg = document.querySelector('#errorMsg')
+      //errorMsg.innerHTML += `<p>${error.name}</p>`
+    })
+
+  document.getElementById("webcam").addEventListener('loadeddata', (event) => {
+    startEstimateSinglePose()
+  });
+
+
+  </script>
+
+
+
+
+
+
+</html>
+
+
