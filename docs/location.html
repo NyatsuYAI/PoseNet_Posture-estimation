@@ -243,7 +243,9 @@
   }
 
   const jump_site=()=>{
-location.href = "https://nyatsuyai.github.io/PoseNet_Posture-estimation/posenet_85.html"
+    const cource = Object.fromEntries(new URLSearchParams(window.location.search)).cource.split(",");
+    let url = "https://nyatsuyai.github.io/PoseNet_Posture-estimation/posenet.html"+location.search;
+    location.href = url
   }
 
 
