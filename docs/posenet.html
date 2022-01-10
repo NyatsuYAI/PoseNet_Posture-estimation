@@ -785,6 +785,7 @@
     var formData = new FormData();
 
     formData.append("str",str);
+    formData.append("user",Object.fromEntries(new URLSearchParams(window.location.search)).user)
 
     // (2)onreadystatechangeイベントで処理の状況変化を監視
     xmlHttpRequest.onreadystatechange = function(){
