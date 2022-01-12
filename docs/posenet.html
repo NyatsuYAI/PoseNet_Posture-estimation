@@ -367,11 +367,16 @@
 
   }
 
+  const webcamElement = document.getElementById('webcam')
+  let model;
   const startEstimateSinglePose = () => {
     posenet.load()
-      .then(model => {
-        const webcamElement = document.getElementById('webcam')
-        window.requestAnimationFrame(onFrame.bind(null, model, webcamElement))
+      .then(_model => {
+        model = _model
+        //window.requestAnimationFrame(onFrame.bind(null, model, webcamElement))
+        //setInterval(function(){window.requestAnimationFrame(onFrame)},100)
+        window.requestAnimationFrame(onFrame)
+
       })
   }
 
@@ -844,7 +849,8 @@
 
   //////////////////////////////////////////////////////////////// フレーム毎に呼ばれる/////////////////////////////////////////////////////////////////////////
 
-  const onFrame = async (model, webcamElement) => {
+  //const onFrame = async (model, webcamElement) => {
+    const onFrame = async () => {
 
     //カウント
     //CountTime += 1
@@ -858,7 +864,8 @@
     shift = Math.round((vwidth - new_width) / 2);
     ratio = new_width / vwidth;
     var tensor_ep = tensor_base.expandDims();
-    var tensor = tf.image.cropAndResize(tensor_ep, [[0, shift / vwidth, 1, shift / vwidth + ratio]], [0], [webcamElement.videoHeight, new_width]).squeeze();
+    var tensor_epbs = tf.image.cropAndResize(tensor_ep, [[0, shift / vwidth, 1, shift / vwidth + ratio]], [0], [webcamElement.videoHeight, new_width]);
+    var tensor = tensor_epbs.squeeze();
 
     const predictions = await model.estimateSinglePose(tensor, {
       flipHorizontal: false
@@ -866,7 +873,7 @@
 
 
 
-    // キャンバスの準備
+    // // キャンバスの準備
     const canvas = document.getElementById('canvas')
     const [height, width] = tensor.shape
     //キャンバスのサイズ変更
@@ -900,30 +907,13 @@
 
 
       // ポイントの描画
-      //drawPoint(ctx, kp[nose])
-      //drawPoint(ctx, kp[leftEye])
-      //drawPoint(ctx, kp[rightEye])
-      //drawPoint(ctx, kp[leftEar])
-      //drawPoint(ctx, kp[rightEar])
-      //drawPoint(ctx, kp[leftShoulder])
       keyposition(kp[leftShoulder])
-      //drawPoint(ctx, kp[leftElbow])
-      //drawPoint(ctx, kp[leftWrist])
-      //drawPoint(ctx, kp[rightShoulder])
       keyposition(kp[rightShoulder])
-      //drawPoint(ctx, kp[rightElbo])
-      //drawPoint(ctx, kp[rightWrist])
-      //drawPoint(ctx, kp[leftHip])
       keyposition(kp[leftHip])
-      //drawPoint(ctx, kp[rightHip])
       keyposition(kp[rightHip])
-      //drawPoint(ctx, kp[leftKnee])
       keyposition(kp[leftKnee])
-      //drawPoint(ctx, kp[leftAnkle])
       keyposition(kp[leftAnkle])
-      //drawPoint(ctx, kp[rightKnee])
       keyposition(kp[rightKnee])
-      //drawPoint(ctx, kp[rightAnkle])
       keyposition(kp[rightAnkle])
       set_pointData()
 
@@ -934,6 +924,26 @@
 
 
 
+    }
+
+    if (false) {
+      drawPoint(ctx, kp[nose])
+      drawPoint(ctx, kp[leftEye])
+      drawPoint(ctx, kp[rightEye])
+      drawPoint(ctx, kp[leftEar])
+      drawPoint(ctx, kp[rightEar])
+      drawPoint(ctx, kp[leftShoulder])
+      drawPoint(ctx, kp[leftElbow])
+      drawPoint(ctx, kp[leftWrist])
+      drawPoint(ctx, kp[rightShoulder])
+      drawPoint(ctx, kp[rightElbo])
+      drawPoint(ctx, kp[rightWrist])
+      drawPoint(ctx, kp[leftHip])
+      drawPoint(ctx, kp[rightHip])
+      drawPoint(ctx, kp[leftKnee])
+      drawPoint(ctx, kp[leftAnkle])
+      drawPoint(ctx, kp[rightKnee])
+      drawPoint(ctx, kp[rightAnkle])
     }
 
 
@@ -950,16 +960,24 @@
 
     tensor_base.dispose()
     tensor_ep.dispose()
+    tensor_epbs.dispose()
     tensor.dispose()
 
     //console.log(leftShouldery)
-    // 次フレーム
+    //次フレーム
     if (!stop_flg) {
       setTimeout(() => {
-        window.requestAnimationFrame(onFrame.bind(null, model, webcamElement))
+        //window.requestAnimationFrame(onFrame.bind(null, model, webcamElement))
+        window.requestAnimationFrame(onFrame)
+        //window.requestAnimationFrame(atest)
       }, 100)//フレーム数低いと画像数が増える
     }
     console.log("onFrame")
+  }
+
+  async function atest() {
+    setTimeout(atest,100)
+    console.log("atest")
   }
 
 let stop_flg = 0;
@@ -998,4 +1016,3 @@ let stop_flg = 0;
 
 
 </html>
-
