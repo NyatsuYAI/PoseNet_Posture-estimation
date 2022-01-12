@@ -608,40 +608,23 @@
       document.getElementById("board").innerHTML = "ストップ";
       setTimeout("cntS_D()", 3000);
     } else {
-      cntS_D();
+      cntS_Board();
     }
   }
 
   let sec;
 
-  const cntS_D = () => {
-    $.when(
-      $("board").html("カウント開始"),
-      sec = 5,
-      setTimeout(function(){
-      $("board").html("後ろに下がって立つ");},2000),
-    ).done(function(){
-      clearInterval(timer1);
-      timer1 = setInterval("countDown()", 1000);
-    });
+  const cntS_Board{
+    document.getElementById("board").innerHTML = "カウント開始";
+    setTimeout("conS_D()",2000);
   }
-//   const cntS_D = () => {
-// $(function(){
-//     $.when(
-//       document.getElementById("board").innerHTML = "カウント開始",
-//       sec = 5,
-//       setTimeout(function(){
-//       document.getElementById("board").innerHTML = "後ろに下がって立つ";
-//      },2000)
-//   ).done(function(){
-//     setTimeout(function(){
-//     clearInterval(timer1);
-//     timer1 = setInterval("countDown()", 1000);
-//     },4000);   
-//   });
-// });
-
-//   }
+  
+  const cntS_D = () => {
+      document.getElementById("board").innerHTML = "後ろに下がって立つ";
+      sec = 5;
+    clearInterval(timer1);
+    timer1 = setInterval("countDown()", 1000);
+  }
 
   const countDown = () => {
 
