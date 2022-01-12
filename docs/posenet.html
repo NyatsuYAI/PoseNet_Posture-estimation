@@ -615,22 +615,33 @@
   let sec;
 
   const cntS_D = () => {
-$(function(){
     $.when(
-      document.getElementById("board").innerHTML = "カウント開始",
+      $("board").html("カウント開始"),
       sec = 5,
       setTimeout(function(){
-      document.getElementById("board").innerHTML = "後ろに下がって立つ";
-     },2000)
-  ).done(function(){
-    setTimeout(function(){
-    clearInterval(timer1);
-    timer1 = setInterval("countDown()", 1000);
-    },4000);   
-  });
-});
-
+      $("board").html("後ろに下がって立つ");},2000),
+    ).done(function(){
+      clearInterval(timer1);
+      timer1 = setInterval("countDown()", 1000);
+    });
   }
+//   const cntS_D = () => {
+// $(function(){
+//     $.when(
+//       document.getElementById("board").innerHTML = "カウント開始",
+//       sec = 5,
+//       setTimeout(function(){
+//       document.getElementById("board").innerHTML = "後ろに下がって立つ";
+//      },2000)
+//   ).done(function(){
+//     setTimeout(function(){
+//     clearInterval(timer1);
+//     timer1 = setInterval("countDown()", 1000);
+//     },4000);   
+//   });
+// });
+
+//   }
 
   const countDown = () => {
 
@@ -724,12 +735,12 @@ $(function(){
     let music = document.getElementById("audio");
 
 
-    if (rand === 1 && sk_point_counter > omikuji_limit) {
-      omikuji_img.src = "./img/omikuji_daikichi.png";
-      music.src = "mp3/daikiti.mp3";
-    } else if (1 < rand && rand < 6) {
+    if (1 < rand && rand < 6) {
       omikuji_img.src = "./img/omikuji_chuukichi.png";
       music.src = "mp3/chuukiti.mp3";
+    } else if (sk_point_counter > omikuji_limit) {
+      omikuji_img.src = "./img/omikuji_daikichi.png";
+      music.src = "mp3/daikiti.mp3";
     } else {
       omikuji_img.src = "./img/omikuji_kichi.png";
       music.src = "mp3/kiti.mp3";
