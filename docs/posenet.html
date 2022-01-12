@@ -617,12 +617,11 @@
   const cntS_D = () => {
 $(function(){
     $.when(
-      document.getElementById("board").innerHTML = "カウント開始";
-      sec = 5;
-    
+      document.getElementById("board").innerHTML = "カウント開始",
+      sec = 5,
       setTimeout(function(){
       document.getElementById("board").innerHTML = "後ろに下がって立つ";
-     },2000);
+     },2000)
   ).done(function(){
     setTimeout(function(){
     clearInterval(timer1);
