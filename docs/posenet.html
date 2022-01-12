@@ -850,14 +850,15 @@
     //CountTime += 1
 
     // 姿勢推論
-    let tensor = tf.browser.fromPixels(webcamElement)
+    let tensor_base = tf.browser.fromPixels(webcamElement)
     // tensor = tensor.resizeBilinear(28,28)
     let ratio = 0.66;
     var vwidth = webcamElement.videoWidth;
     let new_width = Math.min(Math.round(webcamElement.videoHeight * ratio), webcamElement.videoWidth);
     shift = Math.round((vwidth - new_width) / 2);
     ratio = new_width / vwidth;
-    tensor = tf.image.cropAndResize(tensor.expandDims(), [[0, shift / vwidth, 1, shift / vwidth + ratio]], [0], [webcamElement.videoHeight, new_width]).squeeze();
+    var tensor_ep = tensor_base.expandDims();
+    var tensor = tf.image.cropAndResize(tensor_ep, [[0, shift / vwidth, 1, shift / vwidth + ratio]], [0], [webcamElement.videoHeight, new_width]).squeeze();
 
     const predictions = await model.estimateSinglePose(tensor, {
       flipHorizontal: false
@@ -947,6 +948,9 @@
     }
     else if (sk_point_counter % 5 !== 0) omikuji_flg = false;
 
+    tensor_base.dispose()
+    tensor_ep.dispose()
+    tensor.dispose()
 
     //console.log(leftShouldery)
     // 次フレーム
@@ -989,5 +993,4 @@
 
 
 </html>
-
 
