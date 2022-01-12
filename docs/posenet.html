@@ -621,9 +621,11 @@
     $(function(){
     setTimeout(function(){
     document.getElementById("board").innerHTML = "後ろに下がって立つ";
-    clearInterval(timer1);
-    timer1 = setInterval("countDown()", 4000);
     },2000);
+    setTimeout(function(){
+    clearInterval(timer1);
+    timer1 = setInterval("countDown()", 1000);
+    },4000);    
 });
 
   }
