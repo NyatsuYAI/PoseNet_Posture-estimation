@@ -954,10 +954,15 @@
 
     //console.log(leftShouldery)
     // 次フレーム
-    setTimeout(() => {
-      window.requestAnimationFrame(onFrame.bind(null, model, webcamElement))
-    }, 100)//フレーム数低いと画像数が増える
+    if (!stop_flg) {
+      setTimeout(() => {
+        window.requestAnimationFrame(onFrame.bind(null, model, webcamElement))
+      }, 100)//フレーム数低いと画像数が増える
+    }
+    console.log("onFrame")
   }
+
+let stop_flg = 0;
 
   // Webカメラの開始
   const constraints = {
