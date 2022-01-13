@@ -620,15 +620,26 @@
   let sec;
 
   const cntS_Board = () =>{
-    document.getElementById("board").innerHTML = "カウント開始";
-    setTimeout("cntS_D()",2000);
+    
   }
   
   const cntS_D = () => {
-      document.getElementById("board").innerHTML = "後ろに下がって立つ";
-      sec = 5;
-    clearInterval(timer1);
-    timer1 = setInterval("countDown()", 1000);
+    document.getElementById("board").innerHTML = "カウント開始";
+    $(function(){
+        setTimeout(function(){
+          document.getElementById("board").innerHTML = "後ろに下がって立つ";
+        },1000);
+      });
+     $(function(){
+        setTimeout(function(){
+          sec = 5;
+          clearInterval(timer1);
+          timer1 = setInterval("countDown()", 1000);
+        },2000);
+      });
+    
+      
+    
   }
 
   const countDown = () => {
