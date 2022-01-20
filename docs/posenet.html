@@ -823,10 +823,11 @@
   const windowClose = () => {
     csv_Downlod();   
     const cource = Object.fromEntries(new URLSearchParams(window.location.search)).cource.split(",");
+    const user = Object.fromEntries(new URLSearchParams(window.location.search)).user.split(",");
     setTimeout(function(){
         if (cource.length==1) {
-//           document.getElementById("finish_img").style.display = "block";
-          location.href="https://docs.google.com/forms/d/e/1FAIpQLSfTqWOuUghtFkfdff-ivP5sZaZFLogbFOggx5aJBO7tzsC4RA/viewform?usp=sf_link";
+           if(user!="demo")document.getElementById("finish_img").style.display = "block";
+          else location.href="https://docs.google.com/forms/d/e/1FAIpQLSfTqWOuUghtFkfdff-ivP5sZaZFLogbFOggx5aJBO7tzsC4RA/viewform?usp=sf_link";
           
         }else{
           
