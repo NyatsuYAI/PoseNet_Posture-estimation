@@ -749,13 +749,19 @@
 
   const omikuji_go = () => {
     //うしろを黒にフェードイン
-
+    flg_pinpon=true;
+    flg_sesuji=true;
+    flg_agete=true;
+    flg_sagete=true;
     document.getElementById("omikuji_back").style.visibility = "visible";
     $("#omikuji_back").animate({ opacity: 1 }, { duration: 1000, easing: 'swing' })
   }
 
   const omikuji_end = () => {
-
+    flg_pinpon=false;
+    flg_sesuji=false;
+    flg_agete=false;
+    flg_sagete=false;
 
     document.getElementById("omikuji_back").style.visibility = "hidden";
     $("#omikuji_back").animate({ opacity: 0 }, { duration: 1000, easing: 'swing' })
