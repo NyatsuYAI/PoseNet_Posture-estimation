@@ -561,6 +561,9 @@
         board_target = "そのままキープ";
         img_target = "good";
         if (!flg_Round) {
+          let music = document.getElementById("audio");
+          music.src = "mp3/stop.mp3";
+          document.getElementById('audio').play();
           flg_Round = true;
           Round_img.src = "img/Round.gif?" + String(new Date().getTime());
         }
