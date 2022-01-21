@@ -558,7 +558,7 @@
         flg_timer = false;
         flg_Round = false;
       } else if (number_tmp > data_averege && data_averege > number_tmp2 && !flg_timer) {
-        board_target = "そのままキープ";
+        board_target = "ストップ";
         img_target = "good";
         if (!flg_Round) {
           let music = document.getElementById("audio");
@@ -580,7 +580,7 @@
         Round_img.src = "";
         backgroundColor_target = '';
       } else if (data_averege > number_tmp) {
-        board_target = "ゆっくり膝を曲げて";
+        board_target = "すこし下げて";
         img_target = "down";
         Round_img.src = "";
         backgroundColor_target = '#ffff00';
@@ -595,7 +595,7 @@
 
         flg_Round = false;
       } else if (data_averege < number_tmp2) {
-        board_target = "腰をあげて";
+        board_target = "すこしあげて";
         img_target = "up";
         Round_img.src = "";
         backgroundColor_target = '#ff0000';
