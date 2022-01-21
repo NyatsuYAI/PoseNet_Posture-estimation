@@ -511,6 +511,7 @@
   let flg_agete=false;
   let flg_sagete=false;
   let flg_sesuji=false;
+  let omikuji_now=false;
   
   const hantei = (ctx, kp0, kp1) => {
     if (pointData.indexOf(1, 4) === -1) {
@@ -531,6 +532,8 @@
       
     } else if (flg_interval) {
       return;
+    }else if(omikuji_now){
+    return;
     } else {
       
       data_calculat();
@@ -749,21 +752,13 @@
 
   const omikuji_go = () => {
     //うしろを黒にフェードイン
-    flg_pinpon=true;
-    flg_sesuji=true;
-    flg_agete=true;
-    flg_sagete=true;
-    flg_Round = true;
+    omikuji_now=true;
     document.getElementById("omikuji_back").style.visibility = "visible";
     $("#omikuji_back").animate({ opacity: 1 }, { duration: 1000, easing: 'swing' })
   }
 
   const omikuji_end = () => {
-    flg_pinpon=false;
-    flg_sesuji=false;
-    flg_agete=false;
-    flg_sagete=false;
-    flg_Round = false;
+    omikuji_now=false;
 
     document.getElementById("omikuji_back").style.visibility = "hidden";
     $("#omikuji_back").animate({ opacity: 0 }, { duration: 1000, easing: 'swing' })
