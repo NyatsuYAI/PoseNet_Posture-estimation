@@ -508,9 +508,9 @@
     }
   }
 
-  let fig_agete=false;
-  let fig_sagete=false;
-  let fig_sesuji=false;
+  let flg_agete=false;
+  let flg_sagete=false;
+  let flg_sesuji=false;
   
   const hantei = (ctx, kp0, kp1) => {
     if (pointData.indexOf(1, 4) === -1) {
@@ -570,7 +570,7 @@
         start_time = now_time;
         
         //背筋が悪いときに音声
-        if(!fig_sesuji){
+        if(!flg_sesuji){
         flg_sesuji=true;
            let music = document.getElementById("audio");
           music.src = "mp3/sesuji.mp3";
@@ -579,8 +579,8 @@
         
         flg_timer = false;
         flg_Round = false;
-        fig_agete=false;
-        fig_sagete=false;
+        flg_agete=false;
+        flg_sagete=false;
         
       } else if (number_tmp > data_averege && data_averege > number_tmp2 && !flg_timer) {
         board_target = "ストップ";
@@ -597,8 +597,8 @@
         
         backgroundColor_target = '#33ff00';
         
-        fig_sagete=false;
-        fig_agete=false;
+        flg_sagete=false;
+        flg_agete=false;
         
       } else if (number_tmp > data_averege && data_averege > number_tmp2 && flg_timer) {
         //成功の音声メッセージ
@@ -621,8 +621,8 @@
         backgroundColor_target = '#ffff00';
         start_time = now_time;
         //下げての音声メッセージ
-        if(!fig_sagete){
-        fig_sagete=true;
+        if(!flg_sagete){
+        flg_sagete=true;
            let music = document.getElementById("audio");
           music.src = "mp3/sagete.mp3";
           document.getElementById('audio').play();
@@ -637,7 +637,7 @@
 
         flg_Round = false;
         flg_sesuji=false;
-        fig_agete=false;
+        flg_agete=false;
       } else if (data_averege < number_tmp2) {
         board_target = "ゆっくり腰をあげて";
         img_target = "up";
@@ -645,8 +645,8 @@
         backgroundColor_target = '#ff0000';
         start_time = now_time;
         //あげての音声メッセージ
-        if(!fig_agete){
-        fig_agete=true;
+        if(!flg_agete){
+        flg_agete=true;
            let music = document.getElementById("audio");
           music.src = "mp3/agete.mp3";
           document.getElementById('audio').play();
@@ -655,7 +655,7 @@
         flg_timer = false;
         flg_Round = false;
         flg_sesuji=false;
-        fig_sagete=false;
+        flg_sagete=false;
       } else { return }
       document.getElementById("board").innerHTML = board_target;
       picPoint(ctx, kp0, img_target);
