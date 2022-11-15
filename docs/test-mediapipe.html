@@ -1,180 +1,188 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <title>mediapipe pose</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=9">
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d/control_utils_3d.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d/control_utils_3d.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
 
 </head>
+
 <body>
-<div class="container">
-    <video class="input_video" style="display: none"></video>
-    <canvas class="output_canvas" width="1280px" height="720px"></canvas>
-    <div class="landmark-grid-container"></div>
-    <div id="angle"></div>
-</div>
+    <div class="container">
+        <video class="input_video" style="display: none"></video>
+        <canvas class="output_canvas" width="1280px" height="720px"></canvas>
+        <div class="landmark-grid-container"></div>
+        <div id="angle"></div>
+    </div>
 
-<script type="module">
-    const videoElement = document.getElementsByClassName('input_video')[0];
-    const canvasElement = document.getElementsByClassName('output_canvas')[0];
-    const canvasCtx = canvasElement.getContext("2d");
-    const angleElement = document.getElementById("angle");
-    const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
-    const grid = new LandmarkGrid(landmarkContainer,{
-        connectionColor: 0xCCCCCC,
-        definedColors:
-            [{name: 'LEFT', value: 0xffa500}, {name: 'RIGHT', value: 0x00ffff}],
-        range: 2,
-        fitToGrid: true,
-        labelSuffix: 'm',
-        landmarkSize: 2,
-        numCellsPerAxis: 4,
-        showHidden: false,
-        centered: true,
-    });
+    <script type="module">
+        const videoElement = document.getElementsByClassName('input_video')[0];
+        const canvasElement = document.getElementsByClassName('output_canvas')[0];
+        const canvasCtx = canvasElement.getContext("2d");
+        const angleElement = document.getElementById("angle");
+        const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
+        const grid = new LandmarkGrid(landmarkContainer, {
+            connectionColor: 0xCCCCCC,
+            definedColors:
+                [{ name: 'LEFT', value: 0xffa500 }, { name: 'RIGHT', value: 0x00ffff }],
+            range: 2,
+            fitToGrid: true,
+            labelSuffix: 'm',
+            landmarkSize: 2,
+            numCellsPerAxis: 4,
+            showHidden: false,
+            centered: true,
+        });
 
-    let img1 = new Image();
-    img1.src = './animalface_neko.png';
+        let img1 = new Image();
+        img1.src = './animalface_neko.png';
 
-    //取得したい角度のポイント
-    //もちろん真ん中が原点となるポイントになるように書いてね
-    //関節スコアの参照 -> https://google.github.io/mediapipe/solutions/pose.html#pose-landmark-model-blazepose-ghum-3d
-    const needVector = {
-        // "rightUde":[12,14,16],
-        // "leftUde":[11,13,15],
-        "rightKnee":[24,26,28],
-        "leftKnee":[23,25,27],
-    };
-
-
-    //角度の計算
-    function calcAngle(pose1,pose2,pose3){
-        // please learn here -> https://npm.runkit.com/%40mediapipe%2Fpose
-
-        const vector1 = {
-            x:Math.round((pose1.x-pose2.x)*1000000)/1000000,
-            y:Math.round((pose1.y-pose2.y)*1000000)/1000000,
-            z:Math.round((pose1.z-pose2.z)*1000000)/1000000,
-            visibility:Math.min(pose1.visibility,pose2.visibility),
-        }
-        const vector2 = {
-            x:Math.round((pose3.x-pose2.x)*1000000)/1000000,
-            y:Math.round((pose3.y-pose2.y)*1000000)/1000000,
-            z:Math.round((pose3.z-pose2.z)*1000000)/1000000,
-            visibility:Math.min(pose3.visibility,pose2.visibility),
-        }
-        // console.log("arrived vector",vector1,vector2)
-        return {
-            angle: Math.acos((vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z) / ( Math.sqrt(vector1.x**2 + vector1.y**2 + vector1.z**2) * Math.sqrt(vector2.x**2 + vector2.y**2 + vector2.z**2))) * 180 / Math.PI,
-            // visibility: Math.min(vector1.visibility, vector2.visibility),
-            //"vector1":vector1,
-            //"vector2":vector2,
-
+        //取得したい角度のポイント
+        //もちろん真ん中が原点となるポイントになるように書いてね
+        //関節スコアの参照 -> https://google.github.io/mediapipe/solutions/pose.html#pose-landmark-model-blazepose-ghum-3d
+        const needVector = {
+            // "rightUde":[12,14,16],
+            // "leftUde":[11,13,15],
+            "rightKnee": [24, 26, 28],
+            "leftKnee": [23, 25, 27],
         };
 
-    }
 
-    function facehide(canvasElement,img,nose,left_ear,right_ear){
-        let width = canvasElement.width*Math.abs(left_ear.x-right_ear.x)*3;
-        let height = width*Math.round(img.height/img.width);
-        let x = Math.round(nose.x*canvasElement.width)-(width/2);
-        let y = Math.round(nose.y*canvasElement.height)-(height/2);
+        //角度の計算
+        function calcAngle(pose1, pose2, pose3) {
+            // please learn here -> https://npm.runkit.com/%40mediapipe%2Fpose
 
-        return {
-            'x':x,
-            'y':y,
-            'width':width,
-            'height':height,
-        };
-    }
-
-
-
-    function onResults(results) {
-        if (!results.poseLandmarks) {
-            grid.updateLandmarks([]);
-            return;
-        }
-
-        canvasCtx.save();
-        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        // canvasCtx.drawImage(results.segmentationMask, 0, 0,
-        //     canvasElement.width, canvasElement.height);
-
-        // Only overwrite existing pixels.
-        canvasCtx.globalCompositeOperation = 'source-in';
-        canvasCtx.fillStyle = '#00FF00';
-        canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
-
-
-        // Only overwrite missing pixels.
-        canvasCtx.globalCompositeOperation = 'destination-atop';
-        canvasCtx.drawImage(
-            results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-        canvasCtx.globalCompositeOperation = 'source-over';
-        drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
-            {color: '#00FF00', lineWidth: 2});
-        drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_NEUTRAL)
-                .map(index => results.poseLandmarks[index]),
-            {color: '#00FF00', lineWidth: 3});
-        drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_LEFT)
-                .map(index => results.poseLandmarks[index]),
-            {color: '#FF0000', lineWidth: 3});
-        drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_RIGHT)
-                .map(index => results.poseLandmarks[index]),
-            {color: '#0000FF', lineWidth: 3});
-
-        const faceSize = facehide(canvasElement, img1, results.poseLandmarks[POSE_LANDMARKS.NOSE], results.poseLandmarks[POSE_LANDMARKS.LEFT_EAR], results.poseLandmarks[POSE_LANDMARKS.RIGHT_EAR]);
-
-        canvasCtx.drawImage(
-            img1,faceSize.x,faceSize.y,faceSize.width,faceSize.height);
-
-        canvasCtx.restore();
-
-        if(results.poseWorldLandmarks){
-            const resultAngle ={};
-            for (let key in needVector){
-                resultAngle[key] = calcAngle(results.poseWorldLandmarks[needVector[key][0]],results.poseWorldLandmarks[needVector[key][1]],results.poseWorldLandmarks[needVector[key][2]]);
+            const vector1 = {
+                x: Math.round((pose1.x - pose2.x) * 1000000) / 1000000,
+                y: Math.round((pose1.y - pose2.y) * 1000000) / 1000000,
+                z: Math.round((pose1.z - pose2.z) * 1000000) / 1000000,
+                visibility: Math.min(pose1.visibility, pose2.visibility),
             }
-            console.log("rightKnee is ",resultAngle.rightKnee)
-            console.log("leftKnee is ",resultAngle.leftKnee)
-            angleElement.innerHTML = JSON.stringify(resultAngle);
+            const vector2 = {
+                x: Math.round((pose3.x - pose2.x) * 1000000) / 1000000,
+                y: Math.round((pose3.y - pose2.y) * 1000000) / 1000000,
+                z: Math.round((pose3.z - pose2.z) * 1000000) / 1000000,
+                visibility: Math.min(pose3.visibility, pose2.visibility),
+            }
+            // console.log("arrived vector",vector1,vector2)
+            return {
+                angle: Math.acos((vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z) / (Math.sqrt(vector1.x ** 2 + vector1.y ** 2 + vector1.z ** 2) * Math.sqrt(vector2.x ** 2 + vector2.y ** 2 + vector2.z ** 2))) * 180 / Math.PI,
+                // visibility: Math.min(vector1.visibility, vector2.visibility),
+                //"vector1":vector1,
+                //"vector2":vector2,
+
+            };
+
         }
 
-        grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
-            {list: Object.values(POSE_LANDMARKS_LEFT), color: 'LEFT'},
-            {list: Object.values(POSE_LANDMARKS_RIGHT), color: 'RIGHT'}
-        ]);
-    }
+        function facehide(canvasElement, img, nose, left_ear, right_ear) {
+            let width = canvasElement.width * Math.abs(left_ear.x - right_ear.x) * 3;
+            let height = width * Math.round(img.height / img.width);
+            let x = Math.round(nose.x * canvasElement.width) - (width / 2);
+            let y = Math.round(nose.y * canvasElement.height) - (height / 2);
 
-    const pose = new Pose({locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
-        }});
-    pose.setOptions({
-        modelComplexity: 1,
-        smoothLandmarks: true,
-        enableSegmentation: true,
-        smoothSegmentation: true,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
-    });
-    pose.onResults(onResults);
+            return {
+                'x': x,
+                'y': y,
+                'width': width,
+                'height': height,
+            };
+        }
 
-    const camera = new Camera(videoElement, {
-        onFrame: async () => {
-            await pose.send({image: videoElement});
-        },
-        width: 1280,
-        height: 720
-    });
-    camera.start();
-</script>
+
+
+        function onResults(results) {
+            if (!results.poseLandmarks) {
+                grid.updateLandmarks([]);
+                return;
+            }
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            // canvasCtx.drawImage(results.segmentationMask, 0, 0,
+            //     canvasElement.width, canvasElement.height);
+
+            // Only overwrite existing pixels.
+            canvasCtx.globalCompositeOperation = 'source-in';
+            canvasCtx.fillStyle = '#00FF00';
+            canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+
+
+            // Only overwrite missing pixels.
+            canvasCtx.globalCompositeOperation = 'destination-atop';
+            canvasCtx.drawImage(
+                results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            canvasCtx.globalCompositeOperation = 'source-over';
+            drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
+                { color: '#00FF00', lineWidth: 2 });
+            drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_NEUTRAL)
+                .map(index => results.poseLandmarks[index]),
+                { color: '#00FF00', lineWidth: 3 });
+            drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_LEFT)
+                .map(index => results.poseLandmarks[index]),
+                { color: '#FF0000', lineWidth: 3 });
+            drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_RIGHT)
+                .map(index => results.poseLandmarks[index]),
+                { color: '#0000FF', lineWidth: 3 });
+
+            const faceSize = facehide(canvasElement, img1, results.poseLandmarks[POSE_LANDMARKS.NOSE], results.poseLandmarks[POSE_LANDMARKS.LEFT_EAR], results.poseLandmarks[POSE_LANDMARKS.RIGHT_EAR]);
+
+            canvasCtx.drawImage(
+                img1, faceSize.x, faceSize.y, faceSize.width, faceSize.height);
+
+            canvasCtx.restore();
+
+            if (results.poseWorldLandmarks) {
+                const resultAngle = {};
+                for (let key in needVector) {
+                    resultAngle[key] = calcAngle(results.poseWorldLandmarks[needVector[key][0]], results.poseWorldLandmarks[needVector[key][1]], results.poseWorldLandmarks[needVector[key][2]]);
+                }
+                console.log("rightKnee is ", resultAngle.rightKnee)
+                console.log("leftKnee is ", resultAngle.leftKnee)
+                angleElement.innerHTML = JSON.stringify(resultAngle);
+            }
+
+            grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
+                { list: Object.values(POSE_LANDMARKS_LEFT), color: 'LEFT' },
+                { list: Object.values(POSE_LANDMARKS_RIGHT), color: 'RIGHT' }
+            ]);
+        }
+
+        const pose = new Pose({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+            }
+        });
+        pose.setOptions({
+            modelComplexity: 1,
+            smoothLandmarks: true,
+            enableSegmentation: true,
+            smoothSegmentation: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        pose.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await pose.send({ image: videoElement });
+            },
+            width: 1280,
+            height: 720
+        });
+        camera.start();
+    </script>
 </body>
+
 </html>
