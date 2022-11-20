@@ -23,6 +23,7 @@
         <canvas class="output_canvas" width="1280px" height="720px"></canvas>
         <div class="landmark-grid-container"></div>
         <div id="angle"></div>
+        <button id="fin">Fin</button>
     </div>
 
     <script type="module">
@@ -74,13 +75,10 @@
                 z: Math.round((pose3.z - pose2.z) * 1000000) / 1000000,
                 visibility: Math.min(pose3.visibility, pose2.visibility),
             }
-            // console.log("arrived vector",vector1,vector2)
+
             return {
                 angle: Math.acos((vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z) / (Math.sqrt(vector1.x ** 2 + vector1.y ** 2 + vector1.z ** 2) * Math.sqrt(vector2.x ** 2 + vector2.y ** 2 + vector2.z ** 2))) * 180 / Math.PI,
-                // visibility: Math.min(vector1.visibility, vector2.visibility),
-                //"vector1":vector1,
-                //"vector2":vector2,
-
+                visibility: Math.min(vector1.visibility, vector2.visibility),
             };
 
         }
@@ -98,6 +96,104 @@
                 'height': height,
             };
         }
+
+        //11/15
+        const cells = []
+        const items = 5;
+        function cellMake() {
+            //タイムスタンプと共に角度とどの信頼度をセルにする
+            const cellTag = {
+                0: "時刻（日本）",
+                1: "leftAngle",
+                2: "rightAngle",
+                3: "Angle",
+                4: "visibility",
+            };
+            cells.push(cellTag);
+
+        }
+
+        function cellUpdate(leftAngle, rightAngle) {
+            //cellMakeにデータをぶち込む
+            const timeStamp = () => {
+                const today = new Date();
+                return today.getTime()
+            }
+
+            const cell = {
+                0: timeStamp(),
+                1: leftAngle.angle,
+                2: rightAngle.angle,
+                3: (leftAngle.angle + rightAngle.angle) / 2,
+                4: Math.min(leftAngle.visibility, rightAngle.visibility)
+            }
+            cells.push(cell);
+
+        }
+
+        function cellDownload(items, cells) {
+            //cellをローカルに保存
+            let str = "";
+            console.log(cells)
+            for (let i = 0; i < cells.length; i++) {
+                let nowCell = cells[i];
+                for (let j = 0; j < items; j++) {
+                    str += nowCell[j];
+                    if (j === (items - 1)) {
+                        str += "\n";
+                    } else {
+                        str += ",";
+                    }
+                }
+            }
+            let blob = new Blob([str], { type: "text/csv" }); //配列に上記の文字列(str)を設定
+            let link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "data.csv";
+            link.click();
+        }
+
+        function cellDrive(items,cells){
+            let str = "";
+            for (let i = 0; i < cells.length; i++) {
+                let nowCell = cells[i];
+                for (let j = 0; j < items; j++) {
+                    str += nowCell[j];
+                    if (j === (items - 1)) {
+                        str += "\n";
+                    } else {
+                        str += ",";
+                    }
+                }
+            }
+            
+            // (1)XMLHttpRequestオブジェクトを作成
+            var xmlHttpRequest = new XMLHttpRequest();
+            var formData = new FormData();
+
+            formData.append("str", str);
+            formData.append("user", Object.fromEntries(new URLSearchParams(window.location.search)).user)
+
+            // (2)onreadystatechangeイベントで処理の状況変化を監視
+            xmlHttpRequest.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log("success!");
+                }
+            }
+
+            // (3)HTTPのGETメソッドとアクセスする場所を指定
+            xmlHttpRequest.open('POST', 'https://script.google.com/macros/s/AKfycbxPTY_xUsCdcA_LKAuAkDosUR1fw3K-IIAQxtg-HqcHS07I-n-eotfWiNwrpIfr6Tfj/exec', true);
+
+            // (4)HTTPリクエストを送信
+            xmlHttpRequest.send(formData);
+        }
+
+        const finButton = document.getElementById('fin');
+        finButton.addEventListener('click', function () {
+            cellDrive(items, cells);
+            const user = Object.fromEntries(new URLSearchParams(window.location.search)).user.split(",");
+        });
+        //右足、左足、両方の平均とカラートラッキングのグラフの比較をする
 
 
 
@@ -148,9 +244,11 @@
                 for (let key in needVector) {
                     resultAngle[key] = calcAngle(results.poseWorldLandmarks[needVector[key][0]], results.poseWorldLandmarks[needVector[key][1]], results.poseWorldLandmarks[needVector[key][2]]);
                 }
-                console.log("rightKnee is ", resultAngle.rightKnee)
-                console.log("leftKnee is ", resultAngle.leftKnee)
+                // console.log("rightKnee is ", resultAngle.rightKnee)
+                // console.log("leftKnee is ", resultAngle.leftKnee)
                 angleElement.innerHTML = JSON.stringify(resultAngle);
+
+                cellUpdate(resultAngle.leftKnee, resultAngle.rightKnee);
             }
 
             grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
@@ -182,6 +280,8 @@
             height: 720
         });
         camera.start();
+        cellMake();
+
     </script>
 </body>
 
