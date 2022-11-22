@@ -199,13 +199,14 @@
             xmlHttpRequest.send(formData);
         }
 
+        //ボタンを押したらCSV出力
         const finButton = document.getElementById('fin');
         finButton.addEventListener('click', function () {
-            cellDrive(items, cells);
+            cellDrive(items, cells);//Driveにアップロード
+            // cellDownload(items,cells);//localにダウンロード
             const user = Object.fromEntries(new URLSearchParams(window.location.search)).user.split(",");
             console.log(user);
         });
-        //右足、左足、両方の平均とカラートラッキングのグラフの比較をする
 
 
 
