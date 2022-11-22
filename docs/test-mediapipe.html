@@ -107,7 +107,8 @@
                 1: "leftAngle",
                 2: "rightAngle",
                 3: "Angle",
-                4: "visibility",
+                4: "visibility(left)",
+                5: "visibility(right)",
             };
             cells.push(cellTag);
 
@@ -125,7 +126,8 @@
                 1: leftAngle.angle,
                 2: rightAngle.angle,
                 3: (leftAngle.angle + rightAngle.angle) / 2,
-                4: Math.min(leftAngle.visibility, rightAngle.visibility)
+                4: leftAngle.visibility,
+                5: rightAngle.visibility,
             }
             cells.push(cell);
 
@@ -192,6 +194,7 @@
         finButton.addEventListener('click', function () {
             cellDrive(items, cells);
             const user = Object.fromEntries(new URLSearchParams(window.location.search)).user.split(",");
+            console.log(user);
         });
         //右足、左足、両方の平均とカラートラッキングのグラフの比較をする
 
