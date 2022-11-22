@@ -119,7 +119,15 @@
             //cellMakeにデータをぶち込む
             const timeStamp = () => {
                 const today = new Date();
-                return today.getTime()
+                const yy = today.getFullYear();
+                const mo = ('00'+(today.getMonth()+1)).slice(-2);
+                const dd = ('00' +today.getDate()).slice(-2);
+                const hh = ('00'+today.getHours()).slice(-2);
+                const mi = ('00'+today.getMinutes()).slice(-2);
+                const ss = ('00'+today.getSeconds()).slice(-2);
+                const ms = ('00'+today.getMilliseconds()).slice(-2);
+                
+                return yy + mo + dd + hh + mi + ss + ms;
             }
 
             const cell = {
