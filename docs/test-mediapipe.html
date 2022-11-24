@@ -125,7 +125,7 @@
                 const hh = ('00'+today.getHours()).slice(-2);
                 const mi = ('00'+today.getMinutes()).slice(-2);
                 const ss = ('00'+today.getSeconds()).slice(-2);
-                const ms = ('00'+today.getMilliseconds()).slice(-2);
+                const ms = ('000'+today.getMilliseconds()).slice(-3);
 
                 return yy + mo + dd + hh + mi + ss + ms;
             }
