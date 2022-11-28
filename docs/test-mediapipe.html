@@ -83,6 +83,36 @@
 
         }
 
+        function calcHipLine(canvasElement, angle, hip, knee, ankle) {
+            const vector1 = {
+                x: Math.round((hip.x - knee.x) * 1000000) / 1000000,
+                y: Math.round((hip.y - knee.y) * 1000000) / 1000000,
+                z: Math.round((hip.z - knee.z) * 1000000) / 1000000,
+                visibility: Math.min(hip.visibility, knee.visibility),
+            }
+            const vector2 = {
+                x: Math.round((ankle.x - knee.x) * 1000000) / 1000000,
+                y: Math.round((ankle.y - knee.y) * 1000000) / 1000000,
+                z: Math.round((ankle.z - knee.z) * 1000000) / 1000000,
+                visibility: Math.min(ankle.visibility, knee.visibility),
+            }
+            const vector3 = {
+                x: Math.round((ankle.x - hip.x) * 1000000) / 1000000,
+                y: Math.round((ankle.y - hip.y) * 1000000) / 1000000,
+                z: Math.round((ankle.z - hip.z) * 1000000) / 1000000,
+                visibility: Math.min(ankle.visibility, hip.visibility),
+            }
+
+            let vector1_length = Math.sqrt(vector1.x ** 2 + vector1.y ** 2 + vector1.z ** 2);
+            let vector2_length = Math.sqrt(vector2.x ** 2 + vector2.y ** 2 + vector2.z ** 2);
+            let vector3_length = Math.sqrt(vector3.x ** 2 + vector3.y ** 2 + vector3.z ** 2);
+            let needLengthVector3 = Math.sqrt((vector1.x ** 2 + vector1.y ** 2 + vector1.z ** 2 + vector2.x ** 2 + vector2.y ** 2 + vector2.z ** 2) - (2 * vector1_length * vector2_length) * Math.cos(angle / 180 * Math.PI));
+
+            let needLenght = (ankle.y - hip.y) * (needLengthVector3 / vector3_length);
+            return (ankle.y - needLenght) * canvasElement.height;
+
+        }
+
         function facehide(canvasElement, img, nose, left_ear, right_ear) {
             let width = canvasElement.width * Math.abs(left_ear.x - right_ear.x) * 3;
             let height = width * Math.round(img.height / img.width);
@@ -119,13 +149,13 @@
             //cellMakeにデータをぶち込む
             const timeStamp = () => {
                 const today = new Date();
-                const yy = ('0000'+today.getFullYear()).slice(-4);
-                const mo = ('00'+(today.getMonth()+1)).slice(-2);
-                const dd = ('00' +today.getDate()).slice(-2);
-                const hh = ('00'+today.getHours()).slice(-2);
-                const mi = ('00'+today.getMinutes()).slice(-2);
-                const ss = ('00'+today.getSeconds()).slice(-2);
-                const ms = ('000'+today.getMilliseconds()).slice(-3);
+                const yy = ('0000' + today.getFullYear()).slice(-4);
+                const mo = ('00' + (today.getMonth() + 1)).slice(-2);
+                const dd = ('00' + today.getDate()).slice(-2);
+                const hh = ('00' + today.getHours()).slice(-2);
+                const mi = ('00' + today.getMinutes()).slice(-2);
+                const ss = ('00' + today.getSeconds()).slice(-2);
+                const ms = ('000' + today.getMilliseconds()).slice(-3);
 
                 return yy + mo + dd + hh + mi + ss + ms;
             }
@@ -145,7 +175,6 @@
         function cellDownload(items, cells) {
             //cellをローカルに保存
             let str = "";
-            console.log(cells)
             for (let i = 0; i < cells.length; i++) {
                 let nowCell = cells[i];
                 for (let j = 0; j < items; j++) {
@@ -164,7 +193,7 @@
             link.click();
         }
 
-        function cellDrive(items,cells){
+        function cellDrive(items, cells) {
             let str = "";
             for (let i = 0; i < cells.length; i++) {
                 let nowCell = cells[i];
@@ -177,7 +206,7 @@
                     }
                 }
             }
-            
+
             // (1)XMLHttpRequestオブジェクトを作成
             var xmlHttpRequest = new XMLHttpRequest();
             var formData = new FormData();
@@ -187,7 +216,7 @@
 
             // (2)onreadystatechangeイベントで処理の状況変化を監視
             xmlHttpRequest.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
+                if (this.readyState === 4 && this.status === 200) {
                     console.log("success!");
                 }
             }
@@ -233,6 +262,7 @@
                 results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             canvasCtx.globalCompositeOperation = 'source-over';
+            // console.log(results.poseLandmarks)
             drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
                 { color: '#00FF00', lineWidth: 2 });
             drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_NEUTRAL)
@@ -250,6 +280,16 @@
             canvasCtx.drawImage(
                 img1, faceSize.x, faceSize.y, faceSize.width, faceSize.height);
 
+            let hipLine = (calcHipLine(canvasElement, 120, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]) + calcHipLine(canvasElement, 120, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE])) / 2;
+
+            if (hipLine && 0 < hipLine && hipLine < canvasElement.height) {
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(0, hipLine);
+                canvasCtx.lineTo(canvasElement.width, hipLine);
+                canvasCtx.lineWidth = 5;
+                canvasCtx.strokeStyle = 'Red';
+                canvasCtx.stroke();
+            }
             canvasCtx.restore();
 
             if (results.poseWorldLandmarks) {
