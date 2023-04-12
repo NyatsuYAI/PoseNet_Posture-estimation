@@ -15,22 +15,52 @@
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
 
+    <div id="status"
+        style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px;">
+        start
+    </div>
+
+
 </head>
 
 <body>
     <div class="container">
-        <video class="input_video" style="display: none"></video>
-        <canvas class="output_canvas" width="1280px" height="720px"></canvas>
-        <div class="landmark-grid-container"></div>
-        <div id="angle"></div>
+        <div id="counter"></div>
+        <div>
+            <p id="log"></p><label for="angle">角度を選択してください</label>
+            <select id="angle">
+                <option value='80' selected>80</option>
+                <option value='90'>90</option>
+                <option value='100'>100</option>
+                <option value='110'>110</option>
+                <option value='120'>120</option>
+                <option value='130'>130</option>
+            </select>
+            <label for="angle">遊び角度を選択してください</label>
+            <select id="margin">
+                <option value='0'>0</option>
+                <option value='5'>5</option>
+                <option value='10'>10</option>
+                <option value='15'>15</option>
+                <option value='20' selected>20</option>
+                <option value='30'>30</option>
+            </select>
+        </div>
+
         <button id="fin">Fin</button>
+        <video class="input_video" style="display: none"></video>
+        <canvas class="output_canvas"></canvas>
+
+        <div class="landmark-grid-container" style="display:none"></div>
+
+
     </div>
 
     <script type="module">
         const videoElement = document.getElementsByClassName('input_video')[0];
         const canvasElement = document.getElementsByClassName('output_canvas')[0];
         const canvasCtx = canvasElement.getContext("2d");
-        const angleElement = document.getElementById("angle");
+
         const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
         const grid = new LandmarkGrid(landmarkContainer, {
             connectionColor: 0xCCCCCC,
@@ -45,12 +75,63 @@
             centered: true,
         });
 
+        let ut = navigator.userAgent;
+
+
+        if (ut.indexOf('iPhone') > 0 || ut.indexOf('iPod') > 0 || ut.indexOf('Android') > 0 && ut.indexOf('Mobile') > 0) {
+            document.getElementById("log").textContent = ("iPhone");
+            canvasElement.setAttribute("width", window.outerWidth);
+            canvasElement.setAttribute("height", window.outerHeight);
+        } else if (ut.indexOf('iPad') > 0 || ut.indexOf('Android') > 0) {
+            document.getElementById("log").textContent = ("Tablet");
+            canvasElement.setAttribute("width", window.outerWidth);
+            canvasElement.setAttribute("height", window.outerHeight);
+        } else {
+            document.getElementById("log").textContent = ("Personal Computer");
+            canvasElement.setAttribute("width", window.outerWidth);
+            canvasElement.setAttribute("height", window.outerHeight);
+        }
+
+        function resizeWindow() {
+            if (ut.indexOf('iPhone') > 0 || ut.indexOf('iPod') > 0 || ut.indexOf('Android') > 0 && ut.indexOf('Mobile') > 0) {
+                canvasElement.style.width = '100vw';
+            } else if (ut.indexOf('iPad') > 0 || ut.indexOf('Android') > 0) {
+                canvasElement.style.width = '100vw';
+            } else {
+                canvasElement.style.width = '100vw';
+            }
+        }
+
+        /**
+         * Get the URL parameter value
+         */
+        const paramDataSet = {
+            'maxStrokeParam': 0.9,
+            'humanJudge': 0.7,
+            'shiseiPer': 0.85,
+            'shiseiVisibility': 0.7,
+        }
+        function getParam() {
+            // URLを取得
+            let url = new URL(window.location.href);
+            // URLSearchParamsオブジェクトを取得
+            let params = url.searchParams;
+
+            for (let item in paramDataSet) {
+                let result = params.get(item);
+                if (result) paramDataSet[item] = Number(result);
+            }
+            console.log(paramDataSet);
+            return;
+        }
+
         let img1 = new Image();
         img1.src = './animalface_neko.png';
 
-        //取得したい角度のポイント
-        //もちろん真ん中が原点となるポイントになるように書いてね
-        //関節スコアの参照 -> https://google.github.io/mediapipe/solutions/pose.html#pose-landmark-model-blazepose-ghum-3d
+        /**取得したい角度のポイント
+         * もちろん真ん中が原点となるポイントになるように書いてね
+         * 関節スコアの参照 -> https://google.github.io/mediapipe/solutions/pose.html#pose-landmark-model-blazepose-ghum-3d
+        */
         const needVector = {
             // "rightUde":[12,14,16],
             // "leftUde":[11,13,15],
@@ -58,8 +139,36 @@
             "leftKnee": [23, 25, 27],
         };
 
+        /**角度の選択*/
+        let selectedAngle = 80;
+        let selectedMargin = 20;
 
-        //角度の計算
+        const stockData = {
+            "perLeft": 0,
+            "perRight": 0,
+            "hipLineMin": 0,
+            "hipLineMax": 0,
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            let angle = document.getElementById('angle');
+            let margin = document.getElementById('margin');
+            angle.addEventListener('change', function () {
+                selectedAngle = Number(angle.value);
+                console.log(selectedAngle);
+            }, false);
+            margin.addEventListener('change', function () {
+                selectedMargin = Number(margin.value);
+                console.log(selectedMargin);
+            }, false);
+            stockData["perLeft"] = 0;
+            stockData["perRight"] = 0;
+            stockData["hipLineMin"] = 0;
+            stockData["hipLineMax"] = 0;
+        }, false);
+
+
+        /**角度の計算*/
         function calcAngle(pose1, pose2, pose3) {
             // please learn here -> https://npm.runkit.com/%40mediapipe%2Fpose
 
@@ -83,7 +192,15 @@
 
         }
 
-        function calcHipLine(canvasElement, angle, hip, knee, ankle) {
+        /**角度の判定*/
+        function checkAngle(angle, margin, pose1, pose2, pose3) {
+            let nowAngle = calcAngle(pose1, pose2, pose3);
+            if ((angle - margin) < nowAngle && nowAngle < (angle + margin)) return true;
+            else return false;
+        }
+
+        /**３つの点の距離・信頼度の計算*/
+        function calcTriangleLength(hip, knee, ankle) {
             const vector1 = {
                 x: Math.round((hip.x - knee.x) * 1000000) / 1000000,
                 y: Math.round((hip.y - knee.y) * 1000000) / 1000000,
@@ -106,13 +223,36 @@
             let vector1_length = Math.sqrt(vector1.x ** 2 + vector1.y ** 2 + vector1.z ** 2);
             let vector2_length = Math.sqrt(vector2.x ** 2 + vector2.y ** 2 + vector2.z ** 2);
             let vector3_length = Math.sqrt(vector3.x ** 2 + vector3.y ** 2 + vector3.z ** 2);
-            let needLengthVector3 = Math.sqrt((vector1.x ** 2 + vector1.y ** 2 + vector1.z ** 2 + vector2.x ** 2 + vector2.y ** 2 + vector2.z ** 2) - (2 * vector1_length * vector2_length) * Math.cos(angle / 180 * Math.PI));
 
-            let needLenght = (ankle.y - hip.y) * (needLengthVector3 / vector3_length);
-            return (ankle.y - needLenght) * canvasElement.height;
+            let needLengthVector3MarginMin = Math.sqrt(vector1_length ** 2 + vector2_length ** 2 - (2 * vector1_length * vector2_length) * Math.cos((selectedAngle - selectedMargin) / 180 * Math.PI));
+            let needLengthVector3MarginMax = Math.sqrt(vector1_length ** 2 + vector2_length ** 2 - (2 * vector1_length * vector2_length) * Math.cos((selectedAngle + selectedMargin) / 180 * Math.PI));
+            let needLengthVector3 = Math.sqrt(vector1_length ** 2 + vector2_length ** 2 - ((2 * vector1_length * vector2_length) * Math.cos(selectedAngle / 180 * Math.PI)));
+            return {
+                'per': needLengthVector3 / vector3_length,
+                'marginMinPer': needLengthVector3MarginMin / vector3_length,
+                'marginMaxPer': needLengthVector3MarginMax / vector3_length,
+                'visibility': Math.min(vector1.visibility, vector2.visibility, vector3.visibility),
+            };
 
         }
 
+        /**姿勢の判定
+         * ２次元と３次元で比較したい
+        */
+
+        function calcShisei(shoulder, hip) {
+            const vector = {
+                x: Math.round((shoulder.x - hip.x) * 1000000) / 1000000,
+                y: Math.round((shoulder.y - hip.y) * 1000000) / 1000000,
+                z: Math.round((shoulder.z - hip.z) * 1000000) / 1000000,
+                visibility: Math.min(shoulder.visibility, hip.visibility),
+            }
+            return {
+                'per': Math.sqrt(vector.x ** 2 + vector.y ** 2) / Math.sqrt(vector.x ** 2 + vector.y ** 2 + vector.z ** 2),
+                'visibility': vector.visibility,
+            }
+        }
+        /**顔隠す猫ちゃん*/
         function facehide(canvasElement, img, nose, left_ear, right_ear) {
             let width = canvasElement.width * Math.abs(left_ear.x - right_ear.x) * 3;
             let height = width * Math.round(img.height / img.width);
@@ -126,26 +266,99 @@
                 'height': height,
             };
         }
+        function linePosHip(canvasElement, hip, ankle, per) {
+            let needLenght = (ankle.y - hip.y) * per;
+            return (ankle.y - needLenght) * canvasElement.height;
+        }
+
+        /**スクワットのカウント*/
+        function counter(any) {
+            let num
+            if (any === "start") {
+                num = 0;
+            } else if (Number.isInteger(any)) {
+                num = any += 1;
+            } else {
+                throw (Error);
+            }
+            document.getElementById("counter").textContent = "count:" + num;
+            document.getElementById("counter").value = num;
+        }
+
+        /**2秒間
+         *　スクワットキープしているかの確認
+        */
+
+        let flgSqwat = false;
+        let startSqwat;
+
+        function statusChecker(set) {
+            let nowTime = Date.now();
+
+            if (set === "shisei") {
+                document.getElementById("status").textContent = "please look forward";
+                document.getElementById("status").style.backgroundColor = '#ff0000';
+                flgSqwat = false;
+            } else if (flgSqwat && set === "ok") {
+                if (nowTime - startSqwat > 2000) {
+                    document.getElementById("status").textContent = "please stand up";
+                    document.getElementById("status").style.backgroundColor = '#ffffff';
+                } else {
+                    document.getElementById("status").textContent = "keep";
+                    document.getElementById("status").style.backgroundColor = '#00ff00';
+                }
+            } else if (!flgSqwat && set === "ok") {
+                startSqwat = Date.now();
+                flgSqwat = true;
+            } else if (flgSqwat && set === "goodPS") {
+                if (nowTime - startSqwat > 2000) {
+                    let countNum = document.getElementById("counter").value;
+                    counter(countNum);
+                    document.getElementById("status").textContent = "sqwat done";
+                } else {
+                    document.getElementById("status").textContent = "sqwat reset";
+                }
+                flgSqwat = false;
+            } else if (!flgSqwat && set === "goodPS") {
+                document.getElementById("status").textContent = "good position";
+                document.getElementById("status").style.backgroundColor = '#00f0ff';
+            } else {
+                document.getElementById("status").textContent = "out";
+                document.getElementById("status").style.backgroundColor = '#ffff00';
+                if (flgSqwat) { flgSqwat = false; }
+            }
+
+        }
 
         //11/15
         const cells = []
-        const items = 6;
+        const items = 15;
         function cellMake() {
             //タイムスタンプと共に角度とどの信頼度をセルにする
             const cellTag = {
                 0: "時刻（日本）",
-                1: "leftAngle",
-                2: "rightAngle",
-                3: "Angle",
-                4: "visibility(left)",
-                5: "visibility(right)",
+                1: "try angle",
+                2: "leftAngle",
+                3: "rightAngle",
+                4: "Angle",
+                5: "visibility(left)",
+                6: "visibility(right)",
+                7: "hipline",
+                8: "hipline visibility",
+                9: "hipLineMin now",
+                10: "hipLineMax now",
+                11: "shisei",
+                12: "shisei visibility",
+                13: "status",
+                14: "count",
+
             };
             console.log(cellTag)
             cells.push(cellTag);
 
         }
 
-        function cellUpdate(leftAngle, rightAngle) {
+        function cellUpdate(leftAngle, rightAngle, hipline, hiplineVisibility, hipLineMin, hipLineMax, shiseiLeft, shiseiRight) {
             //cellMakeにデータをぶち込む
             const timeStamp = () => {
                 const today = new Date();
@@ -162,11 +375,21 @@
 
             const cell = {
                 0: timeStamp(),
-                1: leftAngle.angle,
-                2: rightAngle.angle,
-                3: (leftAngle.angle + rightAngle.angle) / 2,
-                4: leftAngle.visibility,
-                5: rightAngle.visibility,
+                1: selectedAngle,
+                2: leftAngle.angle,
+                3: rightAngle.angle,
+                4: (leftAngle.angle + rightAngle.angle) / 2,
+                5: leftAngle.visibility,
+                6: rightAngle.visibility,
+                7: hipline,
+                8: hiplineVisibility,
+                9: hipLineMin,
+                10: hipLineMax,
+                11: (shiseiLeft.per + shiseiRight.per) / 2,
+                12: Math.min(shiseiLeft.visibility, shiseiRight.visibility),
+                13: document.getElementById("status").textContent,
+                14: document.getElementById("counter").value,
+
             }
             cells.push(cell);
 
@@ -208,8 +431,8 @@
             }
 
             // (1)XMLHttpRequestオブジェクトを作成
-            var xmlHttpRequest = new XMLHttpRequest();
-            var formData = new FormData();
+            let xmlHttpRequest = new XMLHttpRequest();
+            let formData = new FormData();
 
             formData.append("str", str);
             formData.append("user", Object.fromEntries(new URLSearchParams(window.location.search)).user)
@@ -222,7 +445,7 @@
             }
 
             // (3)HTTPのGETメソッドとアクセスする場所を指定
-            xmlHttpRequest.open('POST', 'https://script.google.com/macros/s/AKfycbxPTY_xUsCdcA_LKAuAkDosUR1fw3K-IIAQxtg-HqcHS07I-n-eotfWiNwrpIfr6Tfj/exec', true);
+            xmlHttpRequest.open('POST', 'https://script.google.com/macros/s/AKfycbzrlWBbic3G1jnOybqbqko0gVcwCb4KeYclPESna5MkESsFJ7-XKEwV8G7puUm_D1XV/exec', true);
 
             // (4)HTTPリクエストを送信
             xmlHttpRequest.send(formData);
@@ -236,8 +459,6 @@
             const user = Object.fromEntries(new URLSearchParams(window.location.search)).user.split(",");
             console.log(user);
         });
-
-
 
         function onResults(results) {
             if (!results.poseLandmarks) {
@@ -276,20 +497,73 @@
                 { color: '#0000FF', lineWidth: 3 });
 
             const faceSize = facehide(canvasElement, img1, results.poseLandmarks[POSE_LANDMARKS.NOSE], results.poseLandmarks[POSE_LANDMARKS.LEFT_EAR], results.poseLandmarks[POSE_LANDMARKS.RIGHT_EAR]);
-
             canvasCtx.drawImage(
                 img1, faceSize.x, faceSize.y, faceSize.width, faceSize.height);
 
-            let hipLine = (calcHipLine(canvasElement, 120, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]) + calcHipLine(canvasElement, 120, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE])) / 2;
 
-            if (hipLine && 0 < hipLine && hipLine < canvasElement.height) {
-                canvasCtx.beginPath();
-                canvasCtx.moveTo(0, hipLine);
-                canvasCtx.lineTo(canvasElement.width, hipLine);
-                canvasCtx.lineWidth = 5;
-                canvasCtx.strokeStyle = 'Red';
-                canvasCtx.stroke();
+
+            let perLeft = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
+            let perRight = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
+            let hiplineVisibility = Math.min(perLeft.visibility, perRight.visibility);
+            let hipLineMin = (linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMinPer) + linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMinPer)) / 2;
+            let hipLineMax = (linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMaxPer) + linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMaxPer)) / 2;
+            let hipLine = (linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.per) + linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.per)) / 2;
+            let shiseiLeft = calcShisei(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP]);
+            let shiseiRight = calcShisei(results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP]);
+
+            let lineStatus;
+            if (hipLineMin && hipLineMax && 0 < hipLineMin && hipLineMax < canvasElement.height && paramDataSet['maxStrokeParam'] < Math.min(perLeft.visibility, perRight.visibility)) {
+                if (stockData["hipLineMin"] > hipLine && hipLine > stockData["hipLineMax"]) {
+                    lineStatus = "prevStroke";
+                } else {
+                    lineStatus = "newStroke";
+                }
+            } else if (stockData["hipLineMin"] === 0 && stockData["hipLineMax"] === 0) {
+                if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
+                    lineStatus = "newStroke";
+                } else {
+                    lineStatus = "nonStroke";
+                }
+            } else if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
+                lineStatus = "prevStroke";
+
             }
+            switch (lineStatus) {
+                case "newStroke":
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(0, hipLineMin);
+                    canvasCtx.lineTo(canvasElement.width, hipLineMin);
+                    canvasCtx.lineWidth = 5;
+                    canvasCtx.strokeStyle = 'Red';
+                    canvasCtx.moveTo(0, hipLineMax);
+                    canvasCtx.lineTo(canvasElement.width, hipLineMax);
+                    canvasCtx.lineWidth = 5;
+                    canvasCtx.strokeStyle = 'Red';
+                    canvasCtx.stroke();
+                    stockData["perLeft"] = perLeft;
+                    stockData["perRight"] = perRight;
+                    stockData["hipLineMin"] = hipLine;
+                    stockData["hipLineMax"] = hipLineMax;
+                    break;
+                case "prevStroke":
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(0, stockData["hipLineMin"]);
+                    canvasCtx.lineTo(canvasElement.width, stockData["hipLineMin"]);
+                    canvasCtx.lineWidth = 5;
+                    canvasCtx.strokeStyle = 'Red';
+                    canvasCtx.moveTo(0, stockData["hipLineMax"]);
+                    canvasCtx.lineTo(canvasElement.width, stockData["hipLineMax"]);
+                    canvasCtx.lineWidth = 5;
+                    canvasCtx.strokeStyle = 'Red';
+                    canvasCtx.stroke();
+                    break;
+                case "nonStroke":
+                    break;
+                default:
+                    break;
+            }
+
+
             canvasCtx.restore();
 
             if (results.poseWorldLandmarks) {
@@ -299,15 +573,30 @@
                 }
                 // console.log("rightKnee is ", resultAngle.rightKnee)
                 // console.log("leftKnee is ", resultAngle.leftKnee)
-                angleElement.innerHTML = JSON.stringify(resultAngle);
 
-                cellUpdate(resultAngle.leftKnee, resultAngle.rightKnee);
+
+
+                if ((selectedAngle - selectedMargin) < (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 && (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
+                    statusChecker("ok");
+                    // console.log(selectedAngle - selectedMargin, selectedAngle + selectedMargin, (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2, Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility))
+                    // console.log((selectedAngle - selectedMargin) < (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2, (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 < (selectedAngle + selectedMargin), Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > 0.6)
+                } else if (Math.min(shiseiLeft.per + shiseiRight.per) < paramDataSet['shiseiPer'] && Math.min(shiseiLeft.visibility, shiseiRight.visibility) > paramDataSet['shiseiVisibility']) {
+                    statusChecker("shisei");
+                } else {
+                    if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
+                        statusChecker("goodPS");
+                    } else {
+                        statusChecker("no");
+                    }
+
+                }
+                cellUpdate(resultAngle.leftKnee, resultAngle.rightKnee, (stockData["hipLineMax"] + stockData["hipLineMin"]) / 2, hiplineVisibility, hipLineMin, hipLineMax, shiseiLeft, shiseiRight);
             }
 
-            grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
-                { list: Object.values(POSE_LANDMARKS_LEFT), color: 'LEFT' },
-                { list: Object.values(POSE_LANDMARKS_RIGHT), color: 'RIGHT' }
-            ]);
+            // grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
+            //     { list: Object.values(POSE_LANDMARKS_LEFT), color: 'LEFT' },
+            //     { list: Object.values(POSE_LANDMARKS_RIGHT), color: 'RIGHT' }
+            // ]);
         }
 
         const pose = new Pose({
@@ -334,6 +623,9 @@
         });
         camera.start();
         cellMake();
+        counter("start");
+        window.onresize = resizeWindow;
+        getParam();
 
     </script>
 </body>
