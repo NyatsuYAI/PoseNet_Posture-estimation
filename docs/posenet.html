@@ -243,7 +243,7 @@
   'use strict';//ストリクトモードの開始
 
   const kpscore = 0.5//ポイントの判定の厳しさ
-  const check_shisei_par = 0.7;//姿勢が悪いと判定する長さ
+  const check_shisei_par = 0.2;//姿勢が悪いと判定する長さ
   //const textnumber = 0.85;//スクワット判定する腰膝間の長さ
   let textnumber = Number("0."+Object.fromEntries(new URLSearchParams(window.location.search)).cource.split(",")[0]);
   if (Number.isNaN(textnumber)) {
