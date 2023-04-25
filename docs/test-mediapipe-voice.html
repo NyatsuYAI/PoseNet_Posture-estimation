@@ -26,15 +26,16 @@
         <circle class="circle" cx="44" cy="44" r="24" />
     </svg>
 
+
 </head>
 
 <body>
 
     <div class="container">
 
-        <p id="log"></p><label for="angle">角度を選択してください</label>
+        <p id="log" style="display: none"></p>
         <!-- <div>
-            
+            <label for="angle">角度を選択してください</label>
             <select id="angle">
                 <option value='80' selected>80</option>
                 <option value='90'>90</option>
@@ -54,12 +55,13 @@
             </select>
         </div> -->
 
-        <button id="fin">Fin</button>
+
         <video class="input_video" style="display: none"></video>
         <canvas class="output_canvas"></canvas>
 
         <div class="landmark-grid-container" style="display:none"></div>
-
+        <input id="bgm" type="button" value="BGMを再生" class="audio_auto">
+        <button id="fin">Fin</button>
 
     </div>
     <style>
@@ -87,6 +89,16 @@
             to {
                 stroke-dashoffset: 0;
             }
+        }
+
+        .audio_auto {
+            position: fixed;
+            width: 100px;
+            height: 40px;
+            border-radius: 9999px;
+            bottom: 5vmin;
+            right: 5vmin;
+            cursor: pointer;
         }
     </style>
     <script type="module">
@@ -160,16 +172,29 @@
 
         /***画像の設定
          */
-        let img1 = new Image();
-        img1.src = './img/animalface_neko.png';
-        let fire = new Image();
-        fire.src = './img/honoo_hi_fire.png';
-        let up = new Image();
-        up.src = './img/up.png';
-        let down = new Image();
-        down.src = './img/down.png';
-        let gauge = new Image();
-        gauge.src = './img/Round.gif';
+        let img_img1 = new Image();
+        img_img1.src = './img/animalface_neko.png';
+        let img_fire = new Image();
+        img_fire.src = './img/honoo_hi_fire.png';
+        let img_up = new Image();
+        img_up.src = './img/up.png';
+        let img_down = new Image();
+        img_down.src = './img/down.png';
+
+
+        /**音声の設定
+         * 
+        */
+        const mp3_bgm = new Audio('./mp3/bgm.mp3');
+        const mp3_agete = new Audio('./mp3/agete.mp3');
+        const mp3_sagete = new Audio('./mp3/sagete.mp3')
+        const mp3_pinpon = new Audio('./mp3/pinpon.mp3');
+        const mp3_sagatte = new Audio('./mp3/sagate.mp3');
+        const mp3_sesuji = new Audio('./mp3/sesuji.mp3');
+        const mp3_stop = new Audio('./mp3/stop.mp3');
+        const mp3_tatte = new Audio('./mp3/tatte.mp3');
+        const mp3_start = new Audio('./mp3/start.mp3');
+        let nowPlay = mp3_start;
 
 
         /**取得したい角度のポイント
@@ -210,6 +235,19 @@
         //     stockData["hipLineMin"] = 0;
         //     stockData["hipLineMax"] = 0;
         // }, false);
+
+        const bgmButton = document.getElementById("bgm");
+        bgmButton.addEventListener('click', function () {
+            if (bgmButton.value === 'BGMを再生') {
+                bgmButton.value = 'BGMを停止';
+                mp3_bgm.play();
+                mp3_bgm.volume = 0.2;
+                mp3_bgm.loop = true;
+            } else {
+                bgmButton.value = 'BGMを再生';
+                mp3_bgm.pause();
+            }
+        });
 
 
         /**角度の計算*/
@@ -317,29 +355,29 @@
             if (status === "please stand up") {
                 return;
             } else if (what === "fire") {
-                let height = width * Math.round(fire.height / fire.width);
+                let height = width * Math.round(img_fire.height / img_fire.width);
                 let left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
                 let left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
-                canvasCtx.drawImage(fire, left_x, left_y, width, height);
+                canvasCtx.drawImage(img_fire, left_x, left_y, width, height);
                 let right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
                 let right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
-                canvasCtx.drawImage(fire, right_x, right_y, width, height);
+                canvasCtx.drawImage(img_fire, right_x, right_y, width, height);
             } else if (what === "down") {
-                let height = width * Math.round(down.height / down.width);
+                let height = width * Math.round(img_down.height / img_down.width);
                 let left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
                 let left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
-                canvasCtx.drawImage(down, left_x, left_y, width, height);
+                canvasCtx.drawImage(img_down, left_x, left_y, width, height);
                 let right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
                 let right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
-                canvasCtx.drawImage(down, right_x, right_y, width, height);
+                canvasCtx.drawImage(img_down, right_x, right_y, width, height);
             } else if (what === "up") {
-                let height = width * Math.round(up.height / up.width);
+                let height = width * Math.round(img_up.height / img_up.width);
                 let left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
                 let left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
-                canvasCtx.drawImage(up, left_x, left_y, width, height);
+                canvasCtx.drawImage(img_up, left_x, left_y, width, height);
                 let right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
                 let right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
-                canvasCtx.drawImage(up, right_x, right_y, width, height);
+                canvasCtx.drawImage(img_up, right_x, right_y, width, height);
             } else if (what === "gauge") {
                 document.getElementsByClassName("gauge")[0].style.display = "block";
                 document.getElementsByClassName("gauge")[0].style.width = width;
@@ -350,6 +388,7 @@
             }
 
         }
+
         function linePosHip(canvasElement, hip, ankle, per) {
             let needLenght = (ankle.y - hip.y) * per;
             return (ankle.y - needLenght) * canvasElement.height;
@@ -383,13 +422,37 @@
                 document.getElementById("status").textContent = "please look forward";
                 document.getElementById("status").style.backgroundColor = '#ff0000';
                 flgSqwat = false;
+                if (nowPlay !== mp3_sesuji) {
+                    nowPlay.pause();
+                    mp3_sesuji.play();
+                    mp3_sesuji.loop = true;
+                    nowPlay = mp3_sesuji;
+                }
+
             } else if (flgSqwat && set === "ok") {
                 if (nowTime - startSqwat > 2000) {
                     document.getElementById("status").textContent = "please stand up";
                     document.getElementById("status").style.backgroundColor = '#ffffff';
+                    if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
+                        nowPlay.pause();
+                        mp3_pinpon.play();
+                        mp3_pinpon.loop = false;
+                        nowPlay = mp3_pinpon;
+                        setTimeout(function () {
+                            mp3_tatte.play();
+                            mp3_tatte.loop = true;
+                            nowPlay = mp3_tatte;
+                        }, 1000);
+                    }
                 } else {
                     document.getElementById("status").textContent = "keep";
                     document.getElementById("status").style.backgroundColor = '#00ff00';
+                    if (nowPlay !== mp3_stop) {
+                        nowPlay.pause();
+                        mp3_stop.play();
+                        mp3_stop.loop = false;
+                        nowPlay = mp3_stop;
+                    }
                 }
             } else if (!flgSqwat && set === "ok") {
                 startSqwat = Date.now();
@@ -399,6 +462,7 @@
                     let countNum = document.getElementById("counter").value;
                     counter(countNum);
                     document.getElementById("status").textContent = "sqwat done";
+
                 } else {
                     document.getElementById("status").textContent = "sqwat reset";
                 }
@@ -407,16 +471,40 @@
             } else if (!flgSqwat && set === "down") {
                 document.getElementById("status").textContent = "good position start squat";
                 document.getElementById("status").style.backgroundColor = '#00f0ff';
+                if (nowPlay !== mp3_sagete) {
+                    nowPlay.pause();
+                    mp3_sagete.play();
+                    mp3_sagete.loop = true;
+                    nowPlay = mp3_sagete;
+                }
             } else if (set === "up") {
                 document.getElementById("status").textContent = "too squat";
                 document.getElementById("status").style.backgroundColor = '#ffff00';
+                if (nowPlay !== mp3_agete) {
+                    nowPlay.pause();
+                    mp3_agete.play();
+                    mp3_agete.loop = true;
+                    nowPlay = mp3_agete;
+                }
+                if (flgSqwat) {
+                    flgSqwat = false;
+                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                }
             } else {
                 document.getElementById("status").textContent = "out";
                 document.getElementById("status").style.backgroundColor = '#ffff00';
                 if (flgSqwat) {
                     flgSqwat = false;
                     document.getElementsByClassName("gauge")[0].style.display = "none";
+                    if (nowPlay !== mp3_sagatte) {
+                        nowPlay.pause();
+                        mp3_sagatte.play();
+                        mp3_sagatte.loop = true;
+                        nowPlay = mp3_sagatte;
+                    }
                 }
+
+
             }
 
         }
@@ -587,9 +675,9 @@
                 .map(index => results.poseLandmarks[index]),
                 { color: '#0000FF', lineWidth: 3 });
 
-            const faceSize = facehide(canvasElement, img1, results.poseLandmarks[POSE_LANDMARKS.NOSE], results.poseLandmarks[POSE_LANDMARKS.LEFT_EAR], results.poseLandmarks[POSE_LANDMARKS.RIGHT_EAR]);
+            const faceSize = facehide(canvasElement, img_img1, results.poseLandmarks[POSE_LANDMARKS.NOSE], results.poseLandmarks[POSE_LANDMARKS.LEFT_EAR], results.poseLandmarks[POSE_LANDMARKS.RIGHT_EAR]);
             canvasCtx.drawImage(
-                img1, faceSize.x, faceSize.y, faceSize.width, faceSize.height);
+                img_img1, faceSize.x, faceSize.y, faceSize.width, faceSize.height);
 
 
 
@@ -682,9 +770,11 @@
                         if ((selectedAngle - selectedMargin) > (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2) {
                             statusChecker("up");
                             setImage(canvasElement, results.poseLandmarks, "up");
-                        } else if ((resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 > (selectedAngle + selectedMargin))
+                        } else if ((resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 > (selectedAngle + selectedMargin)) {
                             statusChecker("down");
-                        setImage(canvasElement, results.poseLandmarks, "down");
+                            setImage(canvasElement, results.poseLandmarks, "down");
+                        }
+
                     } else {
                         statusChecker("no");
                     }
