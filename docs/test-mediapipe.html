@@ -14,10 +14,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 
     <div id="status"
-        style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px;">
+        style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px; display: none;">
         start
+    </div>
+    <div id="board"
+        style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px;">
+        カメラのアクセス許可をしてください
     </div>
 
     <div>
@@ -32,12 +37,22 @@
 </head>
 
 <body>
+    <div class="overlay">
+        <div class="btn_area">
+            <p class="ttl">重要なお知らせ</p>
+            <p>本システムはスクワット運動支援サイトです</br>
+                個人情報の取り扱いに気をつけた上で</br>
+                一部情報をサーバーに送信いたします
+            </p>
+            <button>スクワットを始める</button>
+        </div>
+    </div>
 
     <div class="container">
 
-        <p id="log"></p><label for="angle">角度を選択してください</label>
+        <p id="log" style="display: none;"></p>
         <!-- <div>
-            
+            <label for="angle">角度を選択してください</label>
             <select id="angle">
                 <option value='80' selected>80</option>
                 <option value='90'>90</option>
@@ -57,11 +72,12 @@
             </select>
         </div> -->
 
-        <button id="fin">Fin</button>
+
         <video class="input_video" style="display: none"></video>
         <canvas class="output_canvas"></canvas>
 
         <div class="landmark-grid-container" style="display:none"></div>
+        <button id="fin" class="fin">Fin</button>
 
 
     </div>
@@ -75,6 +91,7 @@
             height: 100px;
             top: 10%;
             display: none;
+            z-index: 10;
         }
 
         .circle {
@@ -99,8 +116,70 @@
             background-color: aliceblue;
             padding: 10px;
         }
+
+        .fin {
+            position: fixed;
+            width: 100px;
+            height: 40px;
+            border-radius: 9999px;
+            bottom: 5vmin;
+            left: 5vmin;
+            cursor: pointer;
+        }
+
+        .overlay {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            position: fixed;
+            z-index: 1
+        }
+
+        .btn_area {
+            width: 400px;
+            height: 250px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            text-align: center;
+            z-index: 2
+        }
+
+        .btn_area .ttl {
+            font-weight: bold
+        }
+
+        .btn_area p {
+            padding: 15px
+        }
+
+        .btn_area button {
+            display: block;
+            margin: 0 auto;
+            background: #333;
+            color: #fff;
+            padding: 10px 40px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn_area button:hover {
+            background: #777
+        }
     </style>
     <script type="module">
+
+        $(function () {
+            $(".overlay").show();
+            $(".btn_area button").click(function () {
+                $(".overlay").fadeOut();
+                document.documentElement.requestFullscreen();
+            });
+        });
+
         const videoElement = document.getElementsByClassName('input_video')[0];
         const canvasElement = document.getElementsByClassName('output_canvas')[0];
         const canvasCtx = canvasElement.getContext("2d");
@@ -322,6 +401,34 @@
             };
         }
 
+        function textSet(text) {
+            status = text;
+            switch (status) {
+                case "please look forward":
+                    document.getElementById("board").textContent = "姿勢が悪いです。前を見ましょう";
+                    break;
+                case "please stand up":
+                    document.getElementById("board").textContent = "成功！立ち上がって";
+                    break;
+                case "keep":
+                    document.getElementById("board").textContent = "姿勢を保ちましょう";
+                    break;
+                case "sqwat done":
+                    break;
+                case "sqwat reset":
+                    break;
+                case "good position start squat":
+                    document.getElementById("board").textContent = "スクワットを始めてみましょう";
+                    break;
+                case "too squat":
+                    document.getElementById("board").textContent = "しゃがみすぎです。腰を上げてください";
+                    break;
+                case "out":
+                    document.getElementById("board").textContent = "画面に近いです。後ろに下がってください";
+                    break;
+            }
+        }
+
         function setImage(canvasElement, poseLandmarks, what) {
             let width = canvasElement.width * Math.abs(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x - poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x) / 1.5;
             let status = document.getElementById("status").style.textContent;
@@ -397,14 +504,19 @@
             let nowTime = Date.now();
 
             if (set === "shisei") {
+                textSet("please look forward");
                 document.getElementById("status").textContent = "please look forward";
                 document.getElementById("status").style.backgroundColor = '#ff0000';
                 flgSqwat = false;
+                document.getElementsByClassName("gauge")[0].style.display = "none";
             } else if (flgSqwat && set === "ok") {
                 if (nowTime - startSqwat > 2000) {
+                    textSet("please stand up");
                     document.getElementById("status").textContent = "please stand up";
                     document.getElementById("status").style.backgroundColor = '#ffffff';
+                    document.getElementsByClassName("gauge")[0].style.display = "none";
                 } else {
+                    textSet("keep");
                     document.getElementById("status").textContent = "keep";
                     document.getElementById("status").style.backgroundColor = '#00ff00';
                 }
@@ -415,19 +527,28 @@
                 if (nowTime - startSqwat > 2000) {
                     let countNum = document.getElementById("counter").value;
                     counter(countNum);
+                    textSet("sqwat done");
                     document.getElementById("status").textContent = "sqwat done";
                 } else {
+                    textSet("sqwat reset");
                     document.getElementById("status").textContent = "sqwat reset";
                 }
                 flgSqwat = false;
                 document.getElementsByClassName("gauge")[0].style.display = "none";
             } else if (!flgSqwat && set === "down") {
+                textSet("good position start squat");
                 document.getElementById("status").textContent = "good position start squat";
                 document.getElementById("status").style.backgroundColor = '#00f0ff';
             } else if (set === "up") {
+                textSet("too squat");
                 document.getElementById("status").textContent = "too squat";
                 document.getElementById("status").style.backgroundColor = '#ffff00';
+                setImage(canvasElement, results.poseLandmarks, "up");
+                if (flgSqwat) {
+                    flgSqwat = false;
+                }
             } else {
+                textSet("out")
                 document.getElementById("status").textContent = "out";
                 document.getElementById("status").style.backgroundColor = '#ffff00';
                 if (flgSqwat) {
@@ -688,8 +809,15 @@
 
                 if ((selectedAngle - selectedMargin) < (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 && (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
                     statusChecker("ok");
-                    setImage(canvasElement, results.poseLandmarks, "fire");
-                    setImage(canvasElement, results.poseLandmarks, "gauge");
+                    if (document.getElementById("status").textContent === "please stand up") {
+
+                        setImage(canvasElement, results.poseLandmarks, "up");
+                    } else {
+
+                        setImage(canvasElement, results.poseLandmarks, "fire");
+                        setImage(canvasElement, results.poseLandmarks, "gauge");
+                    }
+
                     // console.log(selectedAngle - selectedMargin, selectedAngle + selectedMargin, (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2, Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility))
                     // console.log((selectedAngle - selectedMargin) < (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2, (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 < (selectedAngle + selectedMargin), Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > 0.6)
                 } else if (Math.min(shiseiLeft.per + shiseiRight.per) < paramDataSet['shiseiPer'] && Math.min(shiseiLeft.visibility, shiseiRight.visibility) > paramDataSet['shiseiVisibility']) {
@@ -699,9 +827,11 @@
                         if ((selectedAngle - selectedMargin) > (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2) {
                             statusChecker("up");
                             setImage(canvasElement, results.poseLandmarks, "up");
-                        } else if ((resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 > (selectedAngle + selectedMargin))
+                        } else if ((resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 > (selectedAngle + selectedMargin)) {
                             statusChecker("down");
-                        setImage(canvasElement, results.poseLandmarks, "down");
+                            setImage(canvasElement, results.poseLandmarks, "down");
+                        }
+
                     } else {
                         statusChecker("no");
                     }
