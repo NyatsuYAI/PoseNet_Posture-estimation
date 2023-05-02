@@ -528,7 +528,7 @@
             } else {
                 throw (Error);
             }
-            document.getElementById("counter").textContent = "count:" + num;
+            document.getElementById("counter").textContent = "回数:" + num;
             document.getElementById("counter").value = num;
         }
 
@@ -545,7 +545,7 @@
             if (set === "shisei") {
                 textSet("please look forward");
                 document.getElementById("status").textContent = "please look forward";
-                document.getElementById("status").style.backgroundColor = '#ff0000';
+                document.getElementById("board").style.backgroundColor = '#ff0000';
                 flgSqwat = false;
                 if (nowPlay !== mp3_sesuji) {
                     resetMusic(nowPlay);
@@ -558,7 +558,7 @@
                 if (nowTime - startSqwat > 2000) {
                     textSet("please stand up");
                     document.getElementById("status").textContent = "please stand up";
-                    document.getElementById("status").style.backgroundColor = '#ffffff';
+                    document.getElementById("board").style.backgroundColor = '#ffffff';
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                     if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
                         resetMusic(nowPlay);
@@ -574,7 +574,7 @@
                 } else {
                     textSet("keep");
                     document.getElementById("status").textContent = "keep";
-                    document.getElementById("status").style.backgroundColor = '#00ff00';
+                    document.getElementById("board").style.backgroundColor = '#00ff00';
                     if (nowPlay !== mp3_stop) {
                         resetMusic(nowPlay);
                         mp3_stop.play();
@@ -601,7 +601,7 @@
             } else if (!flgSqwat && set === "down") {
                 textSet("good position start squat");
                 document.getElementById("status").textContent = "good position start squat";
-                document.getElementById("status").style.backgroundColor = '#00f0ff';
+                document.getElementById("board").style.backgroundColor = '#00f0ff';
                 if (nowPlay !== mp3_sagete) {
                     resetMusic(nowPlay);
                     mp3_sagete.play();
@@ -611,7 +611,7 @@
             } else if (set === "up") {
                 textSet("too squat");
                 document.getElementById("status").textContent = "too squat";
-                document.getElementById("status").style.backgroundColor = '#ffff00';
+                document.getElementById("board").style.backgroundColor = '#ffff00';
                 if (nowPlay !== mp3_agete) {
                     resetMusic(nowPlay);
                     mp3_agete.play();
