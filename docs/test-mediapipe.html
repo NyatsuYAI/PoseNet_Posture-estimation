@@ -459,12 +459,15 @@
                 let right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
                 canvasCtx.drawImage(up, right_x, right_y, width, height);
             } else if (what === "gauge") {
+                document.getElementsByClassName("counter")[0].style.display = "none";
                 document.getElementsByClassName("gauge")[0].style.display = "block";
                 document.getElementsByClassName("gauge")[0].style.width = width;
                 document.getElementsByClassName("gauge")[0].style.height = width;
                 document.getElementsByClassName("gauge")[0].style.left = (Math.round(poseLandmarks[POSE_LANDMARKS.NOSE].x * canvasElement.width) - (width / 2)) + "px";
 
             } else if (what === "counter") {
+                document.getElementsByClassName("gauge")[0].style.display = "none";
+                document.getElementsByClassName("counter")[0].style.display = "block";
                 document.getElementsByClassName("counter")[0].style.width = width;
                 document.getElementsByClassName("counter")[0].style.height = width;
                 document.getElementsByClassName("counter")[0].style.left = (Math.round(poseLandmarks[POSE_LANDMARKS.NOSE].x * canvasElement.width) - (width / 2)) + "px";
@@ -478,6 +481,7 @@
             let needLenght = (ankle.y - hip.y) * per;
             return (ankle.y - needLenght) * canvasElement.height;
         }
+
 
         /**スクワットのカウント*/
         function counter(any) {
@@ -824,18 +828,20 @@
                     if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
                         if ((selectedAngle - selectedMargin) > (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2) {
                             statusChecker("up");
+                            setImage(canvasElement, results.poseLandmarks, "counter");
                             setImage(canvasElement, results.poseLandmarks, "up");
                         } else if ((resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 > (selectedAngle + selectedMargin)) {
                             statusChecker("down");
+                            setImage(canvasElement, results.poseLandmarks, "counter");
                             setImage(canvasElement, results.poseLandmarks, "down");
                         }
 
                     } else {
+                        setImage(canvasElement, results.poseLandmarks, "counter");
                         statusChecker("no");
                     }
 
                 }
-                setImage(canvasElement, results.poseLandmarks, "counter");
                 cellUpdate(resultAngle.leftKnee, resultAngle.rightKnee, (stockData["hipLineMax"] + stockData["hipLineMin"]) / 2, hiplineVisibility, hipLineMin, hipLineMax, shiseiLeft, shiseiRight);
             }
 
