@@ -114,6 +114,7 @@
             top: 10%;
             position: absolute;
             background-color: aliceblue;
+            background-size: cover;
             padding: 10px;
         }
 
@@ -468,8 +469,6 @@
             } else if (what === "counter") {
                 document.getElementsByClassName("gauge")[0].style.display = "none";
                 document.getElementsByClassName("counter")[0].style.display = "block";
-                document.getElementsByClassName("counter")[0].style.width = width;
-                document.getElementsByClassName("counter")[0].style.height = width;
                 document.getElementsByClassName("counter")[0].style.left = (Math.round(poseLandmarks[POSE_LANDMARKS.NOSE].x * canvasElement.width) - (width / 2)) + "px";
 
             } else {
@@ -604,24 +603,24 @@
                 return yy + mo + dd + hh + mi + ss + ms;
             }
 
-            const cell = {
-                0: timeStamp(),
-                1: selectedAngle,
-                2: leftAngle.angle,
-                3: rightAngle.angle,
-                4: (leftAngle.angle + rightAngle.angle) / 2,
-                5: leftAngle.visibility,
-                6: rightAngle.visibility,
-                7: hipline,
-                8: hiplineVisibility,
-                9: hipLineMin,
-                10: hipLineMax,
-                11: (shiseiLeft.per + shiseiRight.per) / 2,
-                12: Math.min(shiseiLeft.visibility, shiseiRight.visibility),
-                13: document.getElementById("status").textContent,
-                14: document.getElementById("counter").value,
+            const cell = [
+                timeStamp(),
+                selectedAngle,
+                leftAngle.angle,
+                rightAngle.angle,
+                (leftAngle.angle + rightAngle.angle) / 2,
+                leftAngle.visibility,
+                rightAngle.visibility,
+                hipline,
+                hiplineVisibility,
+                hipLineMin,
+                hipLineMax,
+                (shiseiLeft.per + shiseiRight.per) / 2,
+                Math.min(shiseiLeft.visibility, shiseiRight.visibility),
+                document.getElementById("status").textContent,
+                document.getElementById("counter").value,]
 
-            }
+
             cells.push(cell);
 
         }
