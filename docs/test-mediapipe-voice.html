@@ -606,7 +606,19 @@
                 textSet("good position start squat");
                 document.getElementById("status").textContent = "good position start squat";
                 document.getElementById("board").style.backgroundColor = '#00f0ff';
-                if (nowPlay !== mp3_sagete) {
+                if (document.getElementById("counter").value === 0) {
+                    if (nowPlay !== mp3_goodposition && nowPlay !== mp3_agete) {
+                        resetMusic(nowPlay);
+                        mp3_goodposition.play();
+                        mp3_goodposition.loop = false;
+                        nowPlay = mp3_goodposition;
+                        setTimeout(function () {
+                            mp3_agete.play();
+                            mp3_agete.loop = true;
+                            nowPlay = mp3_agete;
+                        }, 2000);
+                    }
+                } else if (nowPlay !== mp3_sagete) {
                     resetMusic(nowPlay);
                     mp3_sagete.play();
                     mp3_sagete.loop = true;
@@ -616,19 +628,7 @@
                 textSet("too squat");
                 document.getElementById("status").textContent = "too squat";
                 document.getElementById("board").style.backgroundColor = '#ffff00';
-                if (document.getElementById("counter").value === 0) {
-                    if (nowPlay !== mp3_goodposition && nowPlay !== mp3_agete) {
-                        resetMusic(nowPlay);
-                        mp3_goodposition.play();
-                        mp3_goodposition.loop = true;
-                        nowPlay = mp3_goodposition;
-                        setTimeout(function () {
-                            mp3_agete.play();
-                            mp3_agete.loop = true;
-                            nowPlay = mp3_agete;
-                        }, 2000);
-                    }
-                } else if (nowPlay !== mp3_agete) {
+                if (nowPlay !== mp3_agete) {
                     resetMusic(nowPlay);
                     mp3_agete.play();
                     mp3_agete.loop = true;

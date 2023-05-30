@@ -608,10 +608,11 @@
                     document.getElementById("status").textContent = "good position start squat";
                     document.getElementById("board").style.backgroundColor = '#00f0ff';
                     if (document.getElementById("counter").value === 0) {
+                        console.log(document.getElementById("counter").value)
                         if (nowPlay !== mp3_goodposition && nowPlay !== mp3_sagete) {
                             resetMusic(nowPlay);
                             mp3_goodposition.play();
-                            mp3_goodposition.loop = true;
+                            mp3_goodposition.loop = false;
                             nowPlay = mp3_goodposition;
                             setTimeout(function () {
                                 mp3_sagete.play();
@@ -673,11 +674,11 @@
                     5: "visibility(left)",
                     6: "visibility(right)",
                     7: "left shoulder x",
-                    8: "left shoulder x",
-                    9: "left shoulder x",
+                    8: "left shoulder y",
+                    9: "left shoulder visibility",
                     10: "right shoulder x",
-                    11: "right shoulder x",
-                    12: "right shoulder x",
+                    11: "right shoulder y",
+                    12: "right shoulder visibility",
                     13: "left hip x",
                     14: "left hip y",
                     15: "left hip visibility",
