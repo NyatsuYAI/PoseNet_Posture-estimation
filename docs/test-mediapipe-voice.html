@@ -281,6 +281,7 @@
         const mp3_stop = new Audio('./mp3/stop.mp3');
         const mp3_tatte = new Audio('./mp3/tatte.m4a');
         const mp3_start = new Audio('./mp3/start.mp3');
+        const mp3_goodposition = new Audio('./mp3/goodposition.mp3');
         let nowPlay = mp3_start;
 
 
@@ -615,7 +616,19 @@
                 textSet("too squat");
                 document.getElementById("status").textContent = "too squat";
                 document.getElementById("board").style.backgroundColor = '#ffff00';
-                if (nowPlay !== mp3_agete) {
+                if (document.getElementById("counter").value === 0) {
+                    if (nowPlay !== mp3_goodposition && nowPlay !== mp3_agete) {
+                        resetMusic(nowPlay);
+                        mp3_goodposition.play();
+                        mp3_goodposition.loop = true;
+                        nowPlay = mp3_goodposition;
+                        setTimeout(function () {
+                            mp3_agete.play();
+                            mp3_agete.loop = true;
+                            nowPlay = mp3_agete;
+                        }, 2000);
+                    }
+                } else if (nowPlay !== mp3_agete) {
                     resetMusic(nowPlay);
                     mp3_agete.play();
                     mp3_agete.loop = true;
