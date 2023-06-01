@@ -662,7 +662,7 @@
 
             //11/15
             const cells = []
-            const items = 31;
+            const items = 32;
             function cellMake() {
                 //タイムスタンプと共に角度とどの信頼度をセルにする
                 const cellTag = {
@@ -697,6 +697,7 @@
                     28: "right ankle x",
                     29: "right ankle y",
                     30: "right ankle z",
+                    31: "count",
 
                 };
                 console.log(cellTag)
@@ -704,7 +705,7 @@
 
             }
 
-            function cellUpdate(leftAngle, rightAngle, poseWorldLandmarks) {
+            function cellUpdate(leftAngle, rightAngle, poseLandmarks) {
                 //cellMakeにデータをぶち込む
                 const timeStamp = () => {
                     const today = new Date();
@@ -727,30 +728,31 @@
                     (leftAngle.angle + rightAngle.angle) / 2,
                     leftAngle.visibility,
                     rightAngle.visibility,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y,
                     poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].x,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].y,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].z,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].x,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].y,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].z,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y,
-                    poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y,
-                    poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].x,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].y,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].z,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].x,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].y,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].z,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y,
+                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y,
+                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z,
+                    document.getElementById("counter").value,
                 ];
                 cells.push(cell);
 
@@ -773,7 +775,7 @@
                 let blob = new Blob([str], { type: "text/csv" }); //配列に上記の文字列(str)を設定
                 let link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = "data.csv";
+                link.download = "squatdata.csv";
                 link.click();
             }
 
@@ -972,7 +974,7 @@
 
                     }
 
-                    cellUpdate(resultAngle.leftKnee, resultAngle.rightKnee, results.poseWorldLandmarks);
+                    cellUpdate(resultAngle.leftKnee, resultAngle.rightKnee, results.poseLandmarks);
                 }
 
                 // grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
