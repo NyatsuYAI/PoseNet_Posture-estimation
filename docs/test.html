@@ -628,7 +628,7 @@
                 } else if (set === "up") {
                     textSet("too squat");
                     document.getElementById("status").textContent = "too squat";
-                    document.getElementById("board").style.backgroundColor = '#ffff00';
+                    document.getElementById("board").style.backgroundColor = '#ff0000';
                     if (nowPlay !== mp3_agete) {
                         resetMusic(nowPlay);
                         mp3_agete.play();
@@ -642,7 +642,7 @@
                 } else {
                     textSet("out")
                     document.getElementById("status").textContent = "out";
-                    document.getElementById("status").style.backgroundColor = '#ffff00';
+                    document.getElementById("status").style.backgroundColor = '#ff0000';
                     if (flgSqwat) {
                         flgSqwat = false;
                         document.getElementsByClassName("gauge")[0].style.display = "none";
@@ -661,7 +661,7 @@
 
             //11/15
             const cells = []
-            const items = 35;
+            const items = 23;
             function cellMake() {
                 //タイムスタンプと共に角度とどの信頼度をセルにする
                 const cellTag = {
@@ -672,34 +672,22 @@
                     4: "Angle",
                     5: "visibility(left)",
                     6: "visibility(right)",
-                    7: "nose x",
-                    8: "nose  y",
-                    9: "nose  z",
-                    10: "left shoulder x",
-                    11: "left shoulder y",
-                    12: "left shoulder z",
-                    13: "right shoulder x",
-                    14: "right shoulder y",
-                    15: "right shoulder z",
-                    16: "left hip x",
-                    17: "left hip y",
-                    18: "left hip z",
-                    19: "right hip x",
-                    20: "right hip y",
-                    21: "right hip z",
-                    22: "left knee x",
-                    23: "left knee y",
-                    24: "left knee z",
-                    25: "rigiht knee x",
-                    26: "rigiht knee y",
-                    27: "rigiht knee z",
-                    28: "left ankle x",
-                    29: "left ankle y",
-                    30: "left ankle z",
-                    31: "right ankle x",
-                    32: "right ankle y",
-                    33: "right ankle z",
-                    34: "count",
+                    7: " shoulder x",
+                    8: " shoulder y",
+                    9: " shoulder z",
+                    10: " hip x",
+                    11: " hip y",
+                    12: " hip z",
+                    13: " knee x",
+                    14: " knee y",
+                    15: " knee z",
+                    16: " ankle x",
+                    17: " ankle y",
+                    18: " ankle z",
+                    19: "foot index x",
+                    20: "foot index y",
+                    21: "foot index z",
+                    22: "count",
 
                 };
                 console.log(cellTag)
@@ -730,33 +718,21 @@
                     (leftAngle.angle + rightAngle.angle) / 2,
                     leftAngle.visibility,
                     rightAngle.visibility,
-                    poseLandmarks[POSE_LANDMARKS.NOSE].x,
-                    poseLandmarks[POSE_LANDMARKS.NOSE].y,
-                    poseLandmarks[POSE_LANDMARKS.NOSE].z,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].x,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].y,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].z,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].x,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].y,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].z,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y,
-                    poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y,
-                    poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].x + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].x) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].y + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].y) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].z + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].z) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].x + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].x) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].y + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].y) / 2,
+                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].z + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].z) / 2,
                     document.getElementById("counter").value,
                 ];
                 cells.push(cell);
@@ -961,7 +937,7 @@
                     } else if (Math.min(shiseiLeft.per + shiseiRight.per) < paramDataSet['shiseiPer'] && Math.min(shiseiLeft.visibility, shiseiRight.visibility) > paramDataSet['shiseiVisibility']) {
                         statusChecker("shisei");
                     } else {
-                        if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
+                        if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility) && paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility)) {
                             if ((selectedAngle - selectedMargin) > (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2) {
                                 statusChecker("up");
                                 setImage(canvasElement, results.poseLandmarks, "counter");
