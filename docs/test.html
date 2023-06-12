@@ -466,7 +466,7 @@
                         document.getElementById("board").textContent = "しゃがみすぎです。腰を上げてください";
                         break;
                     case "out":
-                        document.getElementById("board").textContent = "画面に近いです。後ろに下がってください";
+                        document.getElementById("board").textContent = "画面に全身が映っていません。画面を確認してください";
                         break;
                 }
             }
@@ -642,7 +642,7 @@
                 } else {
                     textSet("out")
                     document.getElementById("status").textContent = "out";
-                    document.getElementById("status").style.backgroundColor = '#ff0000';
+                    document.getElementById("board").style.backgroundColor = '#ff0000';
                     if (flgSqwat) {
                         flgSqwat = false;
                         document.getElementsByClassName("gauge")[0].style.display = "none";
@@ -955,7 +955,7 @@
 
                     }
 
-                    cellUpdate(resultAngle.leftKnee, resultAngle.rightKnee, results.poseLandmarks);
+                    cellUpdate(resultAngle.leftKnee, resultAngle.rightKnee, results.poseWorldLandmarks);
                 }
 
                 // grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
@@ -974,8 +974,10 @@
                 smoothLandmarks: true,
                 enableSegmentation: true,
                 smoothSegmentation: true,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
+                minDetectionConfidence: 0.7,
+                minTrackingConfidence: 0.7,
+                min_pose_presence_confidence: 0.7,
+                runningMode: "VIDEO"
             });
             pose.onResults(onResults);
 
