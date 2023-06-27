@@ -16,6 +16,7 @@
             crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+        <script src="./cman.js" charset="utf-8"></script>
 
         <div id="status"
             style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px; display: none;">
@@ -49,7 +50,7 @@
                 <button>スクワットを始める</button>
             </div>
         </div>
-        <div class="container">
+        <div class="container" cmanOMat="area">
 
             <p id="log" style="display: none"></p>
             <!-- <div>
@@ -78,8 +79,8 @@
             <canvas class="output_canvas"></canvas>
 
             <div class="landmark-grid-container" style="display:none"></div>
-            <input id="bgm" type="button" value="BGMを再生" class="audio_auto">
-            <button id="fin" class="fin">スクワットを終了する</button>
+            <input id="bgm" type="button" value="BGMを再生" class="audio_auto" cmanOMat="movearea" style="z-index: 10;">
+            <button id="fin" class="fin" cmanOMat="movearea" style="z-index: 10;">スクワットを終了する</button>
 
         </div>
         <style>
@@ -180,6 +181,22 @@
             .btn_area button:hover {
                 background: #777
             }
+
+            .btn_area :active {
+                width: 100px;
+                height: 100px;
+                border-radius: 150px;
+                border: 15px solid #fff;
+                border-top-color: rgba(0, 0, 0, 0.3);
+                box-sizing: border-box;
+                position: absolute;
+                top: 20%;
+                left: 35%;
+                animation: circle 1s linear infinite;
+                -webkit-animation: circle 1s linear infinite;
+            }
+
+            @keyframes b {}
         </style>
         <script type="module">
             $(function () {
@@ -293,6 +310,8 @@
             const needVector = {
                 // "rightUde":[12,14,16],
                 // "leftUde":[11,13,15],
+                "rightHip": [12, 24, 26],
+                "leftHip": [11, 23, 25],
                 "rightKnee": [24, 26, 28],
                 "leftKnee": [23, 25, 27],
             };
@@ -306,6 +325,8 @@
                 "perRight": 0,
                 "hipLineMin": 0,
                 "hipLineMax": 0,
+                "avrKneeAngle": 0,
+                "avreHipAngle": 0,
             };
 
             // document.addEventListener('DOMContentLoaded', function () {
@@ -375,6 +396,10 @@
                 else return false;
             }
 
+            function average(a, b) {
+                return (a + b) / 2;
+            };
+
             /**３つの点の距離・信頼度の計算*/
             function calcTriangleLength(hip, knee, ankle) {
                 const vector1 = {
@@ -441,6 +466,29 @@
                     'width': width,
                     'height': height,
                 };
+            }
+
+            /*股関節と膝関節から姿勢の判定をおする関数*/
+            function angleShiseiCheck(resultAngle, status = 0) {
+                let hipangle = (resultAngle.leftHip.angle + resultAngle.rightHip.angle) / 2;
+                let kneeangle = (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2;
+                if (stockData["slopeHipAngle"] === 0 || stockData["slopeKneeAngle"] === 0) {
+                    stockData["slopeHipAngle"] = 180 - hipangle;
+                    stockData["slopeKneeAngle"] = 180 - kneeangle;
+                } else if (status === "stock") {
+                    stockData["slopeHipAngle"] = average(stockData["slopeHipAngle"], 180 - hipangle);
+                    stockData["slopeKneeAngle"] = average(stockData["slopeKneeAngle"], 180 - kneeangle);
+                }
+                //  else if (selectedAngle - selectedMargin < kneeangle && kneeangle < selectedAngle + selectedMargin) {
+                //     stockData["slopeHipAngle"] = average(stockData["slopeHipAngle"], 180 - hipangle);
+                //     stockData["slopeKneeAngle"] = average(stockData["slopeKneeAngle"], 180 - kneeangle);
+                //     let slope = math.abs((180 - hipangle) - stockData["slopeHipAngle"] / (180 - kneeangle) - stockData["slopeKneeAngle"]);
+                //     return slope;
+                // }
+                return;
+
+
+
             }
 
             function textSet(text) {
@@ -661,7 +709,7 @@
 
             //11/15
             const cells = []
-            const items = 23;
+            const items = 24;
             function cellMake() {
                 //タイムスタンプと共に角度とどの信頼度をセルにする
                 const cellTag = {
@@ -670,24 +718,25 @@
                     2: "leftAngle",
                     3: "rightAngle",
                     4: "Angle",
-                    5: "visibility(left)",
-                    6: "visibility(right)",
-                    7: " shoulder x",
-                    8: " shoulder y",
-                    9: " shoulder z",
-                    10: " hip x",
-                    11: " hip y",
-                    12: " hip z",
-                    13: " knee x",
-                    14: " knee y",
-                    15: " knee z",
-                    16: " ankle x",
-                    17: " ankle y",
-                    18: " ankle z",
-                    19: "foot index x",
-                    20: "foot index y",
-                    21: "foot index z",
-                    22: "count",
+                    5: "hipAngle",
+                    6: "visibility(left)",
+                    7: "visibility(right)",
+                    8: " shoulder x",
+                    9: " shoulder y",
+                    10: " shoulder z",
+                    11: " hip x",
+                    12: " hip y",
+                    13: " hip z",
+                    14: " knee x",
+                    15: " knee y",
+                    16: " knee z",
+                    17: " ankle x",
+                    18: " ankle y",
+                    19: " ankle z",
+                    20: "foot index x",
+                    21: "foot index y",
+                    22: "foot index z",
+                    23: "count",
 
                 };
                 console.log(cellTag)
@@ -695,7 +744,7 @@
 
             }
 
-            function cellUpdate(leftAngle, rightAngle, poseLandmarks) {
+            function cellUpdate(resultAngle, poseLandmarks) {
                 //cellMakeにデータをぶち込む
                 const timeStamp = () => {
                     const today = new Date();
@@ -713,29 +762,35 @@
                 const cell = [
                     timeStamp(),
                     selectedAngle,
-                    leftAngle.angle,
-                    rightAngle.angle,
-                    (leftAngle.angle + rightAngle.angle) / 2,
-                    leftAngle.visibility,
-                    rightAngle.visibility,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].x + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].x) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].y + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].y) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].z + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].z) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].x + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].x) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].y + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].y) / 2,
-                    (poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].z + poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].z) / 2,
+                    resultAngle.leftKnee.angle,
+                    resultAngle.rightKnee.angle,
+                    (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2,
+                    (resultAngle.leftHip.angle + resultAngle.rightHip.angle) / 2,
+                    resultAngle.leftKnee.visibility,
+                    resultAngle.rightKnee.visibility,
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].x),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].y),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].z),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].x),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].y),
+                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].z),
                     document.getElementById("counter").value,
                 ];
                 cells.push(cell);
+                if (cell[0] - cells[1][0] < 5000) {
+                    //     angleShiseiCheck(resultAngle, "stock");
+                    console.log(cell[0], stockData["avrKneeAngle"])
+                }
+
 
             }
 
@@ -849,9 +904,9 @@
                 let perLeft = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
                 let perRight = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
                 let hiplineVisibility = Math.min(perLeft.visibility, perRight.visibility);
-                let hipLineMin = (linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMinPer) + linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMinPer)) / 2;
-                let hipLineMax = (linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMaxPer) + linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMaxPer)) / 2;
-                let hipLine = (linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.per) + linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.per)) / 2;
+                let hipLineMin = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMinPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMinPer));
+                let hipLineMax = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMaxPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMaxPer));
+                let hipLine = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.per), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.per));
                 let shiseiLeft = calcShisei(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP]);
                 let shiseiRight = calcShisei(results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP]);
 
@@ -922,7 +977,7 @@
 
 
 
-                    if ((selectedAngle - selectedMargin) < (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 && (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
+                    if ((selectedAngle - selectedMargin) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
                         statusChecker("ok");
                         if (document.getElementById("status").textContent === "please stand up") {
 
@@ -934,15 +989,15 @@
                         }
                         // console.log(selectedAngle - selectedMargin, selectedAngle + selectedMargin, (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2, Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility))
                         // console.log((selectedAngle - selectedMargin) < (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2, (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 < (selectedAngle + selectedMargin), Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > 0.6)
-                    } else if (Math.min(shiseiLeft.per + shiseiRight.per) < paramDataSet['shiseiPer'] && Math.min(shiseiLeft.visibility, shiseiRight.visibility) > paramDataSet['shiseiVisibility']) {
+                    } else if (angleShiseiCheck(resultAngle)) {
                         statusChecker("shisei");
                     } else {
                         if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility) && paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility)) {
-                            if ((selectedAngle - selectedMargin) > (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2) {
+                            if ((selectedAngle - selectedMargin) > average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)) {
                                 statusChecker("up");
                                 setImage(canvasElement, results.poseLandmarks, "counter");
                                 setImage(canvasElement, results.poseLandmarks, "up");
-                            } else if ((resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2 > (selectedAngle + selectedMargin)) {
+                            } else if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) > (selectedAngle + selectedMargin)) {
                                 statusChecker("down");
                                 setImage(canvasElement, results.poseLandmarks, "counter");
                                 setImage(canvasElement, results.poseLandmarks, "down");
@@ -955,7 +1010,7 @@
 
                     }
 
-                    cellUpdate(resultAngle.leftKnee, resultAngle.rightKnee, results.poseWorldLandmarks);
+                    cellUpdate(resultAngle, results.poseWorldLandmarks);
                 }
 
                 // grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
