@@ -77,6 +77,7 @@
 
             <video class="input_video" style="display: none"></video>
             <canvas class="output_canvas"></canvas>
+            <canvas id="graph" width="500" height="500" style="position: fixed; right: 5vmin; top:10vmin"></canvas>
 
             <div class="landmark-grid-container" style="display:none"></div>
             <input id="bgm" type="button" value="BGMを再生" class="audio_auto" cmanOMat="movearea" style="z-index: 10;">
@@ -325,8 +326,7 @@
                 "perRight": 0,
                 "hipLineMin": 0,
                 "hipLineMax": 0,
-                "avrKneeAngle": 0,
-                "avreHipAngle": 0,
+                "slopes": { a: 0, b: 0, r: 0 },
             };
 
             // document.addEventListener('DOMContentLoaded', function () {
@@ -469,15 +469,13 @@
             }
 
             /*股関節と膝関節から姿勢の判定をおする関数*/
-            function angleShiseiCheck(resultAngle, status = 0) {
+            function angleShiseiCheck(resultAngle, coordinates) {
                 let hipangle = (resultAngle.leftHip.angle + resultAngle.rightHip.angle) / 2;
                 let kneeangle = (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2;
+
                 if (stockData["slopeHipAngle"] === 0 || stockData["slopeKneeAngle"] === 0) {
                     stockData["slopeHipAngle"] = 180 - hipangle;
                     stockData["slopeKneeAngle"] = 180 - kneeangle;
-                } else if (status === "stock") {
-                    stockData["slopeHipAngle"] = average(stockData["slopeHipAngle"], 180 - hipangle);
-                    stockData["slopeKneeAngle"] = average(stockData["slopeKneeAngle"], 180 - kneeangle);
                 }
                 //  else if (selectedAngle - selectedMargin < kneeangle && kneeangle < selectedAngle + selectedMargin) {
                 //     stockData["slopeHipAngle"] = average(stockData["slopeHipAngle"], 180 - hipangle);
@@ -486,9 +484,21 @@
                 //     return slope;
                 // }
                 return;
+            }
 
-
-
+            const lsm = coordinates => {
+                const n = coordinates.length
+                const sigX = coordinates.reduce((acc, c) => acc + c.x, 0)
+                const sigY = coordinates.reduce((acc, c) => acc + c.y, 0)
+                const sigXX = coordinates.reduce((acc, c) => acc + c.x * c.x, 0)
+                const sigXY = coordinates.reduce((acc, c) => acc + c.x * c.y, 0)
+                // a(傾き)を求める
+                const a = (n * sigXY - sigX * sigY) / (n * sigXX - Math.pow(sigX, 2));
+                // b(切片)を求める
+                const b = (sigXX * sigY - sigXY * sigX) / (n * sigXX - Math.pow(sigX, 2));
+                //決定係数を求める
+                const r = 1 - (sigXY / sigY);
+                return { a, b, r }
             }
 
             function textSet(text) {
@@ -710,6 +720,7 @@
             //11/15
             const cells = []
             const items = 24;
+            const coordinates = [];
             function cellMake() {
                 //タイムスタンプと共に角度とどの信頼度をセルにする
                 const cellTag = {
@@ -756,6 +767,7 @@
                     const ss = ('00' + today.getSeconds()).slice(-2);
                     const ms = ('000' + today.getMilliseconds()).slice(-3);
 
+
                     return yy + mo + dd + hh + mi + ss + ms;
                 }
 
@@ -764,8 +776,8 @@
                     selectedAngle,
                     resultAngle.leftKnee.angle,
                     resultAngle.rightKnee.angle,
-                    (resultAngle.leftKnee.angle + resultAngle.rightKnee.angle) / 2,
-                    (resultAngle.leftHip.angle + resultAngle.rightHip.angle) / 2,
+                    average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
+                    average(resultAngle.leftHip.angle, resultAngle.rightHip.angle),
                     resultAngle.leftKnee.visibility,
                     resultAngle.rightKnee.visibility,
                     average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x),
@@ -786,10 +798,17 @@
                     document.getElementById("counter").value,
                 ];
                 cells.push(cell);
-                if (cell[0] - cells[1][0] < 5000) {
-                    //     angleShiseiCheck(resultAngle, "stock");
-                    console.log(cell[0], stockData["avrKneeAngle"])
+                if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"]) {
+                    coordinates.push({ x: average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), y: average(resultAngle.leftHip.angle, resultAngle.rightHip.angle) });
                 }
+                if (cells.length % 30 === 0) {
+                    const { a, b, r } = lsm(coordinates);
+                    stockData["slopes"][a] = a;
+                    stockData["slopes"][b] = b;
+                    stockData["slopes"][r] = r;
+                    console.log("Ahoy", a, b, r)
+                }
+
 
 
             }
@@ -1030,8 +1049,8 @@
                 enableSegmentation: true,
                 smoothSegmentation: true,
                 minDetectionConfidence: 0.7,
-                minTrackingConfidence: 0.7,
-                min_pose_presence_confidence: 0.7,
+                minTrackingConfidence: 0.5,
+                min_pose_presence_confidence: 0.5,
                 runningMode: "VIDEO"
             });
             pose.onResults(onResults);
