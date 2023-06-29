@@ -496,9 +496,7 @@
                 const a = (n * sigXY - sigX * sigY) / (n * sigXX - Math.pow(sigX, 2));
                 // b(切片)を求める
                 const b = (sigXX * sigY - sigXY * sigX) / (n * sigXX - Math.pow(sigX, 2));
-                //決定係数を求める
-                const r = 1 - (sigXY / sigY);
-                return { a, b, r }
+                return { a, b }
             }
 
             function textSet(text) {
@@ -802,11 +800,10 @@
                     coordinates.push({ x: average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), y: average(resultAngle.leftHip.angle, resultAngle.rightHip.angle) });
                 }
                 if (cells.length % 30 === 0) {
-                    const { a, b, r } = lsm(coordinates);
+                    const { a, b } = lsm(coordinates);
                     stockData["slopes"][a] = a;
                     stockData["slopes"][b] = b;
-                    stockData["slopes"][r] = r;
-                    console.log("Ahoy", a, b, r)
+                    console.log("Ahoy", a, b)
                 }
 
 
