@@ -494,8 +494,6 @@
                     if (hipangle > (kneeangle * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"]) || (kneeangle * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"]) > hipangle) {
                         console.log("maybe not good", stockData)
                     }
-                    console.log(hipangle, (kneeangle * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"]), (kneeangle * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"]), hipangle)
-
 
 
                     return false;
@@ -786,8 +784,8 @@
                     18: " ankle y",
                     19: " ankle z",
                     20: "slope_min",
-                    21: "sloope_max",
-                    22: "angle_average",
+                    21: "angle_average",
+                    22: "slope_max",
                     23: "count",
 
                 };
@@ -833,9 +831,9 @@
                     average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x),
                     average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y),
                     average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z),
-                    `${stockData["slopeMin"]["a_min"]},${stockData["slopeMin"]["b_min"]}`,
-                    `${stockData["slopeMax"]["a_max"]},${stockData["slopeMax"]["b_max"]}`,
-                    `${stockData["slopeKneeAngle"]},${stockData["slopeHipAngle"]}`,
+                    stockData["slopeKneeAngle"] * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"],
+                    stockData["slopeHipAngle"],
+                    stockData["slopeKneeAngle"] * stockData["slopeMax"]["1"] + stockData["slopeMax"]["b_max"],
                     document.getElementById("counter").value,
                 ];
                 cells.push(cell);
@@ -852,7 +850,7 @@
                     stockData["slopeMax"]["a_max"] = a_max;
                     stockData["slopeMax"]["b_max"] = b_max;
 
-                    console.log("Ahoy", a_min, b_min, a_max, b_max, cells.length)
+                    console.log("Ahoy", a_min, b_min, a_max, b_max, coordinates.length)
                 }
 
 
