@@ -493,10 +493,9 @@
                     // let slope = (stockData["slopeHipAngle"] - stockData["slopes"]["b"]) / stockData["slopeKneeAngle"];
                     if (hipangle > (kneeangle * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"]) || (kneeangle * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"]) > hipangle) {
                         console.log("maybe not good", stockData)
+
+                        return true;
                     }
-
-
-                    return false;
 
                 }
 
