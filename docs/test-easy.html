@@ -971,66 +971,66 @@
 
                 let perLeft = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
                 let perRight = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
-                let hiplineVisibility = Math.min(perLeft.visibility, perRight.visibility);
-                let hipLineMin = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMinPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMinPer));
-                let hipLineMax = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMaxPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMaxPer));
-                let hipLine = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.per), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.per));
+                // let hiplineVisibility = Math.min(perLeft.visibility, perRight.visibility);
+                // let hipLineMin = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMinPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMinPer));
+                // let hipLineMax = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMaxPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMaxPer));
+                // let hipLine = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.per), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.per));
                 let shiseiLeft = calcShisei(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP]);
                 let shiseiRight = calcShisei(results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP]);
 
-                let lineStatus;
-                if (paramDataSet["maxStrokeParam"] === 0) {
-                    lineStatus = "nonStroke";
-                } else if (hipLineMin && hipLineMax && 0 < hipLineMin && hipLineMax < canvasElement.height && paramDataSet['maxStrokeParam'] < Math.min(perLeft.visibility, perRight.visibility)) {
-                    if (stockData["hipLineMin"] > hipLine && hipLine > stockData["hipLineMax"]) {
-                        lineStatus = "prevStroke";
-                    } else {
-                        lineStatus = "newStroke";
-                    }
-                } else if (stockData["hipLineMin"] === 0 && stockData["hipLineMax"] === 0) {
-                    if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
-                        lineStatus = "newStroke";
-                    } else {
-                        lineStatus = "nonStroke";
-                    }
-                } else if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
-                    lineStatus = "prevStroke";
+                // let lineStatus;
+                // if (paramDataSet["maxStrokeParam"] === 0) {
+                //     lineStatus = "nonStroke";
+                // } else if (hipLineMin && hipLineMax && 0 < hipLineMin && hipLineMax < canvasElement.height && paramDataSet['maxStrokeParam'] < Math.min(perLeft.visibility, perRight.visibility)) {
+                //     if (stockData["hipLineMin"] > hipLine && hipLine > stockData["hipLineMax"]) {
+                //         lineStatus = "prevStroke";
+                //     } else {
+                //         lineStatus = "newStroke";
+                //     }
+                // } else if (stockData["hipLineMin"] === 0 && stockData["hipLineMax"] === 0) {
+                //     if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
+                //         lineStatus = "newStroke";
+                //     } else {
+                //         lineStatus = "nonStroke";
+                //     }
+                // } else if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
+                //     lineStatus = "prevStroke";
 
-                }
-                switch (lineStatus) {
-                    case "newStroke":
-                        canvasCtx.beginPath();
-                        canvasCtx.moveTo(0, hipLineMin);
-                        canvasCtx.lineTo(canvasElement.width, hipLineMin);
-                        canvasCtx.lineWidth = 5;
-                        canvasCtx.strokeStyle = 'Red';
-                        canvasCtx.moveTo(0, hipLineMax);
-                        canvasCtx.lineTo(canvasElement.width, hipLineMax);
-                        canvasCtx.lineWidth = 5;
-                        canvasCtx.strokeStyle = 'Red';
-                        canvasCtx.stroke();
-                        stockData["perLeft"] = perLeft;
-                        stockData["perRight"] = perRight;
-                        stockData["hipLineMin"] = hipLine;
-                        stockData["hipLineMax"] = hipLineMax;
-                        break;
-                    case "prevStroke":
-                        canvasCtx.beginPath();
-                        canvasCtx.moveTo(0, stockData["hipLineMin"]);
-                        canvasCtx.lineTo(canvasElement.width, stockData["hipLineMin"]);
-                        canvasCtx.lineWidth = 5;
-                        canvasCtx.strokeStyle = 'Red';
-                        canvasCtx.moveTo(0, stockData["hipLineMax"]);
-                        canvasCtx.lineTo(canvasElement.width, stockData["hipLineMax"]);
-                        canvasCtx.lineWidth = 5;
-                        canvasCtx.strokeStyle = 'Red';
-                        canvasCtx.stroke();
-                        break;
-                    case "nonStroke":
-                        break;
-                    default:
-                        break;
-                }
+                // }
+                // switch (lineStatus) {
+                //     case "newStroke":
+                //         canvasCtx.beginPath();
+                //         canvasCtx.moveTo(0, hipLineMin);
+                //         canvasCtx.lineTo(canvasElement.width, hipLineMin);
+                //         canvasCtx.lineWidth = 5;
+                //         canvasCtx.strokeStyle = 'Red';
+                //         canvasCtx.moveTo(0, hipLineMax);
+                //         canvasCtx.lineTo(canvasElement.width, hipLineMax);
+                //         canvasCtx.lineWidth = 5;
+                //         canvasCtx.strokeStyle = 'Red';
+                //         canvasCtx.stroke();
+                //         stockData["perLeft"] = perLeft;
+                //         stockData["perRight"] = perRight;
+                //         stockData["hipLineMin"] = hipLine;
+                //         stockData["hipLineMax"] = hipLineMax;
+                //         break;
+                //     case "prevStroke":
+                //         canvasCtx.beginPath();
+                //         canvasCtx.moveTo(0, stockData["hipLineMin"]);
+                //         canvasCtx.lineTo(canvasElement.width, stockData["hipLineMin"]);
+                //         canvasCtx.lineWidth = 5;
+                //         canvasCtx.strokeStyle = 'Red';
+                //         canvasCtx.moveTo(0, stockData["hipLineMax"]);
+                //         canvasCtx.lineTo(canvasElement.width, stockData["hipLineMax"]);
+                //         canvasCtx.lineWidth = 5;
+                //         canvasCtx.strokeStyle = 'Red';
+                //         canvasCtx.stroke();
+                //         break;
+                //     case "nonStroke":
+                //         break;
+                //     default:
+                //         break;
+                // }
 
 
                 canvasCtx.restore();
@@ -1046,8 +1046,7 @@
                     //姿勢が判定位置にあり、人が存在している時
                     if ((selectedAngle - selectedMargin) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
                         statusChecker("ok");
-                        angleShiseiCheck(resultAngle);
-                        if (false) {
+                        if (angleShiseiCheck(resultAngle)) {
                             statusChecker("shisei");
                         } else if (document.getElementById("status").textContent === "please stand up") {
 
