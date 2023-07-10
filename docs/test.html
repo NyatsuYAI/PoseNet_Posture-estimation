@@ -161,6 +161,7 @@
                 z-index: 2
             }
 
+
             .btn_area .ttl {
                 font-weight: bold
             }
@@ -915,10 +916,15 @@
             //ボタンを押したらCSV出力
             const finButton = document.getElementById('fin');
             finButton.addEventListener('click', function () {
+                document.exitFullscreen();
+                $(function () {
+                    $(".overlay").show();
+                });
                 //cellDrive(items, cells);//Driveにアップロード
                 cellDownload(items, cells);//localにダウンロード
                 const user = Object.fromEntries(new URLSearchParams(window.location.search)).user.split(",");
                 console.log(user);
+
             });
 
             function onResults(results) {

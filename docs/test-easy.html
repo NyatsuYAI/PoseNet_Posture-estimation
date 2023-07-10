@@ -81,7 +81,7 @@
 
             <div class="landmark-grid-container" style="display:none"></div>
             <input id="bgm" type="button" value="BGMを再生" class="audio_auto" style="z-index: 10;">
-            <button id="fin" class="fin" style="z-index: 10;">スクワットを終了する</button>
+            <button id="fin" class="fin" onclick="window.close();" style="z-index: 10;">スクワットを終了する</button>
 
         </div>
         <style>
@@ -318,8 +318,8 @@
             };
 
             /**角度の選択*/
-            let selectedAngle = 100;
-            let selectedMargin = 30;
+            let selectedAngle = 60;
+            let selectedMargin = 60;
 
             const stockData = {
                 "perLeft": 0,
@@ -656,6 +656,7 @@
                     }
 
                 } else if (flgSqwat && set === "ok") {
+
                     if (nowTime - startSqwat > 2000) {
                         textSet("please stand up");
                         document.getElementById("status").textContent = "please stand up";
@@ -683,6 +684,7 @@
                             nowPlay = mp3_stop;
                         }
                     }
+
                 } else if (!flgSqwat && set === "ok") {
                     startSqwat = Date.now();
                     flgSqwat = true;
@@ -915,6 +917,10 @@
             //ボタンを押したらCSV出力
             const finButton = document.getElementById('fin');
             finButton.addEventListener('click', function () {
+                document.exitFullscreen();
+                $(function () {
+                    $(".overlay").show();
+                });
                 //cellDrive(items, cells);//Driveにアップロード
                 cellDownload(items, cells);//localにダウンロード
                 const user = Object.fromEntries(new URLSearchParams(window.location.search)).user.split(",");
@@ -1091,7 +1097,7 @@
                 smoothLandmarks: true,
                 enableSegmentation: true,
                 smoothSegmentation: true,
-                minDetectionConfidence: 0.7,
+                minDetectionConfidence: 0.5,
                 minTrackingConfidence: 0.5,
                 min_pose_presence_confidence: 0.5,
                 runningMode: "VIDEO"
