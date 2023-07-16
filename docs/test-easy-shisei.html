@@ -15,8 +15,7 @@
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-    <script src="./cman.js" charset="utf-8"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
     <div id="status"
         style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px; display: none;">
         start
@@ -76,14 +75,23 @@
 
         <video class="input_video" style="display: none"></video>
         <canvas class="output_canvas"></canvas>
-        <canvas id="graph" width="500" height="500" style="position: fixed; right: 5vmin; top:10vmin"></canvas>
+        <canvas id="graph" style="position: fixed; right: 5vmin; top:10vmin"></canvas>
+        <canvas id="myChart"></canvas>
 
-        <div class="landmark-grid-container" style="display:none"></div>
+        <div class="landmark-grid-container" wstyle="display:none"></div>
         <input id="bgm" type="button" value="BGMを再生" class="audio_auto" style="z-index: 10;">
         <button id="fin" class="fin" onclick="window.close();" style="z-index: 10;">スクワットを終了する</button>
 
     </div>
     <style>
+        #myChart {
+            position: fixed;
+            min-width: 10vw;
+
+            top: 5vmin;
+            right: 5vmin;
+        }
+
         .gauge {
             transform: rotate(-90deg);
             position: fixed;
@@ -210,7 +218,33 @@
         const videoElement = document.getElementsByClassName('input_video')[0];
         const canvasElement = document.getElementsByClassName('output_canvas')[0];
         const canvasCtx = canvasElement.getContext("2d");
+        const chartElement = document.getElementById('myChart');
+        const chartCtx = chartElement.getContext("2d");
 
+        let myLineChart = new Chart(chartCtx, {
+            type: 'bar',
+            data: {
+                labels: ["腰", "膝"],
+                datasets: [{
+                    backgroundColor: [
+                        "#BB5179",
+                        "#FAFF67",
+                    ],
+                    data: [38, 31]
+
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: false,
+                plugins: {
+                    legend: {
+                        display: false,
+                    }
+                }
+            },
+        });
+        console.log(myLineChart.data.datasets[0].data)
         const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
         const grid = new LandmarkGrid(landmarkContainer, {
             connectionColor: 0xCCCCCC,
@@ -476,6 +510,8 @@
         function angleShiseiCheck(resultAngle, status = 0) {
             const hipangle = average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
             const kneeangle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
+            myLineChart.data.datasets[0].data = [hipangle, kneeangle];
+            myLineChart.update();
             if (status === "reset") {
                 stockData["slopeHipAngle"] = 0;
                 stockData["slopeKneeAngle"] = 0;

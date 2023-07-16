@@ -1,59 +1,58 @@
-<<!DOCTYPE html>
-    <html lang="ja">
+<!DOCTYPE html>
+<html lang="ja">
 
-    <head>
-        <title>mediapipe pose</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="IE=9">
-        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
-            crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
-            crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d/control_utils_3d.js"
-            crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
-            crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-        <script src="./cman.js" charset="utf-8"></script>
+<head>
+    <title>mediapipe pose</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d/control_utils_3d.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="./cman.js" charset="utf-8"></script>
 
-        <div id="status"
-            style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px; display: none;">
-            start
+    <div id="status"
+        style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px; display: none;">
+        start
+    </div>
+    <div id="board"
+        style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px;">
+        カメラのアクセス許可をしてください
+    </div>
+
+    <div>
+        <svg class="gauge" viewBox="0 0 88 88">
+            <circle class="circle" cx="44" cy="44" r="24" />
+        </svg>
+        <div id="counter" class="counter">
         </div>
-        <div id="board"
-            style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px;">
-            カメラのアクセス許可をしてください
+    </div>
+
+
+
+</head>
+
+<body>
+    <div class="overlay">
+        <div class="btn_area">
+            <p class="ttl">重要なお知らせ</p>
+            <p>本システムはスクワット運動支援サイトです</br>
+                個人情報の取り扱いに気をつけた上で</br>
+                一部情報をサーバーに送信いたします
+            </p>
+            <button>スクワットを始める</button>
         </div>
+    </div>
+    <div class="container">
 
-        <div>
-            <svg class="gauge" viewBox="0 0 88 88">
-                <circle class="circle" cx="44" cy="44" r="24" />
-            </svg>
-            <div id="counter" class="counter">
-            </div>
-        </div>
-
-
-
-    </head>
-
-    <body>
-        <div class="overlay">
-            <div class="btn_area">
-                <p class="ttl">重要なお知らせ</p>
-                <p>本システムはスクワット運動支援サイトです</br>
-                    個人情報の取り扱いに気をつけた上で</br>
-                    一部情報をサーバーに送信いたします
-                </p>
-                <button>スクワットを始める</button>
-            </div>
-        </div>
-        <div class="container">
-
-            <p id="log" style="display: none"></p>
-            <!-- <div>
+        <p id="log" style="display: none"></p>
+        <!-- <div>
             <label for="angle">角度を選択してください</label>
             <select id="angle">
                 <option value='80' selected>80</option>
@@ -75,1049 +74,1049 @@
         </div> -->
 
 
-            <video class="input_video" style="display: none"></video>
-            <canvas class="output_canvas"></canvas>
-            <canvas id="graph" width="500" height="500" style="position: fixed; right: 5vmin; top:10vmin"></canvas>
+        <video class="input_video" style="display: none"></video>
+        <canvas class="output_canvas"></canvas>
+        <canvas id="graph" width="500" height="500" style="position: fixed; right: 5vmin; top:10vmin"></canvas>
 
-            <div class="landmark-grid-container" style="display:none"></div>
-            <input id="bgm" type="button" value="BGMを再生" class="audio_auto" style="z-index: 10;">
-            <button id="fin" class="fin" style="z-index: 10;">スクワットを終了する</button>
+        <div class="landmark-grid-container" style="display:none"></div>
+        <input id="bgm" type="button" value="BGMを再生" class="audio_auto" style="z-index: 10;">
+        <button id="fin" class="fin" style="z-index: 10;">スクワットを終了する</button>
 
-        </div>
-        <style>
-            .gauge {
-                transform: rotate(-90deg);
-                position: fixed;
-                min-width: 50px;
-                min-height: 50px;
-                width: 100px;
-                height: 100px;
-                top: 10%;
-                display: none;
+    </div>
+    <style>
+        .gauge {
+            transform: rotate(-90deg);
+            position: fixed;
+            min-width: 50px;
+            min-height: 50px;
+            width: 100px;
+            height: 100px;
+            top: 10%;
+            display: none;
+        }
+
+        .circle {
+            stroke: rgb(0, 247, 255);
+            stroke-width: 20px;
+            animation: circleAnim 3s forwards;
+            fill: transparent;
+            stroke-dasharray: 264px;
+            stroke-dashoffset: 264px;
+        }
+
+        @keyframes circleAnim {
+            to {
+                stroke-dashoffset: 0;
             }
+        }
 
-            .circle {
-                stroke: rgb(0, 247, 255);
-                stroke-width: 20px;
-                animation: circleAnim 3s forwards;
-                fill: transparent;
-                stroke-dasharray: 264px;
-                stroke-dashoffset: 264px;
-            }
+        .audio_auto {
+            position: fixed;
+            width: 100px;
+            height: 40px;
+            border-radius: 9999px;
+            bottom: 5vmin;
+            right: 5vmin;
+            cursor: pointer;
+        }
 
-            @keyframes circleAnim {
-                to {
-                    stroke-dashoffset: 0;
-                }
-            }
+        .fin {
+            position: fixed;
+            width: 200;
+            height: 40px;
+            border-radius: 9999px;
+            bottom: 5vmin;
+            left: 5vmin;
+            cursor: pointer;
+        }
 
-            .audio_auto {
-                position: fixed;
-                width: 100px;
-                height: 40px;
-                border-radius: 9999px;
-                bottom: 5vmin;
-                right: 5vmin;
-                cursor: pointer;
-            }
+        .counter {
+            font-size: xx-large;
+            top: 10%;
+            position: absolute;
+            background-color: aliceblue;
+            background-size: cover;
+            padding: 10px;
+        }
 
-            .fin {
-                position: fixed;
-                width: 200;
-                height: 40px;
-                border-radius: 9999px;
-                bottom: 5vmin;
-                left: 5vmin;
-                cursor: pointer;
-            }
+        .overlay {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            position: fixed;
+            z-index: 1
+        }
 
-            .counter {
-                font-size: xx-large;
-                top: 10%;
-                position: absolute;
-                background-color: aliceblue;
-                background-size: cover;
-                padding: 10px;
-            }
-
-            .overlay {
-                display: none;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.6);
-                position: fixed;
-                z-index: 1
-            }
-
-            .btn_area {
-                width: 400px;
-                height: 250px;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: #fff;
-                text-align: center;
-                z-index: 2
-            }
+        .btn_area {
+            width: 400px;
+            height: 250px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            text-align: center;
+            z-index: 2
+        }
 
 
-            .btn_area .ttl {
-                font-weight: bold
-            }
+        .btn_area .ttl {
+            font-weight: bold
+        }
 
-            .btn_area p {
-                padding: 15px
-            }
+        .btn_area p {
+            padding: 15px
+        }
 
-            .btn_area button {
-                display: block;
-                margin: 0 auto;
-                background: #333;
-                color: #fff;
-                padding: 10px 40px;
-                border: none;
-                cursor: pointer;
-            }
+        .btn_area button {
+            display: block;
+            margin: 0 auto;
+            background: #333;
+            color: #fff;
+            padding: 10px 40px;
+            border: none;
+            cursor: pointer;
+        }
 
-            .btn_area button:hover {
-                background: #777
-            }
+        .btn_area button:hover {
+            background: #777
+        }
 
-            .btn_area :active {
-                width: 100px;
-                height: 100px;
-                border-radius: 150px;
-                border: 15px solid #fff;
-                border-top-color: rgba(0, 0, 0, 0.3);
-                box-sizing: border-box;
-                position: absolute;
-                top: 20%;
-                left: 35%;
-                animation: circle 1s linear infinite;
-                -webkit-animation: circle 1s linear infinite;
-            }
+        .btn_area :active {
+            width: 100px;
+            height: 100px;
+            border-radius: 150px;
+            border: 15px solid #fff;
+            border-top-color: rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+            position: absolute;
+            top: 20%;
+            left: 35%;
+            animation: circle 1s linear infinite;
+            -webkit-animation: circle 1s linear infinite;
+        }
 
-            @keyframes b {}
-        </style>
-        <script type="module">
-            $(function () {
-                $(".overlay").show();
-                $(".btn_area button").click(function () {
-                    $(".overlay").fadeOut();
-                    document.documentElement.requestFullscreen();
-                    nowPlay.play();
-                });
+        @keyframes b {}
+    </style>
+    <script type="module">
+        $(function () {
+            $(".overlay").show();
+            $(".btn_area button").click(function () {
+                $(".overlay").fadeOut();
+                document.documentElement.requestFullscreen();
+                nowPlay.play();
             });
-            const videoElement = document.getElementsByClassName('input_video')[0];
-            const canvasElement = document.getElementsByClassName('output_canvas')[0];
-            const canvasCtx = canvasElement.getContext("2d");
+        });
+        const videoElement = document.getElementsByClassName('input_video')[0];
+        const canvasElement = document.getElementsByClassName('output_canvas')[0];
+        const canvasCtx = canvasElement.getContext("2d");
 
-            const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
-            const grid = new LandmarkGrid(landmarkContainer, {
-                connectionColor: 0xCCCCCC,
-                definedColors:
-                    [{ name: 'LEFT', value: 0xffa500 }, { name: 'RIGHT', value: 0x00ffff }],
-                range: 2,
-                fitToGrid: true,
-                labelSuffix: 'm',
-                landmarkSize: 2,
-                numCellsPerAxis: 4,
-                showHidden: false,
-                centered: true,
-            });
+        const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
+        const grid = new LandmarkGrid(landmarkContainer, {
+            connectionColor: 0xCCCCCC,
+            definedColors:
+                [{ name: 'LEFT', value: 0xffa500 }, { name: 'RIGHT', value: 0x00ffff }],
+            range: 2,
+            fitToGrid: true,
+            labelSuffix: 'm',
+            landmarkSize: 2,
+            numCellsPerAxis: 4,
+            showHidden: false,
+            centered: true,
+        });
 
-            let ut = navigator.userAgent;
+        let ut = navigator.userAgent;
 
 
+        if (ut.indexOf('iPhone') > 0 || ut.indexOf('iPod') > 0 || ut.indexOf('Android') > 0 && ut.indexOf('Mobile') > 0) {
+            document.getElementById("log").textContent = ("iPhone");
+            canvasElement.setAttribute("width", window.outerWidth);
+            canvasElement.setAttribute("height", window.outerHeight);
+        } else if (ut.indexOf('iPad') > 0 || ut.indexOf('Android') > 0) {
+            document.getElementById("log").textContent = ("Tablet");
+            canvasElement.setAttribute("width", window.outerWidth);
+            canvasElement.setAttribute("height", window.outerHeight);
+        } else {
+            document.getElementById("log").textContent = ("Personal Computer");
+            canvasElement.setAttribute("width", window.outerWidth);
+            canvasElement.setAttribute("height", window.outerHeight);
+        }
+
+        function resizeWindow() {
             if (ut.indexOf('iPhone') > 0 || ut.indexOf('iPod') > 0 || ut.indexOf('Android') > 0 && ut.indexOf('Mobile') > 0) {
-                document.getElementById("log").textContent = ("iPhone");
-                canvasElement.setAttribute("width", window.outerWidth);
-                canvasElement.setAttribute("height", window.outerHeight);
+                canvasElement.style.width = '100vw';
             } else if (ut.indexOf('iPad') > 0 || ut.indexOf('Android') > 0) {
-                document.getElementById("log").textContent = ("Tablet");
-                canvasElement.setAttribute("width", window.outerWidth);
-                canvasElement.setAttribute("height", window.outerHeight);
+                canvasElement.style.width = '100vw';
             } else {
-                document.getElementById("log").textContent = ("Personal Computer");
-                canvasElement.setAttribute("width", window.outerWidth);
-                canvasElement.setAttribute("height", window.outerHeight);
+                canvasElement.style.width = '100vw';
+            }
+        }
+
+        /**
+         * Get the URL parameter value
+         */
+        const paramDataSet = {
+            'maxStrokeParam': 0,
+            'humanJudge': 0.7,
+            'shiseiPer': 0.85,
+            'shiseiVisibility': 0.7,
+        }
+        function getParam() {
+            // URLを取得
+            let url = new URL(window.location.href);
+            // URLSearchParamsオブジェクトを取得
+            let params = url.searchParams;
+
+            for (let item in paramDataSet) {
+                let result = params.get(item);
+                if (result) paramDataSet[item] = Number(result);
+            }
+            console.log(paramDataSet);
+            return;
+        }
+
+        /***画像の設定
+         */
+        let img_img1 = new Image();
+        img_img1.src = './img/animalface_neko.png';
+        let img_fire = new Image();
+        img_fire.src = './img/honoo_hi_fire.png';
+        let img_up = new Image();
+        img_up.src = './img/up.png';
+        let img_down = new Image();
+        img_down.src = './img/down.png';
+
+
+        /**音声の設定
+         * 
+        */
+        const mp3_bgm = new Audio('./mp3/bgm.mp3');
+        const mp3_agete = new Audio('./mp3/agete.m4a');
+        const mp3_sagete = new Audio('./mp3/sagete.m4a')
+        const mp3_pinpon = new Audio('./mp3/pinpon.mp3');
+        const mp3_sagatte = new Audio('./mp3/sagate.mp3');
+        const mp3_sesuji = new Audio('./mp3/sesuji.m4a');
+        const mp3_stop = new Audio('./mp3/stop.mp3');
+        const mp3_tatte = new Audio('./mp3/tatte.m4a');
+        const mp3_start = new Audio('./mp3/start.mp3');
+        const mp3_goodposition = new Audio('./mp3/goodposition.mp3');
+        let nowPlay = mp3_start;
+
+
+        /**取得したい角度のポイント
+         * もちろん真ん中が原点となるポイントになるように書いてね
+         * 関節スコアの参照 -> https://google.github.io/mediapipe/solutions/pose.html#pose-landmark-model-blazepose-ghum-3d
+        */
+        const needVector = {
+            // "rightUde":[12,14,16],
+            // "leftUde":[11,13,15],
+            "rightHip": [12, 24, 26],
+            "leftHip": [11, 23, 25],
+            "rightKnee": [24, 26, 28],
+            "leftKnee": [23, 25, 27],
+        };
+
+        /**角度の選択*/
+        let selectedAngle = 90;
+        let selectedMargin = 30;
+
+        const stockData = {
+            "perLeft": 0,
+            "perRight": 0,
+            "hipLineMin": 0,
+            "hipLineMax": 0,
+            "falseDataSet": { "min": { "knee": 50, "hip": 30 }, "max": { "knee": 50, "hip": 70 } },
+            "slopeHipAngle": 0,
+            "slopeKneeAngle": 0,
+            "slopeMin": { "a_min": 0, "b_min": 0 },
+            "slopeMax": { "a_max": 0, "b_max": 0 },
+        };
+
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     let angle = document.getElementById('angle');
+        //     let margin = document.getElementById('margin');
+        //     angle.addEventListener('change', function () {
+        //         selectedAngle = Number(angle.value);
+        //         console.log(selectedAngle);
+        //     }, false);
+        //     margin.addEventListener('change', function () {
+        //         selectedMargin = Number(margin.value);
+        //         console.log(selectedMargin);
+        //     }, false);
+        //     stockData["perLeft"] = 0;
+        //     stockData["perRight"] = 0;
+        //     stockData["hipLineMin"] = 0;
+        //     stockData["hipLineMax"] = 0;
+        // }, false);
+
+        function resetMusic(music) {
+            music.pause();
+            music.currentTime = 0;
+        }
+
+        const bgmButton = document.getElementById("bgm");
+        bgmButton.addEventListener('click', function () {
+            if (bgmButton.value === 'BGMを再生') {
+                bgmButton.value = 'BGMを停止';
+                mp3_bgm.play();
+                mp3_bgm.volume = 0.2;
+                mp3_bgm.loop = true;
+            } else {
+                bgmButton.value = 'BGMを再生';
+                resetMusic(mp3_bgm);
+            }
+        });
+
+
+        /**角度の計算*/
+        function calcAngle(pose1, pose2, pose3) {
+            // please learn here -> https://npm.runkit.com/%40mediapipe%2Fpose
+
+            const vector1 = {
+                x: Math.round((pose1.x - pose2.x) * 1000000) / 1000000,
+                y: Math.round((pose1.y - pose2.y) * 1000000) / 1000000,
+                z: Math.round((pose1.z - pose2.z) * 1000000) / 1000000,
+                visibility: Math.min(pose1.visibility, pose2.visibility),
+            }
+            const vector2 = {
+                x: Math.round((pose3.x - pose2.x) * 1000000) / 1000000,
+                y: Math.round((pose3.y - pose2.y) * 1000000) / 1000000,
+                z: Math.round((pose3.z - pose2.z) * 1000000) / 1000000,
+                visibility: Math.min(pose3.visibility, pose2.visibility),
             }
 
-            function resizeWindow() {
-                if (ut.indexOf('iPhone') > 0 || ut.indexOf('iPod') > 0 || ut.indexOf('Android') > 0 && ut.indexOf('Mobile') > 0) {
-                    canvasElement.style.width = '100vw';
-                } else if (ut.indexOf('iPad') > 0 || ut.indexOf('Android') > 0) {
-                    canvasElement.style.width = '100vw';
-                } else {
-                    canvasElement.style.width = '100vw';
+            return {
+                angle: Math.acos((vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z) / (Math.sqrt(vector1.x ** 2 + vector1.y ** 2 + vector1.z ** 2) * Math.sqrt(vector2.x ** 2 + vector2.y ** 2 + vector2.z ** 2))) * 180 / Math.PI,
+                visibility: Math.min(vector1.visibility, vector2.visibility),
+            };
+
+        }
+
+        /**角度の判定*/
+        function checkAngle(angle, margin, pose1, pose2, pose3) {
+            let nowAngle = calcAngle(pose1, pose2, pose3);
+            if ((angle - margin) < nowAngle && nowAngle < (angle + margin)) return true;
+            else return false;
+        }
+
+        function average(a, b) {
+            return (a + b) / 2;
+        };
+
+        /**３つの点の距離・信頼度の計算*/
+        function calcTriangleLength(hip, knee, ankle) {
+            const vector1 = {
+                x: Math.round((hip.x - knee.x) * 1000000) / 1000000,
+                y: Math.round((hip.y - knee.y) * 1000000) / 1000000,
+                z: Math.round((hip.z - knee.z) * 1000000) / 1000000,
+                visibility: Math.min(hip.visibility, knee.visibility),
+            }
+            const vector2 = {
+                x: Math.round((ankle.x - knee.x) * 1000000) / 1000000,
+                y: Math.round((ankle.y - knee.y) * 1000000) / 1000000,
+                z: Math.round((ankle.z - knee.z) * 1000000) / 1000000,
+                visibility: Math.min(ankle.visibility, knee.visibility),
+            }
+            const vector3 = {
+                x: Math.round((ankle.x - hip.x) * 1000000) / 1000000,
+                y: Math.round((ankle.y - hip.y) * 1000000) / 1000000,
+                z: Math.round((ankle.z - hip.z) * 1000000) / 1000000,
+                visibility: Math.min(ankle.visibility, hip.visibility),
+            }
+
+            let vector1_length = Math.sqrt(vector1.x ** 2 + vector1.y ** 2 + vector1.z ** 2);
+            let vector2_length = Math.sqrt(vector2.x ** 2 + vector2.y ** 2 + vector2.z ** 2);
+            let vector3_length = Math.sqrt(vector3.x ** 2 + vector3.y ** 2 + vector3.z ** 2);
+
+            let needLengthVector3MarginMin = Math.sqrt(vector1_length ** 2 + vector2_length ** 2 - (2 * vector1_length * vector2_length) * Math.cos((selectedAngle - selectedMargin) / 180 * Math.PI));
+            let needLengthVector3MarginMax = Math.sqrt(vector1_length ** 2 + vector2_length ** 2 - (2 * vector1_length * vector2_length) * Math.cos((selectedAngle + selectedMargin) / 180 * Math.PI));
+            let needLengthVector3 = Math.sqrt(vector1_length ** 2 + vector2_length ** 2 - ((2 * vector1_length * vector2_length) * Math.cos(selectedAngle / 180 * Math.PI)));
+            return {
+                'per': needLengthVector3 / vector3_length,
+                'marginMinPer': needLengthVector3MarginMin / vector3_length,
+                'marginMaxPer': needLengthVector3MarginMax / vector3_length,
+                'visibility': Math.min(vector1.visibility, vector2.visibility, vector3.visibility),
+            };
+
+        }
+
+        /**姿勢の判定
+         * ２次元と３次元で比較したい
+        */
+
+        function calcShisei(shoulder, hip) {
+            const vector = {
+                x: Math.round((shoulder.x - hip.x) * 1000000) / 1000000,
+                y: Math.round((shoulder.y - hip.y) * 1000000) / 1000000,
+                z: Math.round((shoulder.z - hip.z) * 1000000) / 1000000,
+                visibility: Math.min(shoulder.visibility, hip.visibility),
+            }
+            return {
+                'per': Math.sqrt(vector.x ** 2 + vector.y ** 2) / Math.sqrt(vector.x ** 2 + vector.y ** 2 + vector.z ** 2),
+                'visibility': vector.visibility,
+            }
+        }
+        /**顔隠す猫ちゃん*/
+        function facehide(canvasElement, img, nose, left_ear, right_ear) {
+            let width = canvasElement.width * Math.abs(left_ear.x - right_ear.x) * 3;
+            let height = width * Math.round(img.height / img.width);
+            let x = Math.round(nose.x * canvasElement.width) - (width / 2);
+            let y = Math.round(nose.y * canvasElement.height) - (height / 2);
+
+            return {
+                'x': x,
+                'y': y,
+                'width': width,
+                'height': height,
+            };
+        }
+
+        /*股関節と膝関節から姿勢の判定をおする関数
+        この時の条件は、Keep状態時のみ反応するよう書くことに注意*/
+        function angleShiseiCheck(resultAngle, status = 0) {
+            const hipangle = average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
+            const kneeangle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
+            if (status === "reset") {
+                stockData["slopeHipAngle"] = 0;
+                stockData["slopeKneeAngle"] = 0;
+                console.log("reset")
+            } else if (stockData["slopeHipAngle"] === 0 || stockData["slopeKneeAngle"] === 0) {
+                stockData["slopeHipAngle"] = hipangle;
+                stockData["slopeKneeAngle"] = kneeangle;
+                console.log("slope check is set", stockData)
+            } else {
+                // stockData["slopeHipAngle"] = average(stockData["slopeHipAngle"], hipangle);
+                // stockData["slopeKneeAngle"] = average(stockData["slopeKneeAngle"], kneeangle);
+                stockData["slopeHipAngle"] = hipangle;
+                stockData["slopeKneeAngle"] = kneeangle;
+                // let slope = (stockData["slopeHipAngle"] - stockData["slopes"]["b"]) / stockData["slopeKneeAngle"];
+                if (hipangle > (kneeangle * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"]) || (kneeangle * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"]) > hipangle) {
+                    console.log("maybe not good", stockData)
+
+                    return true;
                 }
+
             }
 
-            /**
-             * Get the URL parameter value
-             */
-            const paramDataSet = {
-                'maxStrokeParam': 0,
-                'humanJudge': 0.7,
-                'shiseiPer': 0.85,
-                'shiseiVisibility': 0.7,
-            }
-            function getParam() {
-                // URLを取得
-                let url = new URL(window.location.href);
-                // URLSearchParamsオブジェクトを取得
-                let params = url.searchParams;
+            return false;
+        }
 
-                for (let item in paramDataSet) {
-                    let result = params.get(item);
-                    if (result) paramDataSet[item] = Number(result);
+        function addCoordinates(resultAngle, coordinates, status = 0) {
+            if (status === "min") {
+                const res = [];
+                for (let set in coordinates) {
+                    res.push(coordinates[set]);
+                    res.push({ x: coordinates[set].x - stockData["falseDataSet"]["min"]["knee"], y: coordinates[set].y - stockData["falseDataSet"]["min"]["hip"] });
                 }
-                console.log(paramDataSet);
+                return res;
+            } else if (status === "max") {
+                const res = [];
+                for (let set in coordinates) {
+                    res.push(coordinates[set]);
+                    res.push({ x: coordinates[set].x - stockData["falseDataSet"]["max"]["knee"], y: coordinates[set].y - stockData["falseDataSet"]["max"]["hip"] });
+                }
+                return res;
+            } else {
+                return coordinates;
+            }
+        }
+
+        const lsm = coordinates => {
+            const n = coordinates.length
+            const sigX = coordinates.reduce((acc, c) => acc + c.x, 0)
+            const sigY = coordinates.reduce((acc, c) => acc + c.y, 0)
+            const sigXX = coordinates.reduce((acc, c) => acc + c.x * c.x, 0)
+            const sigXY = coordinates.reduce((acc, c) => acc + c.x * c.y, 0)
+            // a(傾き)を求める
+            const a = (n * sigXY - sigX * sigY) / (n * sigXX - Math.pow(sigX, 2));
+            // b(切片)を求める
+            const b = (sigXX * sigY - sigXY * sigX) / (n * sigXX - Math.pow(sigX, 2));
+
+            return [a, b]
+        }
+
+
+
+
+        function textSet(text) {
+            status = text;
+            switch (status) {
+                case "please look forward":
+                    document.getElementById("board").textContent = "姿勢が悪いです。前を見ましょう";
+                    break;
+                case "please stand up":
+                    document.getElementById("board").textContent = "成功！立ち上がって";
+                    break;
+                case "keep":
+                    document.getElementById("board").textContent = "姿勢を保ちましょう";
+                    break;
+                case "sqwat done":
+                    break;
+                case "sqwat reset":
+                    break;
+                case "good position start squat":
+                    document.getElementById("board").textContent = "スクワットを始めてみましょう";
+                    break;
+                case "too squat":
+                    document.getElementById("board").textContent = "しゃがみすぎです。腰を上げてください";
+                    break;
+                case "out":
+                    document.getElementById("board").textContent = "画面に全身が映っていません。画面を確認してください";
+                    break;
+            }
+        }
+
+        function setImage(canvasElement, poseLandmarks, what) {
+            let width = canvasElement.width * Math.abs(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x - poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x) / 1.5;
+            let status = document.getElementById("status").style.textContent;
+            if (status === "please stand up") {
+                return;
+            } else if (what === "fire") {
+                let height = width * Math.round(img_fire.height / img_fire.width);
+                let left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
+                let left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
+                canvasCtx.drawImage(img_fire, left_x, left_y, width, height);
+                let right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
+                let right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
+                canvasCtx.drawImage(img_fire, right_x, right_y, width, height);
+            } else if (what === "down") {
+                let height = width * Math.round(img_down.height / img_down.width);
+                let left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
+                let left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
+                canvasCtx.drawImage(img_down, left_x, left_y, width, height);
+                let right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
+                let right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
+                canvasCtx.drawImage(img_down, right_x, right_y, width, height);
+            } else if (what === "up") {
+                let height = width * Math.round(img_up.height / img_up.width);
+                let left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
+                let left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
+                canvasCtx.drawImage(img_up, left_x, left_y, width, height);
+                let right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
+                let right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
+                canvasCtx.drawImage(img_up, right_x, right_y, width, height);
+            } else if (what === "gauge") {
+                document.getElementsByClassName("counter")[0].style.display = "none";
+                document.getElementsByClassName("gauge")[0].style.display = "block";
+                document.getElementsByClassName("gauge")[0].style.display = "block";
+                document.getElementsByClassName("gauge")[0].style.width = width;
+                document.getElementsByClassName("gauge")[0].style.height = width;
+                document.getElementsByClassName("gauge")[0].style.left = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width);
+            } else if (what === "counter") {
+                document.getElementsByClassName("gauge")[0].style.display = "none";
+                document.getElementsByClassName("counter")[0].style.display = "block";
+                document.getElementsByClassName("counter")[0].style.left = (Math.round(poseLandmarks[POSE_LANDMARKS.NOSE].x * canvasElement.width) - (width / 2)) + "px";
+
+            } else {
                 return;
             }
 
-            /***画像の設定
-             */
-            let img_img1 = new Image();
-            img_img1.src = './img/animalface_neko.png';
-            let img_fire = new Image();
-            img_fire.src = './img/honoo_hi_fire.png';
-            let img_up = new Image();
-            img_up.src = './img/up.png';
-            let img_down = new Image();
-            img_down.src = './img/down.png';
+        }
 
+        function linePosHip(canvasElement, hip, ankle, per) {
+            let needLenght = (ankle.y - hip.y) * per;
+            return (ankle.y - needLenght) * canvasElement.height;
+        }
 
-            /**音声の設定
-             * 
-            */
-            const mp3_bgm = new Audio('./mp3/bgm.mp3');
-            const mp3_agete = new Audio('./mp3/agete.m4a');
-            const mp3_sagete = new Audio('./mp3/sagete.m4a')
-            const mp3_pinpon = new Audio('./mp3/pinpon.mp3');
-            const mp3_sagatte = new Audio('./mp3/sagate.mp3');
-            const mp3_sesuji = new Audio('./mp3/sesuji.m4a');
-            const mp3_stop = new Audio('./mp3/stop.mp3');
-            const mp3_tatte = new Audio('./mp3/tatte.m4a');
-            const mp3_start = new Audio('./mp3/start.mp3');
-            const mp3_goodposition = new Audio('./mp3/goodposition.mp3');
-            let nowPlay = mp3_start;
-
-
-            /**取得したい角度のポイント
-             * もちろん真ん中が原点となるポイントになるように書いてね
-             * 関節スコアの参照 -> https://google.github.io/mediapipe/solutions/pose.html#pose-landmark-model-blazepose-ghum-3d
-            */
-            const needVector = {
-                // "rightUde":[12,14,16],
-                // "leftUde":[11,13,15],
-                "rightHip": [12, 24, 26],
-                "leftHip": [11, 23, 25],
-                "rightKnee": [24, 26, 28],
-                "leftKnee": [23, 25, 27],
-            };
-
-            /**角度の選択*/
-            let selectedAngle = 85;
-            let selectedMargin = 25;
-
-            const stockData = {
-                "perLeft": 0,
-                "perRight": 0,
-                "hipLineMin": 0,
-                "hipLineMax": 0,
-                "falseDataSet": { "min": { "knee": 50, "hip": 40 }, "max": { "knee": 50, "hip": 70 } },
-                "slopeHipAngle": 0,
-                "slopeKneeAngle": 0,
-                "slopeMin": { "a_min": 0, "b_min": 0 },
-                "slopeMax": { "a_max": 0, "b_max": 0 },
-            };
-
-            // document.addEventListener('DOMContentLoaded', function () {
-            //     let angle = document.getElementById('angle');
-            //     let margin = document.getElementById('margin');
-            //     angle.addEventListener('change', function () {
-            //         selectedAngle = Number(angle.value);
-            //         console.log(selectedAngle);
-            //     }, false);
-            //     margin.addEventListener('change', function () {
-            //         selectedMargin = Number(margin.value);
-            //         console.log(selectedMargin);
-            //     }, false);
-            //     stockData["perLeft"] = 0;
-            //     stockData["perRight"] = 0;
-            //     stockData["hipLineMin"] = 0;
-            //     stockData["hipLineMax"] = 0;
-            // }, false);
-
-            function resetMusic(music) {
-                music.pause();
-                music.currentTime = 0;
+        /**スクワットのカウント*/
+        function counter(any) {
+            let num
+            if (any === "start") {
+                num = 0;
+            } else if (Number.isInteger(any)) {
+                num = any += 1;
+            } else {
+                throw (Error);
             }
+            document.getElementById("counter").textContent = "回数:" + num;
+            document.getElementById("counter").value = num;
+        }
 
-            const bgmButton = document.getElementById("bgm");
-            bgmButton.addEventListener('click', function () {
-                if (bgmButton.value === 'BGMを再生') {
-                    bgmButton.value = 'BGMを停止';
-                    mp3_bgm.play();
-                    mp3_bgm.volume = 0.2;
-                    mp3_bgm.loop = true;
-                } else {
-                    bgmButton.value = 'BGMを再生';
-                    resetMusic(mp3_bgm);
-                }
-            });
+        /**2秒間
+         *　スクワットキープしているかの確認
+        */
 
+        let flgSqwat = false;
+        let startSqwat;
 
-            /**角度の計算*/
-            function calcAngle(pose1, pose2, pose3) {
-                // please learn here -> https://npm.runkit.com/%40mediapipe%2Fpose
+        function statusChecker(set) {
+            let nowTime = Date.now();
 
-                const vector1 = {
-                    x: Math.round((pose1.x - pose2.x) * 1000000) / 1000000,
-                    y: Math.round((pose1.y - pose2.y) * 1000000) / 1000000,
-                    z: Math.round((pose1.z - pose2.z) * 1000000) / 1000000,
-                    visibility: Math.min(pose1.visibility, pose2.visibility),
-                }
-                const vector2 = {
-                    x: Math.round((pose3.x - pose2.x) * 1000000) / 1000000,
-                    y: Math.round((pose3.y - pose2.y) * 1000000) / 1000000,
-                    z: Math.round((pose3.z - pose2.z) * 1000000) / 1000000,
-                    visibility: Math.min(pose3.visibility, pose2.visibility),
+            if (set === "shisei") {
+                textSet("please look forward");
+                document.getElementById("status").textContent = "please look forward";
+                document.getElementById("board").style.backgroundColor = '#ff0000';
+                flgSqwat = false;
+                if (nowPlay !== mp3_sesuji) {
+                    resetMusic(nowPlay);
+                    mp3_sesuji.play();
+                    mp3_sesuji.loop = true;
+                    nowPlay = mp3_sesuji;
                 }
 
-                return {
-                    angle: Math.acos((vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z) / (Math.sqrt(vector1.x ** 2 + vector1.y ** 2 + vector1.z ** 2) * Math.sqrt(vector2.x ** 2 + vector2.y ** 2 + vector2.z ** 2))) * 180 / Math.PI,
-                    visibility: Math.min(vector1.visibility, vector2.visibility),
-                };
-
-            }
-
-            /**角度の判定*/
-            function checkAngle(angle, margin, pose1, pose2, pose3) {
-                let nowAngle = calcAngle(pose1, pose2, pose3);
-                if ((angle - margin) < nowAngle && nowAngle < (angle + margin)) return true;
-                else return false;
-            }
-
-            function average(a, b) {
-                return (a + b) / 2;
-            };
-
-            /**３つの点の距離・信頼度の計算*/
-            function calcTriangleLength(hip, knee, ankle) {
-                const vector1 = {
-                    x: Math.round((hip.x - knee.x) * 1000000) / 1000000,
-                    y: Math.round((hip.y - knee.y) * 1000000) / 1000000,
-                    z: Math.round((hip.z - knee.z) * 1000000) / 1000000,
-                    visibility: Math.min(hip.visibility, knee.visibility),
-                }
-                const vector2 = {
-                    x: Math.round((ankle.x - knee.x) * 1000000) / 1000000,
-                    y: Math.round((ankle.y - knee.y) * 1000000) / 1000000,
-                    z: Math.round((ankle.z - knee.z) * 1000000) / 1000000,
-                    visibility: Math.min(ankle.visibility, knee.visibility),
-                }
-                const vector3 = {
-                    x: Math.round((ankle.x - hip.x) * 1000000) / 1000000,
-                    y: Math.round((ankle.y - hip.y) * 1000000) / 1000000,
-                    z: Math.round((ankle.z - hip.z) * 1000000) / 1000000,
-                    visibility: Math.min(ankle.visibility, hip.visibility),
-                }
-
-                let vector1_length = Math.sqrt(vector1.x ** 2 + vector1.y ** 2 + vector1.z ** 2);
-                let vector2_length = Math.sqrt(vector2.x ** 2 + vector2.y ** 2 + vector2.z ** 2);
-                let vector3_length = Math.sqrt(vector3.x ** 2 + vector3.y ** 2 + vector3.z ** 2);
-
-                let needLengthVector3MarginMin = Math.sqrt(vector1_length ** 2 + vector2_length ** 2 - (2 * vector1_length * vector2_length) * Math.cos((selectedAngle - selectedMargin) / 180 * Math.PI));
-                let needLengthVector3MarginMax = Math.sqrt(vector1_length ** 2 + vector2_length ** 2 - (2 * vector1_length * vector2_length) * Math.cos((selectedAngle + selectedMargin) / 180 * Math.PI));
-                let needLengthVector3 = Math.sqrt(vector1_length ** 2 + vector2_length ** 2 - ((2 * vector1_length * vector2_length) * Math.cos(selectedAngle / 180 * Math.PI)));
-                return {
-                    'per': needLengthVector3 / vector3_length,
-                    'marginMinPer': needLengthVector3MarginMin / vector3_length,
-                    'marginMaxPer': needLengthVector3MarginMax / vector3_length,
-                    'visibility': Math.min(vector1.visibility, vector2.visibility, vector3.visibility),
-                };
-
-            }
-
-            /**姿勢の判定
-             * ２次元と３次元で比較したい
-            */
-
-            function calcShisei(shoulder, hip) {
-                const vector = {
-                    x: Math.round((shoulder.x - hip.x) * 1000000) / 1000000,
-                    y: Math.round((shoulder.y - hip.y) * 1000000) / 1000000,
-                    z: Math.round((shoulder.z - hip.z) * 1000000) / 1000000,
-                    visibility: Math.min(shoulder.visibility, hip.visibility),
-                }
-                return {
-                    'per': Math.sqrt(vector.x ** 2 + vector.y ** 2) / Math.sqrt(vector.x ** 2 + vector.y ** 2 + vector.z ** 2),
-                    'visibility': vector.visibility,
-                }
-            }
-            /**顔隠す猫ちゃん*/
-            function facehide(canvasElement, img, nose, left_ear, right_ear) {
-                let width = canvasElement.width * Math.abs(left_ear.x - right_ear.x) * 3;
-                let height = width * Math.round(img.height / img.width);
-                let x = Math.round(nose.x * canvasElement.width) - (width / 2);
-                let y = Math.round(nose.y * canvasElement.height) - (height / 2);
-
-                return {
-                    'x': x,
-                    'y': y,
-                    'width': width,
-                    'height': height,
-                };
-            }
-
-            /*股関節と膝関節から姿勢の判定をおする関数
-            この時の条件は、Keep状態時のみ反応するよう書くことに注意*/
-            function angleShiseiCheck(resultAngle, status = 0) {
-                const hipangle = average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
-                const kneeangle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
-                if (status === "reset") {
-                    stockData["slopeHipAngle"] = 0;
-                    stockData["slopeKneeAngle"] = 0;
-                    console.log("reset")
-                } else if (stockData["slopeHipAngle"] === 0 || stockData["slopeKneeAngle"] === 0) {
-                    stockData["slopeHipAngle"] = hipangle;
-                    stockData["slopeKneeAngle"] = kneeangle;
-                    console.log("slope check is set", stockData)
-                } else {
-                    // stockData["slopeHipAngle"] = average(stockData["slopeHipAngle"], hipangle);
-                    // stockData["slopeKneeAngle"] = average(stockData["slopeKneeAngle"], kneeangle);
-                    stockData["slopeHipAngle"] = hipangle;
-                    stockData["slopeKneeAngle"] = kneeangle;
-                    // let slope = (stockData["slopeHipAngle"] - stockData["slopes"]["b"]) / stockData["slopeKneeAngle"];
-                    if (hipangle > (kneeangle * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"]) || (kneeangle * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"]) > hipangle) {
-                        console.log("maybe not good", stockData)
-
-                        return true;
-                    }
-
-                }
-
-                return false;
-            }
-
-            function addCoordinates(resultAngle, coordinates, status = 0) {
-                if (status === "min") {
-                    const res = [];
-                    for (let set in coordinates) {
-                        res.push(coordinates[set]);
-                        res.push({ x: coordinates[set].x - stockData["falseDataSet"]["min"]["knee"], y: coordinates[set].y - stockData["falseDataSet"]["min"]["hip"] });
-                    }
-                    return res;
-                } else if (status === "max") {
-                    const res = [];
-                    for (let set in coordinates) {
-                        res.push(coordinates[set]);
-                        res.push({ x: coordinates[set].x - stockData["falseDataSet"]["max"]["knee"], y: coordinates[set].y - stockData["falseDataSet"]["max"]["hip"] });
-                    }
-                    return res;
-                } else {
-                    return coordinates;
-                }
-            }
-
-            const lsm = coordinates => {
-                const n = coordinates.length
-                const sigX = coordinates.reduce((acc, c) => acc + c.x, 0)
-                const sigY = coordinates.reduce((acc, c) => acc + c.y, 0)
-                const sigXX = coordinates.reduce((acc, c) => acc + c.x * c.x, 0)
-                const sigXY = coordinates.reduce((acc, c) => acc + c.x * c.y, 0)
-                // a(傾き)を求める
-                const a = (n * sigXY - sigX * sigY) / (n * sigXX - Math.pow(sigX, 2));
-                // b(切片)を求める
-                const b = (sigXX * sigY - sigXY * sigX) / (n * sigXX - Math.pow(sigX, 2));
-
-                return [a, b]
-            }
-
-
-
-
-            function textSet(text) {
-                status = text;
-                switch (status) {
-                    case "please look forward":
-                        document.getElementById("board").textContent = "姿勢が悪いです。前を見ましょう";
-                        break;
-                    case "please stand up":
-                        document.getElementById("board").textContent = "成功！立ち上がって";
-                        break;
-                    case "keep":
-                        document.getElementById("board").textContent = "姿勢を保ちましょう";
-                        break;
-                    case "sqwat done":
-                        break;
-                    case "sqwat reset":
-                        break;
-                    case "good position start squat":
-                        document.getElementById("board").textContent = "スクワットを始めてみましょう";
-                        break;
-                    case "too squat":
-                        document.getElementById("board").textContent = "しゃがみすぎです。腰を上げてください";
-                        break;
-                    case "out":
-                        document.getElementById("board").textContent = "画面に全身が映っていません。画面を確認してください";
-                        break;
-                }
-            }
-
-            function setImage(canvasElement, poseLandmarks, what) {
-                let width = canvasElement.width * Math.abs(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x - poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x) / 1.5;
-                let status = document.getElementById("status").style.textContent;
-                if (status === "please stand up") {
-                    return;
-                } else if (what === "fire") {
-                    let height = width * Math.round(img_fire.height / img_fire.width);
-                    let left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
-                    let left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
-                    canvasCtx.drawImage(img_fire, left_x, left_y, width, height);
-                    let right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
-                    let right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
-                    canvasCtx.drawImage(img_fire, right_x, right_y, width, height);
-                } else if (what === "down") {
-                    let height = width * Math.round(img_down.height / img_down.width);
-                    let left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
-                    let left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
-                    canvasCtx.drawImage(img_down, left_x, left_y, width, height);
-                    let right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
-                    let right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
-                    canvasCtx.drawImage(img_down, right_x, right_y, width, height);
-                } else if (what === "up") {
-                    let height = width * Math.round(img_up.height / img_up.width);
-                    let left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
-                    let left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
-                    canvasCtx.drawImage(img_up, left_x, left_y, width, height);
-                    let right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
-                    let right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
-                    canvasCtx.drawImage(img_up, right_x, right_y, width, height);
-                } else if (what === "gauge") {
-                    document.getElementsByClassName("counter")[0].style.display = "none";
-                    document.getElementsByClassName("gauge")[0].style.display = "block";
-                    document.getElementsByClassName("gauge")[0].style.display = "block";
-                    document.getElementsByClassName("gauge")[0].style.width = width;
-                    document.getElementsByClassName("gauge")[0].style.height = width;
-                    document.getElementsByClassName("gauge")[0].style.left = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width);
-                } else if (what === "counter") {
+            } else if (flgSqwat && set === "ok") {
+                if (nowTime - startSqwat > 2000) {
+                    textSet("please stand up");
+                    document.getElementById("status").textContent = "please stand up";
+                    document.getElementById("board").style.backgroundColor = '#ffffff';
                     document.getElementsByClassName("gauge")[0].style.display = "none";
-                    document.getElementsByClassName("counter")[0].style.display = "block";
-                    document.getElementsByClassName("counter")[0].style.left = (Math.round(poseLandmarks[POSE_LANDMARKS.NOSE].x * canvasElement.width) - (width / 2)) + "px";
-
-                } else {
-                    return;
-                }
-
-            }
-
-            function linePosHip(canvasElement, hip, ankle, per) {
-                let needLenght = (ankle.y - hip.y) * per;
-                return (ankle.y - needLenght) * canvasElement.height;
-            }
-
-            /**スクワットのカウント*/
-            function counter(any) {
-                let num
-                if (any === "start") {
-                    num = 0;
-                } else if (Number.isInteger(any)) {
-                    num = any += 1;
-                } else {
-                    throw (Error);
-                }
-                document.getElementById("counter").textContent = "回数:" + num;
-                document.getElementById("counter").value = num;
-            }
-
-            /**2秒間
-             *　スクワットキープしているかの確認
-            */
-
-            let flgSqwat = false;
-            let startSqwat;
-
-            function statusChecker(set) {
-                let nowTime = Date.now();
-
-                if (set === "shisei") {
-                    textSet("please look forward");
-                    document.getElementById("status").textContent = "please look forward";
-                    document.getElementById("board").style.backgroundColor = '#ff0000';
-                    flgSqwat = false;
-                    if (nowPlay !== mp3_sesuji) {
+                    if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
                         resetMusic(nowPlay);
-                        mp3_sesuji.play();
-                        mp3_sesuji.loop = true;
-                        nowPlay = mp3_sesuji;
+                        mp3_pinpon.play();
+                        mp3_pinpon.loop = false;
+                        nowPlay = mp3_pinpon;
+                        setTimeout(function () {
+                            mp3_tatte.play();
+                            mp3_tatte.loop = true;
+                            nowPlay = mp3_tatte;
+                        }, 1000);
                     }
+                } else {
+                    textSet("keep");
+                    document.getElementById("status").textContent = "keep";
+                    document.getElementById("board").style.backgroundColor = '#00ff00';
+                    if (nowPlay !== mp3_stop) {
+                        resetMusic(nowPlay);
+                        mp3_stop.play();
+                        mp3_stop.loop = false;
+                        nowPlay = mp3_stop;
+                    }
+                }
+            } else if (!flgSqwat && set === "ok") {
+                startSqwat = Date.now();
+                flgSqwat = true;
+            } else if (flgSqwat && set === "down") {
+                if (nowTime - startSqwat > 2000) {
+                    let countNum = document.getElementById("counter").value;
+                    counter(countNum);
+                    textSet("sqwat done");
+                    document.getElementById("status").textContent = "sqwat done";
 
-                } else if (flgSqwat && set === "ok") {
-                    if (nowTime - startSqwat > 2000) {
-                        textSet("please stand up");
-                        document.getElementById("status").textContent = "please stand up";
-                        document.getElementById("board").style.backgroundColor = '#ffffff';
-                        document.getElementsByClassName("gauge")[0].style.display = "none";
-                        if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
-                            resetMusic(nowPlay);
-                            mp3_pinpon.play();
-                            mp3_pinpon.loop = false;
-                            nowPlay = mp3_pinpon;
-                            setTimeout(function () {
-                                mp3_tatte.play();
-                                mp3_tatte.loop = true;
-                                nowPlay = mp3_tatte;
-                            }, 1000);
-                        }
-                    } else {
-                        textSet("keep");
-                        document.getElementById("status").textContent = "keep";
-                        document.getElementById("board").style.backgroundColor = '#00ff00';
-                        if (nowPlay !== mp3_stop) {
-                            resetMusic(nowPlay);
-                            mp3_stop.play();
-                            mp3_stop.loop = false;
-                            nowPlay = mp3_stop;
-                        }
+                } else {
+                    textSet("sqwat reset");
+                    document.getElementById("status").textContent = "sqwat reset";
+                }
+                flgSqwat = false;
+                document.getElementsByClassName("gauge")[0].style.display = "none";
+            } else if (!flgSqwat && set === "down") {
+                textSet("good position start squat");
+                document.getElementById("status").textContent = "good position start squat";
+                document.getElementById("board").style.backgroundColor = '#00f0ff';
+                if (document.getElementById("counter").value === 0) {
+                    if (nowPlay !== mp3_goodposition && nowPlay !== mp3_sagete) {
+                        resetMusic(nowPlay);
+                        mp3_goodposition.play();
+                        mp3_goodposition.loop = false;
+                        nowPlay = mp3_goodposition;
+                        setTimeout(function () {
+                            mp3_sagete.play();
+                            mp3_sagete.loop = true;
+                            nowPlay = mp3_sagete;
+                        }, 2000);
                     }
-                } else if (!flgSqwat && set === "ok") {
-                    startSqwat = Date.now();
-                    flgSqwat = true;
-                } else if (flgSqwat && set === "down") {
-                    if (nowTime - startSqwat > 2000) {
-                        let countNum = document.getElementById("counter").value;
-                        counter(countNum);
-                        textSet("sqwat done");
-                        document.getElementById("status").textContent = "sqwat done";
-
-                    } else {
-                        textSet("sqwat reset");
-                        document.getElementById("status").textContent = "sqwat reset";
-                    }
+                } else if (nowPlay !== mp3_sagete) {
+                    resetMusic(nowPlay);
+                    mp3_sagete.play();
+                    mp3_sagete.loop = true;
+                    nowPlay = mp3_sagete;
+                }
+            } else if (set === "up") {
+                textSet("too squat");
+                document.getElementById("status").textContent = "too squat";
+                document.getElementById("board").style.backgroundColor = '#ff0000';
+                if (nowPlay !== mp3_agete) {
+                    resetMusic(nowPlay);
+                    mp3_agete.play();
+                    mp3_agete.loop = true;
+                    nowPlay = mp3_agete;
+                }
+                if (flgSqwat) {
                     flgSqwat = false;
                     document.getElementsByClassName("gauge")[0].style.display = "none";
-                } else if (!flgSqwat && set === "down") {
-                    textSet("good position start squat");
-                    document.getElementById("status").textContent = "good position start squat";
-                    document.getElementById("board").style.backgroundColor = '#00f0ff';
-                    if (document.getElementById("counter").value === 0) {
-                        if (nowPlay !== mp3_goodposition && nowPlay !== mp3_sagete) {
-                            resetMusic(nowPlay);
-                            mp3_goodposition.play();
-                            mp3_goodposition.loop = false;
-                            nowPlay = mp3_goodposition;
-                            setTimeout(function () {
-                                mp3_sagete.play();
-                                mp3_sagete.loop = true;
-                                nowPlay = mp3_sagete;
-                            }, 2000);
-                        }
-                    } else if (nowPlay !== mp3_sagete) {
-                        resetMusic(nowPlay);
-                        mp3_sagete.play();
-                        mp3_sagete.loop = true;
-                        nowPlay = mp3_sagete;
-                    }
-                } else if (set === "up") {
-                    textSet("too squat");
-                    document.getElementById("status").textContent = "too squat";
-                    document.getElementById("board").style.backgroundColor = '#ff0000';
-                    if (nowPlay !== mp3_agete) {
-                        resetMusic(nowPlay);
-                        mp3_agete.play();
-                        mp3_agete.loop = true;
-                        nowPlay = mp3_agete;
-                    }
-                    if (flgSqwat) {
-                        flgSqwat = false;
-                        document.getElementsByClassName("gauge")[0].style.display = "none";
-                    }
-                } else {
-                    textSet("out")
-                    document.getElementById("status").textContent = "out";
-                    document.getElementById("board").style.backgroundColor = '#ff0000';
-                    if (flgSqwat) {
-                        flgSqwat = false;
-                        document.getElementsByClassName("gauge")[0].style.display = "none";
-                    }
-                    if (nowPlay !== mp3_sagatte) {
-                        resetMusic(nowPlay);
-                        mp3_sagatte.play();
-                        mp3_sagatte.loop = true;
-                        nowPlay = mp3_sagatte;
-                    }
-
-
                 }
-
-            }
-
-            //11/15
-            const cells = []
-            const items = 24;
-            const coordinates = [];
-            function cellMake() {
-                //タイムスタンプと共に角度とどの信頼度をセルにする
-                const cellTag = {
-                    0: "時刻（日本）",
-                    1: "try angle",
-                    2: "leftAngle",
-                    3: "rightAngle",
-                    4: "Angle",
-                    5: "hipAngle",
-                    6: "visibility(left)",
-                    7: "visibility(right)",
-                    8: " shoulder x",
-                    9: " shoulder y",
-                    10: " shoulder z",
-                    11: " hip x",
-                    12: " hip y",
-                    13: " hip z",
-                    14: " knee x",
-                    15: " knee y",
-                    16: " knee z",
-                    17: " ankle x",
-                    18: " ankle y",
-                    19: " ankle z",
-                    20: "slope_min",
-                    21: "angle_average",
-                    22: "slope_max",
-                    23: "count",
-
-                };
-                console.log(cellTag)
-                cells.push(cellTag);
-
-            }
-
-            function cellUpdate(resultAngle, poseLandmarks) {
-                //cellMakeにデータをぶち込む
-                const timeStamp = () => {
-                    const today = new Date();
-                    const yy = ('0000' + today.getFullYear()).slice(-4);
-                    const mo = ('00' + (today.getMonth() + 1)).slice(-2);
-                    const dd = ('00' + today.getDate()).slice(-2);
-                    const hh = ('00' + today.getHours()).slice(-2);
-                    const mi = ('00' + today.getMinutes()).slice(-2);
-                    const ss = ('00' + today.getSeconds()).slice(-2);
-                    const ms = ('000' + today.getMilliseconds()).slice(-3);
-
-
-                    return yy + mo + dd + hh + mi + ss + ms;
+            } else {
+                textSet("out")
+                document.getElementById("status").textContent = "out";
+                document.getElementById("board").style.backgroundColor = '#ff0000';
+                if (flgSqwat) {
+                    flgSqwat = false;
+                    document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
-
-                const cell = [
-                    timeStamp(),
-                    selectedAngle,
-                    resultAngle.leftKnee.angle,
-                    resultAngle.rightKnee.angle,
-                    average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
-                    average(resultAngle.leftHip.angle, resultAngle.rightHip.angle),
-                    resultAngle.leftKnee.visibility,
-                    resultAngle.rightKnee.visibility,
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].x),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].y),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].z),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y),
-                    average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z),
-                    stockData["slopeKneeAngle"] * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"],
-                    stockData["slopeHipAngle"],
-                    stockData["slopeKneeAngle"] * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"],
-                    document.getElementById("counter").value,
-                ];
-                cells.push(cell);
-                if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 150) {
-                    coordinates.push({ x: average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), y: average(resultAngle.leftHip.angle, resultAngle.rightHip.angle) });
+                if (nowPlay !== mp3_sagatte) {
+                    resetMusic(nowPlay);
+                    mp3_sagatte.play();
+                    mp3_sagatte.loop = true;
+                    nowPlay = mp3_sagatte;
                 }
-                if (coordinates.length % 30 === 0 && coordinates.length !== 0) {
-                    const coordinates_min = addCoordinates(resultAngle, coordinates, "min");
-                    const coordinates_max = addCoordinates(resultAngle, coordinates, "max");
-                    const [a_min, b_min] = lsm(coordinates_min);
-                    const [a_max, b_max] = lsm(coordinates_max);
-                    stockData["slopeMin"]["a_min"] = a_min;
-                    stockData["slopeMin"]["b_min"] = b_min;
-                    stockData["slopeMax"]["a_max"] = a_max;
-                    stockData["slopeMax"]["b_max"] = b_max;
-
-                    console.log("Ahoy", a_min, b_min, a_max, b_max, coordinates.length)
-                }
-
 
 
             }
 
-            function cellDownload(items, cells) {
-                //cellをローカルに保存
-                let str = "";
-                for (let i = 0; i < cells.length; i++) {
-                    let nowCell = cells[i];
-                    for (let j = 0; j < items; j++) {
-                        str += nowCell[j];
-                        if (j === (items - 1)) {
-                            str += "\n";
-                        } else {
-                            str += ",";
-                        }
-                    }
-                }
-                let blob = new Blob([str], { type: "text/csv" }); //配列に上記の文字列(str)を設定
-                let link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = "squatdata.csv";
-                link.click();
+        }
+
+        //11/15
+        const cells = []
+        const items = 24;
+        const coordinates = [];
+        function cellMake() {
+            //タイムスタンプと共に角度とどの信頼度をセルにする
+            const cellTag = {
+                0: "時刻（日本）",
+                1: "try angle",
+                2: "leftAngle",
+                3: "rightAngle",
+                4: "Angle",
+                5: "hipAngle",
+                6: "visibility(left)",
+                7: "visibility(right)",
+                8: " shoulder x",
+                9: " shoulder y",
+                10: " shoulder z",
+                11: " hip x",
+                12: " hip y",
+                13: " hip z",
+                14: " knee x",
+                15: " knee y",
+                16: " knee z",
+                17: " ankle x",
+                18: " ankle y",
+                19: " ankle z",
+                20: "slope_min",
+                21: "angle_average",
+                22: "slope_max",
+                23: "count",
+
+            };
+            console.log(cellTag)
+            cells.push(cellTag);
+
+        }
+
+        function cellUpdate(resultAngle, poseLandmarks) {
+            //cellMakeにデータをぶち込む
+            const timeStamp = () => {
+                const today = new Date();
+                const yy = ('0000' + today.getFullYear()).slice(-4);
+                const mo = ('00' + (today.getMonth() + 1)).slice(-2);
+                const dd = ('00' + today.getDate()).slice(-2);
+                const hh = ('00' + today.getHours()).slice(-2);
+                const mi = ('00' + today.getMinutes()).slice(-2);
+                const ss = ('00' + today.getSeconds()).slice(-2);
+                const ms = ('000' + today.getMilliseconds()).slice(-3);
+
+
+                return yy + mo + dd + hh + mi + ss + ms;
             }
 
-            function cellDrive(items, cells) {
-                let str = "";
-                for (let i = 0; i < cells.length; i++) {
-                    let nowCell = cells[i];
-                    for (let j = 0; j < items; j++) {
-                        str += nowCell[j];
-                        if (j === (items - 1)) {
-                            str += "\n";
-                        } else {
-                            str += ",";
-                        }
-                    }
-                }
+            const cell = [
+                timeStamp(),
+                selectedAngle,
+                resultAngle.leftKnee.angle,
+                resultAngle.rightKnee.angle,
+                average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
+                average(resultAngle.leftHip.angle, resultAngle.rightHip.angle),
+                resultAngle.leftKnee.visibility,
+                resultAngle.rightKnee.visibility,
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].x),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].y),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].z),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y),
+                average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z),
+                stockData["slopeKneeAngle"] * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"],
+                stockData["slopeHipAngle"],
+                stockData["slopeKneeAngle"] * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"],
+                document.getElementById("counter").value,
+            ];
+            cells.push(cell);
+            if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 150) {
+                coordinates.push({ x: average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), y: average(resultAngle.leftHip.angle, resultAngle.rightHip.angle) });
+            }
+            if (coordinates.length % 30 === 0 && coordinates.length !== 0) {
+                const coordinates_min = addCoordinates(resultAngle, coordinates, "min");
+                const coordinates_max = addCoordinates(resultAngle, coordinates, "max");
+                const [a_min, b_min] = lsm(coordinates_min);
+                const [a_max, b_max] = lsm(coordinates_max);
+                stockData["slopeMin"]["a_min"] = a_min;
+                stockData["slopeMin"]["b_min"] = b_min;
+                stockData["slopeMax"]["a_max"] = a_max;
+                stockData["slopeMax"]["b_max"] = b_max;
 
-                // (1)XMLHttpRequestオブジェクトを作成
-                let xmlHttpRequest = new XMLHttpRequest();
-                let formData = new FormData();
-
-                formData.append("str", str);
-                formData.append("user", Object.fromEntries(new URLSearchParams(window.location.search)).user)
-
-                // (2)onreadystatechangeイベントで処理の状況変化を監視
-                xmlHttpRequest.onreadystatechange = function () {
-                    if (this.readyState === 4 && this.status === 200) {
-                        console.log("success!");
-                    }
-                }
-
-                // (3)HTTPのGETメソッドとアクセスする場所を指定
-                xmlHttpRequest.open('POST', 'https://script.google.com/macros/s/AKfycbzrlWBbic3G1jnOybqbqko0gVcwCb4KeYclPESna5MkESsFJ7-XKEwV8G7puUm_D1XV/exec', true);
-
-                // (4)HTTPリクエストを送信
-                xmlHttpRequest.send(formData);
+                console.log("Ahoy", a_min, b_min, a_max, b_max, coordinates.length)
             }
 
-            //ボタンを押したらCSV出力
-            const finButton = document.getElementById('fin');
-            finButton.addEventListener('click', function () {
-                document.exitFullscreen();
-                $(function () {
-                    $(".overlay").show();
-                });
-                //cellDrive(items, cells);//Driveにアップロード
-                cellDownload(items, cells);//localにダウンロード
-                const user = Object.fromEntries(new URLSearchParams(window.location.search)).user.split(",");
-                console.log(user);
-
-            });
-
-            function onResults(results) {
-                if (!results.poseLandmarks) {
-                    grid.updateLandmarks([]);
-                    return;
-                }
-
-                canvasCtx.save();
-                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-                // canvasCtx.drawImage(results.segmentationMask, 0, 0,
-                //     canvasElement.width, canvasElement.height);
-
-                // Only overwrite existing pixels.
-                canvasCtx.globalCompositeOperation = 'source-in';
-                canvasCtx.fillStyle = '#00FF00';
-                canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
 
 
-                // Only overwrite missing pixels.
-                canvasCtx.globalCompositeOperation = 'destination-atop';
-                canvasCtx.drawImage(
-                    results.image, 0, 0, canvasElement.width, canvasElement.height);
+        }
 
-                canvasCtx.globalCompositeOperation = 'source-over';
-                // console.log(results.poseLandmarks)
-                drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
-                    { color: '#00FF00', lineWidth: 2 });
-                drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_NEUTRAL)
-                    .map(index => results.poseLandmarks[index]),
-                    { color: '#00FF00', lineWidth: 3 });
-                drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_LEFT)
-                    .map(index => results.poseLandmarks[index]),
-                    { color: '#FF0000', lineWidth: 3 });
-                drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_RIGHT)
-                    .map(index => results.poseLandmarks[index]),
-                    { color: '#0000FF', lineWidth: 3 });
-
-                const faceSize = facehide(canvasElement, img_img1, results.poseLandmarks[POSE_LANDMARKS.NOSE], results.poseLandmarks[POSE_LANDMARKS.LEFT_EAR], results.poseLandmarks[POSE_LANDMARKS.RIGHT_EAR]);
-                canvasCtx.drawImage(
-                    img_img1, faceSize.x, faceSize.y, faceSize.width, faceSize.height);
-
-
-
-                let perLeft = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
-                let perRight = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
-                // let hiplineVisibility = Math.min(perLeft.visibility, perRight.visibility);
-                // let hipLineMin = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMinPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMinPer));
-                // let hipLineMax = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMaxPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMaxPer));
-                // let hipLine = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.per), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.per));
-                let shiseiLeft = calcShisei(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP]);
-                let shiseiRight = calcShisei(results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP]);
-
-                // let lineStatus;
-                // if (paramDataSet["maxStrokeParam"] === 0) {
-                //     lineStatus = "nonStroke";
-                // } else if (hipLineMin && hipLineMax && 0 < hipLineMin && hipLineMax < canvasElement.height && paramDataSet['maxStrokeParam'] < Math.min(perLeft.visibility, perRight.visibility)) {
-                //     if (stockData["hipLineMin"] > hipLine && hipLine > stockData["hipLineMax"]) {
-                //         lineStatus = "prevStroke";
-                //     } else {
-                //         lineStatus = "newStroke";
-                //     }
-                // } else if (stockData["hipLineMin"] === 0 && stockData["hipLineMax"] === 0) {
-                //     if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
-                //         lineStatus = "newStroke";
-                //     } else {
-                //         lineStatus = "nonStroke";
-                //     }
-                // } else if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
-                //     lineStatus = "prevStroke";
-
-                // }
-                // switch (lineStatus) {
-                //     case "newStroke":
-                //         canvasCtx.beginPath();
-                //         canvasCtx.moveTo(0, hipLineMin);
-                //         canvasCtx.lineTo(canvasElement.width, hipLineMin);
-                //         canvasCtx.lineWidth = 5;
-                //         canvasCtx.strokeStyle = 'Red';
-                //         canvasCtx.moveTo(0, hipLineMax);
-                //         canvasCtx.lineTo(canvasElement.width, hipLineMax);
-                //         canvasCtx.lineWidth = 5;
-                //         canvasCtx.strokeStyle = 'Red';
-                //         canvasCtx.stroke();
-                //         stockData["perLeft"] = perLeft;
-                //         stockData["perRight"] = perRight;
-                //         stockData["hipLineMin"] = hipLine;
-                //         stockData["hipLineMax"] = hipLineMax;
-                //         break;
-                //     case "prevStroke":
-                //         canvasCtx.beginPath();
-                //         canvasCtx.moveTo(0, stockData["hipLineMin"]);
-                //         canvasCtx.lineTo(canvasElement.width, stockData["hipLineMin"]);
-                //         canvasCtx.lineWidth = 5;
-                //         canvasCtx.strokeStyle = 'Red';
-                //         canvasCtx.moveTo(0, stockData["hipLineMax"]);
-                //         canvasCtx.lineTo(canvasElement.width, stockData["hipLineMax"]);
-                //         canvasCtx.lineWidth = 5;
-                //         canvasCtx.strokeStyle = 'Red';
-                //         canvasCtx.stroke();
-                //         break;
-                //     case "nonStroke":
-                //         break;
-                //     default:
-                //         break;
-                // }
-
-
-                canvasCtx.restore();
-
-                if (results.poseWorldLandmarks) {
-                    const resultAngle = {};
-                    for (let key in needVector) {
-                        resultAngle[key] = calcAngle(results.poseWorldLandmarks[needVector[key][0]], results.poseWorldLandmarks[needVector[key][1]], results.poseWorldLandmarks[needVector[key][2]]);
-                    }
-                    // console.log("rightKnee is ", resultAngle.rightKnee)
-                    // console.log("leftKnee is ", resultAngle.leftKnee)
-
-                    //姿勢が判定位置にあり、人が存在している時
-                    if ((selectedAngle - selectedMargin) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
-                        statusChecker("ok");
-
-                        if (angleShiseiCheck(resultAngle)) {
-                            statusChecker("shisei");
-                        } else if (document.getElementById("status").textContent === "please stand up") {
-
-                            setImage(canvasElement, results.poseLandmarks, "up");
-                        } else {
-
-                            setImage(canvasElement, results.poseLandmarks, "fire");
-                            setImage(canvasElement, results.poseLandmarks, "gauge");
-                        }
-
+        function cellDownload(items, cells) {
+            //cellをローカルに保存
+            let str = "";
+            for (let i = 0; i < cells.length; i++) {
+                let nowCell = cells[i];
+                for (let j = 0; j < items; j++) {
+                    str += nowCell[j];
+                    if (j === (items - 1)) {
+                        str += "\n";
                     } else {
-                        angleShiseiCheck(resultAngle, "reset");
-                        if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility) && paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility)) {
-                            if ((selectedAngle - selectedMargin) > average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)) {
-                                statusChecker("up");
-                                setImage(canvasElement, results.poseLandmarks, "counter");
-                                setImage(canvasElement, results.poseLandmarks, "up");
-                            } else if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) > (selectedAngle + selectedMargin)) {
-                                statusChecker("down");
-                                setImage(canvasElement, results.poseLandmarks, "counter");
-                                setImage(canvasElement, results.poseLandmarks, "down");
-                            }
+                        str += ",";
+                    }
+                }
+            }
+            let blob = new Blob([str], { type: "text/csv" }); //配列に上記の文字列(str)を設定
+            let link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "squatdata.csv";
+            link.click();
+        }
 
-                        } else {
+        function cellDrive(items, cells) {
+            let str = "";
+            for (let i = 0; i < cells.length; i++) {
+                let nowCell = cells[i];
+                for (let j = 0; j < items; j++) {
+                    str += nowCell[j];
+                    if (j === (items - 1)) {
+                        str += "\n";
+                    } else {
+                        str += ",";
+                    }
+                }
+            }
+
+            // (1)XMLHttpRequestオブジェクトを作成
+            let xmlHttpRequest = new XMLHttpRequest();
+            let formData = new FormData();
+
+            formData.append("str", str);
+            formData.append("user", Object.fromEntries(new URLSearchParams(window.location.search)).user)
+
+            // (2)onreadystatechangeイベントで処理の状況変化を監視
+            xmlHttpRequest.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    console.log("success!");
+                }
+            }
+
+            // (3)HTTPのGETメソッドとアクセスする場所を指定
+            xmlHttpRequest.open('POST', 'https://script.google.com/macros/s/AKfycbzrlWBbic3G1jnOybqbqko0gVcwCb4KeYclPESna5MkESsFJ7-XKEwV8G7puUm_D1XV/exec', true);
+
+            // (4)HTTPリクエストを送信
+            xmlHttpRequest.send(formData);
+        }
+
+        //ボタンを押したらCSV出力
+        const finButton = document.getElementById('fin');
+        finButton.addEventListener('click', function () {
+            document.exitFullscreen();
+            $(function () {
+                $(".overlay").show();
+            });
+            //cellDrive(items, cells);//Driveにアップロード
+            cellDownload(items, cells);//localにダウンロード
+            const user = Object.fromEntries(new URLSearchParams(window.location.search)).user.split(",");
+            console.log(user);
+
+        });
+
+        function onResults(results) {
+            if (!results.poseLandmarks) {
+                grid.updateLandmarks([]);
+                return;
+            }
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            // canvasCtx.drawImage(results.segmentationMask, 0, 0,
+            //     canvasElement.width, canvasElement.height);
+
+            // Only overwrite existing pixels.
+            canvasCtx.globalCompositeOperation = 'source-in';
+            canvasCtx.fillStyle = '#00FF00';
+            canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+
+
+            // Only overwrite missing pixels.
+            canvasCtx.globalCompositeOperation = 'destination-atop';
+            canvasCtx.drawImage(
+                results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            canvasCtx.globalCompositeOperation = 'source-over';
+            // console.log(results.poseLandmarks)
+            drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
+                { color: '#00FF00', lineWidth: 2 });
+            drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_NEUTRAL)
+                .map(index => results.poseLandmarks[index]),
+                { color: '#00FF00', lineWidth: 3 });
+            drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_LEFT)
+                .map(index => results.poseLandmarks[index]),
+                { color: '#FF0000', lineWidth: 3 });
+            drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_RIGHT)
+                .map(index => results.poseLandmarks[index]),
+                { color: '#0000FF', lineWidth: 3 });
+
+            const faceSize = facehide(canvasElement, img_img1, results.poseLandmarks[POSE_LANDMARKS.NOSE], results.poseLandmarks[POSE_LANDMARKS.LEFT_EAR], results.poseLandmarks[POSE_LANDMARKS.RIGHT_EAR]);
+            canvasCtx.drawImage(
+                img_img1, faceSize.x, faceSize.y, faceSize.width, faceSize.height);
+
+
+
+            let perLeft = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
+            let perRight = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
+            // let hiplineVisibility = Math.min(perLeft.visibility, perRight.visibility);
+            // let hipLineMin = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMinPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMinPer));
+            // let hipLineMax = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMaxPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMaxPer));
+            // let hipLine = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.per), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.per));
+            let shiseiLeft = calcShisei(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP]);
+            let shiseiRight = calcShisei(results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP]);
+
+            // let lineStatus;
+            // if (paramDataSet["maxStrokeParam"] === 0) {
+            //     lineStatus = "nonStroke";
+            // } else if (hipLineMin && hipLineMax && 0 < hipLineMin && hipLineMax < canvasElement.height && paramDataSet['maxStrokeParam'] < Math.min(perLeft.visibility, perRight.visibility)) {
+            //     if (stockData["hipLineMin"] > hipLine && hipLine > stockData["hipLineMax"]) {
+            //         lineStatus = "prevStroke";
+            //     } else {
+            //         lineStatus = "newStroke";
+            //     }
+            // } else if (stockData["hipLineMin"] === 0 && stockData["hipLineMax"] === 0) {
+            //     if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
+            //         lineStatus = "newStroke";
+            //     } else {
+            //         lineStatus = "nonStroke";
+            //     }
+            // } else if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility)) {
+            //     lineStatus = "prevStroke";
+
+            // }
+            // switch (lineStatus) {
+            //     case "newStroke":
+            //         canvasCtx.beginPath();
+            //         canvasCtx.moveTo(0, hipLineMin);
+            //         canvasCtx.lineTo(canvasElement.width, hipLineMin);
+            //         canvasCtx.lineWidth = 5;
+            //         canvasCtx.strokeStyle = 'Red';
+            //         canvasCtx.moveTo(0, hipLineMax);
+            //         canvasCtx.lineTo(canvasElement.width, hipLineMax);
+            //         canvasCtx.lineWidth = 5;
+            //         canvasCtx.strokeStyle = 'Red';
+            //         canvasCtx.stroke();
+            //         stockData["perLeft"] = perLeft;
+            //         stockData["perRight"] = perRight;
+            //         stockData["hipLineMin"] = hipLine;
+            //         stockData["hipLineMax"] = hipLineMax;
+            //         break;
+            //     case "prevStroke":
+            //         canvasCtx.beginPath();
+            //         canvasCtx.moveTo(0, stockData["hipLineMin"]);
+            //         canvasCtx.lineTo(canvasElement.width, stockData["hipLineMin"]);
+            //         canvasCtx.lineWidth = 5;
+            //         canvasCtx.strokeStyle = 'Red';
+            //         canvasCtx.moveTo(0, stockData["hipLineMax"]);
+            //         canvasCtx.lineTo(canvasElement.width, stockData["hipLineMax"]);
+            //         canvasCtx.lineWidth = 5;
+            //         canvasCtx.strokeStyle = 'Red';
+            //         canvasCtx.stroke();
+            //         break;
+            //     case "nonStroke":
+            //         break;
+            //     default:
+            //         break;
+            // }
+
+
+            canvasCtx.restore();
+
+            if (results.poseWorldLandmarks) {
+                const resultAngle = {};
+                for (let key in needVector) {
+                    resultAngle[key] = calcAngle(results.poseWorldLandmarks[needVector[key][0]], results.poseWorldLandmarks[needVector[key][1]], results.poseWorldLandmarks[needVector[key][2]]);
+                }
+                // console.log("rightKnee is ", resultAngle.rightKnee)
+                // console.log("leftKnee is ", resultAngle.leftKnee)
+
+                //姿勢が判定位置にあり、人が存在している時
+                if ((selectedAngle - selectedMargin) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
+                    statusChecker("ok");
+
+                    if (angleShiseiCheck(resultAngle)) {
+                        statusChecker("shisei");
+                    } else if (document.getElementById("status").textContent === "please stand up") {
+
+                        setImage(canvasElement, results.poseLandmarks, "up");
+                    } else {
+
+                        setImage(canvasElement, results.poseLandmarks, "fire");
+                        setImage(canvasElement, results.poseLandmarks, "gauge");
+                    }
+
+                } else {
+                    angleShiseiCheck(resultAngle, "reset");
+                    if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility) && paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility)) {
+                        if ((selectedAngle - selectedMargin) > average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)) {
+                            statusChecker("up");
                             setImage(canvasElement, results.poseLandmarks, "counter");
-                            statusChecker("no");
+                            setImage(canvasElement, results.poseLandmarks, "up");
+                        } else if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) > (selectedAngle + selectedMargin)) {
+                            statusChecker("down");
+                            setImage(canvasElement, results.poseLandmarks, "counter");
+                            setImage(canvasElement, results.poseLandmarks, "down");
                         }
 
+                    } else {
+                        setImage(canvasElement, results.poseLandmarks, "counter");
+                        statusChecker("no");
                     }
 
-                    cellUpdate(resultAngle, results.poseWorldLandmarks);
                 }
 
-                // grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
-                //     { list: Object.values(POSE_LANDMARKS_LEFT), color: 'LEFT' },
-                //     { list: Object.values(POSE_LANDMARKS_RIGHT), color: 'RIGHT' }
-                // ]);
+                cellUpdate(resultAngle, results.poseWorldLandmarks);
             }
 
-            const pose = new Pose({
-                locateFile: (file) => {
-                    return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
-                }
-            });
-            pose.setOptions({
-                modelComplexity: 1,
-                smoothLandmarks: true,
-                enableSegmentation: true,
-                smoothSegmentation: true,
-                minDetectionConfidence: 0.7,
-                minTrackingConfidence: 0.5,
-                min_pose_presence_confidence: 0.5,
-                runningMode: "VIDEO"
-            });
-            pose.onResults(onResults);
+            // grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
+            //     { list: Object.values(POSE_LANDMARKS_LEFT), color: 'LEFT' },
+            //     { list: Object.values(POSE_LANDMARKS_RIGHT), color: 'RIGHT' }
+            // ]);
+        }
 
-            const camera = new Camera(videoElement, {
-                onFrame: async () => {
-                    await pose.send({ image: videoElement });
-                },
-                width: 1280,
-                height: 720
-            });
-            camera.start();
-            cellMake();
-            counter("start");
-            window.onresize = resizeWindow;
-            getParam();
+        const pose = new Pose({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+            }
+        });
+        pose.setOptions({
+            modelComplexity: 1,
+            smoothLandmarks: true,
+            enableSegmentation: true,
+            smoothSegmentation: true,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.5,
+            min_pose_presence_confidence: 0.5,
+            runningMode: "VIDEO"
+        });
+        pose.onResults(onResults);
 
-        </script>
-    </body>
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await pose.send({ image: videoElement });
+            },
+            width: 1280,
+            height: 720
+        });
+        camera.start();
+        cellMake();
+        counter("start");
+        window.onresize = resizeWindow;
+        getParam();
 
-    </html>
+    </script>
+</body>
+
+</html>
