@@ -567,7 +567,7 @@
         }
 
         function setImage(canvasElement, poseLandmarks, what) {
-            let width = canvasElement.width * Math.abs(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x - poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x) / 1;
+            let width = canvasElement.width * Math.abs(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x - poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x) / 0.5;
             let status = document.getElementById("status").style.textContent;
             if (status === "please stand up") {
                 return;
