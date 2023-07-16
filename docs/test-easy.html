@@ -76,7 +76,7 @@
 
         <video class="input_video" style="display: none"></video>
         <canvas class="output_canvas"></canvas>
-        <canvas id="graph" width="500" height="500" style="position: fixed; right: 5vmin; top:10vmin"></canvas>
+
 
         <div class="landmark-grid-container" style="display:none"></div>
         <input id="bgm" type="button" value="BGMを再生" class="audio_auto" style="z-index: 10;">
@@ -180,20 +180,6 @@
 
         .btn_area button:hover {
             background: #777
-        }
-
-        .btn_area :active {
-            width: 100px;
-            height: 100px;
-            border-radius: 150px;
-            border: 15px solid #fff;
-            border-top-color: rgba(0, 0, 0, 0.3);
-            box-sizing: border-box;
-            position: absolute;
-            top: 20%;
-            left: 35%;
-            animation: circle 1s linear infinite;
-            -webkit-animation: circle 1s linear infinite;
         }
 
         @keyframes b {}
@@ -490,10 +476,10 @@
                 stockData["slopeHipAngle"] = hipangle;
                 stockData["slopeKneeAngle"] = kneeangle;
                 // let slope = (stockData["slopeHipAngle"] - stockData["slopes"]["b"]) / stockData["slopeKneeAngle"];
-                if (hipangle > (kneeangle * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"]) || (kneeangle * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"]) > hipangle) {
-                    console.log("maybe not good", stockData)
-
-                    return true;
+                if (hipangle > (kneeangle * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"])) {
+                    return "front";
+                } else if ((kneeangle * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"]) > hipangle) {
+                    return "back";
                 }
 
             }
@@ -541,7 +527,10 @@
         function textSet(text) {
             status = text;
             switch (status) {
-                case "please look forward":
+                case "please look forward front":
+                    document.getElementById("board").textContent = "姿勢が悪いです。前を見ましょう";
+                    break;
+                case "please look forward back":
                     document.getElementById("board").textContent = "姿勢が悪いです。前を見ましょう";
                     break;
                 case "please stand up":
@@ -642,9 +631,21 @@
         function statusChecker(set) {
             let nowTime = Date.now();
 
-            if (set === "shisei") {
-                textSet("please look forward");
-                document.getElementById("status").textContent = "please look forward";
+            if (set === "front") {
+                textSet("please look forward front");
+                document.getElementById("status").textContent = "please look forward front";
+                document.getElementById("board").style.backgroundColor = '#ff0000';
+                flgSqwat = false;
+                if (nowPlay !== mp3_sesuji) {
+                    resetMusic(nowPlay);
+                    mp3_sesuji.play();
+                    mp3_sesuji.loop = true;
+                    nowPlay = mp3_sesuji;
+                }
+
+            } else if (set === "back") {
+                textSet("please look forward back");
+                document.getElementById("status").textContent = "please look forward back";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 flgSqwat = false;
                 if (nowPlay !== mp3_sesuji) {
@@ -656,7 +657,7 @@
 
             } else if (flgSqwat && set === "ok") {
 
-                if (nowTime - startSqwat > 2000) {
+                if (nowTime - startSqwat > 1900) {
                     textSet("please stand up");
                     document.getElementById("status").textContent = "please stand up";
                     document.getElementById("board").style.backgroundColor = '#ffffff';
@@ -1045,8 +1046,10 @@
                 //姿勢が判定位置にあり、人が存在している時
                 if ((selectedAngle - selectedMargin) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
                     statusChecker("ok");
-                    if (angleShiseiCheck(resultAngle)) {
-                        statusChecker("shisei");
+                    if (angleShiseiCheck(resultAngle) === "front") {
+                        statusChecker("front");
+                    } else if (angleShiseiCheck(resultAngle) === "back") {
+                        statusChecker("back");
                     } else if (document.getElementById("status").textContent === "please stand up") {
 
                         setImage(canvasElement, results.poseLandmarks, "up");
