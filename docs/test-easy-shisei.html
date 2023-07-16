@@ -86,9 +86,10 @@
     <style>
         #myChart {
             position: fixed;
-            min-width: 10vw;
+            width: 90vw;
+            height: 90vh;
 
-            top: 5vmin;
+            bottom: 5vmin;
             right: 5vmin;
         }
 
@@ -235,11 +236,20 @@
                 }],
             },
             options: {
+                scales: {
+                    y: {
+                        suggestedMin: 100,
+                        suggestedMax: 50
+                    }
+                },
                 maintainAspectRatio: false,
                 responsive: false,
                 plugins: {
                     legend: {
                         display: false,
+                    },
+                    customCanvasBackgroundColor: {
+                        color: 'rgba(0, 0, 0, 0)'
                     }
                 }
             },
@@ -510,7 +520,7 @@
         function angleShiseiCheck(resultAngle, status = 0) {
             const hipangle = average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
             const kneeangle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
-            myLineChart.data.datasets[0].data = [hipangle, kneeangle];
+            myLineChart.data.datasets[0].data = [(160 - hipangle), (160 - kneeangle)];
             myLineChart.update();
             if (status === "reset") {
                 stockData["slopeHipAngle"] = 0;
@@ -1004,9 +1014,9 @@
 
 
 
-            let perLeft = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
-            let perRight = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
-            // let hiplineVisibility = Math.min(perLeft.visibility, perRight.visibility);
+            // let perLeft = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
+            // let perRight = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
+            // // let hiplineVisibility = Math.min(perLeft.visibility, perRight.visibility);
             // let hipLineMin = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMinPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMinPer));
             // let hipLineMax = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMaxPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMaxPer));
             // let hipLine = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.per), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.per));
@@ -1094,7 +1104,8 @@
 
                 } else {
                     angleShiseiCheck(resultAngle, "reset");
-                    if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility) && paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility)) {
+                    if (paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility)) {
+
                         if ((selectedAngle - selectedMargin) > average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)) {
                             statusChecker("up");
                             setImage(canvasElement, results.poseLandmarks, "counter");
