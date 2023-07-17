@@ -75,9 +75,9 @@
 
         <video class="input_video" style="display: none"></video>
         <canvas class="output_canvas"></canvas>
-        <canvas id="myChart"></canvas>
+        <canvas id="myChart" width="150" height="900"></canvas>
 
-        <div class="landmark-grid-container" wstyle="display:none"></div>
+        <div class="landmark-grid-container" style="display:none"></div>
         <input id="bgm" type="button" value="BGMを再生" class="audio_auto" style="z-index: 10;">
         <button id="fin" class="fin" onclick="window.close();" style="z-index: 10;">スクワットを終了する</button>
 
@@ -85,9 +85,8 @@
     <style>
         #myChart {
             position: fixed;
-            width: 90vw;
-            height: 90vh;
-
+            min-width: 50px;
+            max-height: 90vh;
             bottom: 5vmin;
             right: 5vmin;
         }
@@ -213,16 +212,21 @@
                 labels: ["腰", "膝"],
                 datasets: [{
                     backgroundColor: [
-                        "#BB5179",
+                        "#90EE90",
                         "#FAFF67",
                     ],
-                    data: [38, 31]
+                    data: [38, 31],
+                    categoryPercentage: 0.5 // 棒グラフの幅をカテゴリ幅の50%に設定
 
                 }],
+
             },
             options: {
+
+                // indexAxis: 'y',これ使いたい時は、y軸をx軸に変えること
                 scales: {
                     y: {
+                        beginAtZero: true,
                         suggestedMin: 100,
                         suggestedMax: 50
                     }
@@ -317,14 +321,15 @@
 
 
         /**音声の設定
-         * 
-        */
+             * 
+            */
         const mp3_bgm = new Audio('./mp3/bgm.mp3');
         const mp3_agete = new Audio('./mp3/agete.m4a');
         const mp3_sagete = new Audio('./mp3/sagete.m4a')
         const mp3_pinpon = new Audio('./mp3/pinpon.mp3');
         const mp3_sagatte = new Audio('./mp3/sagate.mp3');
-        const mp3_sesuji = new Audio('./mp3/sesuji.m4a');
+        const mp3_sesuji_front = new Audio('./mp3/sesuji_front.mp3');
+        const mp3_sesuji_back = new Audio('./mp3/sesuji_back.mp3');
         const mp3_stop = new Audio('./mp3/stop.mp3');
         const mp3_tatte = new Audio('./mp3/tatte.m4a');
         const mp3_start = new Audio('./mp3/start.mp3');
@@ -501,11 +506,11 @@
         }
 
         /*股関節と膝関節から姿勢の判定をおする関数
-        この時の条件は、Keep状態時のみ反応するよう書くことに注意*/
+          この時の条件は、Keep状態時のみ反応するよう書くことに注意*/
         function angleShiseiCheck(resultAngle, status = 0) {
             const hipangle = average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
             const kneeangle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
-            myLineChart.data.datasets[0].data = [(160 - hipangle), (160 - kneeangle)];
+            myLineChart.data.datasets[0].data = [170 - hipangle, 170 - kneeangle];
             myLineChart.update();
             if (status === "reset") {
                 stockData["slopeHipAngle"] = 0;
@@ -521,10 +526,10 @@
                 stockData["slopeHipAngle"] = hipangle;
                 stockData["slopeKneeAngle"] = kneeangle;
                 // let slope = (stockData["slopeHipAngle"] - stockData["slopes"]["b"]) / stockData["slopeKneeAngle"];
-                if (hipangle > (kneeangle * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"]) || (kneeangle * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"]) > hipangle) {
-                    console.log("maybe not good", stockData)
-
-                    return true;
+                if (hipangle > (kneeangle * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"])) {
+                    return "back";
+                } else if ((kneeangle * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"]) > hipangle) {
+                    return "front";
                 }
 
             }
@@ -572,8 +577,11 @@
         function textSet(text) {
             status = text;
             switch (status) {
-                case "please look forward":
-                    document.getElementById("board").textContent = "姿勢が悪いです。前を見ましょう";
+                case "please look forward front":
+                    document.getElementById("board").textContent = "背筋に力を入れましょう";
+                    break;
+                case "please look forward back":
+                    document.getElementById("board").textContent = "前傾姿勢になりましょう";
                     break;
                 case "please stand up":
                     document.getElementById("board").textContent = "成功！立ち上がって";
@@ -673,16 +681,28 @@
         function statusChecker(set) {
             let nowTime = Date.now();
 
-            if (set === "shisei") {
-                textSet("please look forward");
-                document.getElementById("status").textContent = "please look forward";
+            if (set === "front") {
+                textSet("please look forward front");
+                document.getElementById("status").textContent = "please look forward front";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 flgSqwat = false;
-                if (nowPlay !== mp3_sesuji) {
+                if (nowPlay !== mp3_sesuji_front) {
                     resetMusic(nowPlay);
-                    mp3_sesuji.play();
-                    mp3_sesuji.loop = true;
-                    nowPlay = mp3_sesuji;
+                    mp3_sesuji_front.play();
+                    mp3_sesuji_front.loop = true;
+                    nowPlay = mp3_sesuji_front;
+                }
+
+            } else if (set === "back") {
+                textSet("please look forward back");
+                document.getElementById("status").textContent = "please look forward back";
+                document.getElementById("board").style.backgroundColor = '#ff0000';
+                flgSqwat = false;
+                if (nowPlay !== mp3_sesuji_back) {
+                    resetMusic(nowPlay);
+                    mp3_sesuji_back.play();
+                    mp3_sesuji_back.loop = true;
+                    nowPlay = mp3_sesuji_back;
                 }
 
             } else if (flgSqwat && set === "ok") {
@@ -1075,14 +1095,16 @@
 
                 //姿勢が判定位置にあり、人が存在している時
                 if ((selectedAngle - selectedMargin) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
-                    statusChecker("ok");
-                    if (angleShiseiCheck(resultAngle)) {
-                        statusChecker("shisei");
-                    } else if (document.getElementById("status").textContent === "please stand up") {
 
+                    if (angleShiseiCheck(resultAngle) === "front") {
+                        statusChecker("front");
+                    } else if (angleShiseiCheck(resultAngle) === "back") {
+                        statusChecker("back");
+                    } else if (document.getElementById("status").textContent === "please stand up") {
+                        statusChecker("ok");
                         setImage(canvasElement, results.poseLandmarks, "up");
                     } else {
-
+                        statusChecker("ok");
                         setImage(canvasElement, results.poseLandmarks, "fire");
                         setImage(canvasElement, results.poseLandmarks, "gauge");
                     }
