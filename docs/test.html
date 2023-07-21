@@ -834,7 +834,7 @@
                     flgSqwat = false;
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
-            } else {
+            } else if (set === "none" || set === null) {
                 textSet("out")
                 document.getElementById("status").textContent = "out";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
@@ -848,6 +848,7 @@
                     mp3_sagatte.loop = true;
                     nowPlay = mp3_sagatte;
                 }
+
 
 
             }
@@ -1181,7 +1182,7 @@
 
                     } else {
                         setImage(canvasElement, results.poseLandmarks, "counter");
-                        statusChecker("no");
+                        statusChecker("none");
                     }
 
                 }
