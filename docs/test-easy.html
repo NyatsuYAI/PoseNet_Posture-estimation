@@ -246,6 +246,7 @@
             'humanJudge': 0.7,
             'shiseiPer': 0.85,
             'shiseiVisibility': 0.7,
+            'playbackRate': 0.8,
         }
         function getParam() {
             // URLを取得
@@ -271,23 +272,45 @@
         img_up.src = './img/up.png';
         let img_down = new Image();
         img_down.src = './img/down.png';
+        let img_left = new Image();
+        img_left.src = './img/left.png';
+        let img_right = new Image();
+        img_right.src = './img/right.png';
+        let img_front = new Image();
+        img_front.src = './img/front.png';
+        let img_back = new Image();
+        img_back.src = './img/back.png';
+        let img_shisei_ok = new Image();
+        img_shisei_ok.src = './img/shiseiOK.png';
 
 
         /**音声の設定
-         * 
-        */
+             * 
+            */
         const mp3_bgm = new Audio('./mp3/bgm.mp3');
         const mp3_agete = new Audio('./mp3/agete.m4a');
-        const mp3_sagete = new Audio('./mp3/sagete.m4a')
+        mp3_agete.playbackRate = paramDataSet.playbackRate;
+        const mp3_sagete = new Audio('./mp3/sagete.m4a');
+        mp3_sagete.playbackRate = paramDataSet.playbackRate;
         const mp3_pinpon = new Audio('./mp3/pinpon.mp3');
+        mp3_pinpon.playbackRate = paramDataSet.playbackRate;
         const mp3_sagatte = new Audio('./mp3/sagate.mp3');
+        mp3_sagatte.playbackRate = paramDataSet.playbackRate;
         const mp3_sesuji_front = new Audio('./mp3/sesuji_front.mp3');
+        mp3_sesuji_front.playbackRate = paramDataSet.playbackRate;
         const mp3_sesuji_back = new Audio('./mp3/sesuji_back.mp3');
+        mp3_sesuji_back.playbackRate = paramDataSet.playbackRate;
         const mp3_stop = new Audio('./mp3/stop.mp3');
+        mp3_stop.playbackRate = paramDataSet.playbackRate;
         const mp3_tatte = new Audio('./mp3/tatte.m4a');
+        mp3_tatte.playbackRate = paramDataSet.playbackRate;
         const mp3_start = new Audio('./mp3/start.mp3');
+        mp3_start.playbackRate = paramDataSet.playbackRate;
         const mp3_goodposition = new Audio('./mp3/goodposition.mp3');
+        mp3_goodposition.playbackRate = paramDataSet.playbackRate;
+
         let nowPlay = mp3_start;
+
 
 
         /**取得したい角度のポイント
@@ -445,7 +468,7 @@
         }
         /**顔隠す猫ちゃん*/
         function facehide(canvasElement, img, nose, left_ear, right_ear) {
-            let width = canvasElement.width * Math.abs(left_ear.x - right_ear.x) * 3;
+            let width = canvasElement.width * calcLength2point(left_ear, right_ear) * 3;
             let height = width * Math.round(img.height / img.width);
             let x = Math.round(nose.x * canvasElement.width) - (width / 2);
             let y = Math.round(nose.y * canvasElement.height) - (height / 2);
@@ -456,6 +479,10 @@
                 'width': width,
                 'height': height,
             };
+        }
+
+        function calcLength2point(point1, point2) {
+            return Math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2 + (point1.z - point2.z) ** 2);
         }
 
         /*股関節と膝関節から姿勢の判定をおする関数
@@ -557,7 +584,7 @@
         }
 
         function setImage(canvasElement, poseLandmarks, what) {
-            let width = canvasElement.width * Math.abs(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x - poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x);
+            let width = canvasElement.width * (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) * 2);
             let status = document.getElementById("status").style.textContent;
             if (status === "please stand up") {
                 return;
@@ -597,7 +624,34 @@
                 document.getElementsByClassName("counter")[0].style.display = "block";
                 document.getElementsByClassName("counter")[0].style.left = (Math.round(poseLandmarks[POSE_LANDMARKS.NOSE].x * canvasElement.width) - (width / 2)) + "px";
 
+            } else if (what === "front") {
+                document.getElementsByClassName("gauge")[0].style.display = "none";
+                let height = width * Math.round(img_front.height / img_front.width);
+                let x, y;
+                if (poseLandmarks[POSE_LANDMARKS_NEUTRAL.NOSE].x < 0.5) {
+                    x = canvasElement.width * 0.75 - (width / 2);
+                    y = canvasElement.height * 0.5 - (height / 2);
+                } else {
+                    x = canvasElement.width * 0.25 - (width / 2);
+                    y = canvasElement.height * 0.5 - (height / 2);
+                }
+                if (Math.floor(nowTime / 1000) % 2 === 0) canvasCtx.drawImage(img_front, x, y, width * 3, height * 3);
+                else canvasCtx.drawImage(img_shisei_ok, x, y, width * 3, height * 3);
+            } else if (what === "back") {
+                document.getElementsByClassName("gauge")[0].style.display = "none";
+                let height = width * Math.round(img_back.height / img_back.width);
+                let x, y;
+                if (poseLandmarks[POSE_LANDMARKS_NEUTRAL.NOSE].x < 0.5) {
+                    x = canvasElement.width * 0.75 - (width / 2);
+                    y = canvasElement.height * 0.5 - (height / 2);
+                } else {
+                    x = canvasElement.width * 0.25 - (width / 2);
+                    y = canvasElement.height * 0.5 - (height / 2);
+                }
+                if (Math.floor(nowTime / 1000) % 2 === 0) canvasCtx.drawImage(img_back, x, y, width * 3, height * 3);
+                else canvasCtx.drawImage(img_shisei_ok, x, y, width * 3, height * 3);
             } else {
+                document.getElementsByClassName("gauge")[0].style.display = "none";
                 return;
             }
 
@@ -738,7 +792,7 @@
                     flgSqwat = false;
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
-            } else {
+            } else if (set === "none" || set === null) {
                 textSet("out")
                 document.getElementById("status").textContent = "out";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
@@ -754,7 +808,8 @@
                 }
 
 
-            }
+
+            } else { return; }
 
         }
 
@@ -766,7 +821,7 @@
             //タイムスタンプと共に角度とどの信頼度をセルにする
             const cellTag = {
                 0: "時刻（日本）",
-                1: "try angle",
+                1: "status",
                 2: "leftAngle",
                 3: "rightAngle",
                 4: "Angle",
@@ -814,7 +869,7 @@
 
             const cell = [
                 timeStamp(),
-                selectedAngle,
+                document.getElementById("status").textContent,
                 resultAngle.leftKnee.angle,
                 resultAngle.rightKnee.angle,
                 average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
@@ -970,14 +1025,14 @@
 
 
 
-            let perLeft = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
-            let perRight = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
-            // let hiplineVisibility = Math.min(perLeft.visibility, perRight.visibility);
+            // let perLeft = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
+            // let perRight = calcTriangleLength(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
+            // // let hiplineVisibility = Math.min(perLeft.visibility, perRight.visibility);
             // let hipLineMin = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMinPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMinPer));
             // let hipLineMax = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.marginMaxPer), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.marginMaxPer));
             // let hipLine = average(linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], perLeft.per), linePosHip(canvasElement, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], perRight.per));
-            let shiseiLeft = calcShisei(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP]);
-            let shiseiRight = calcShisei(results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP]);
+            // let shiseiLeft = calcShisei(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP]);
+            // let shiseiRight = calcShisei(results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP]);
 
             // let lineStatus;
             // if (paramDataSet["maxStrokeParam"] === 0) {
@@ -1045,11 +1100,13 @@
                 // console.log("leftKnee is ", resultAngle.leftKnee)
 
                 //姿勢が判定位置にあり、人が存在している時
-                if ((selectedAngle - selectedMargin) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
+                if ((selectedAngle - selectedMargin) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (selectedAngle + selectedMargin) && average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
                     if (angleShiseiCheck(resultAngle) === "front") {
                         statusChecker("front");
+                        setImage(canvasElement, results.poseLandmarks, "front");
                     } else if (angleShiseiCheck(resultAngle) === "back") {
                         statusChecker("back");
+                        setImage(canvasElement, results.poseLandmarks, "back");
                     } else if (document.getElementById("status").textContent === "please stand up") {
                         statusChecker("ok");
                         setImage(canvasElement, results.poseLandmarks, "up");
@@ -1061,7 +1118,7 @@
 
                 } else {
                     angleShiseiCheck(resultAngle, "reset");
-                    if (paramDataSet['humanJudge'] < Math.min(perLeft.visibility, perRight.visibility) && paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility)) {
+                    if (paramDataSet['humanJudge'] < average(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility)) {
                         if ((selectedAngle - selectedMargin) > average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)) {
                             statusChecker("up");
                             setImage(canvasElement, results.poseLandmarks, "counter");
@@ -1074,7 +1131,7 @@
 
                     } else {
                         setImage(canvasElement, results.poseLandmarks, "counter");
-                        statusChecker("no");
+                        statusChecker("none");
                     }
 
                 }

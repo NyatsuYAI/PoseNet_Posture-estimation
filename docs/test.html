@@ -76,7 +76,6 @@
 
         <video class="input_video" style="display: none"></video>
         <canvas class="output_canvas"></canvas>
-        <canvas id="graph" width="500" height="500" style="position: fixed; right: 5vmin; top:10vmin"></canvas>
 
         <div class="landmark-grid-container" style="display:none"></div>
         <input id="bgm" type="button" value="BGMを再生" class="audio_auto" style="z-index: 10;">
@@ -248,7 +247,7 @@
             'humanJudge': 0.7,
             'shiseiPer': 0.85,
             'shiseiVisibility': 0.7,
-            'playbackRate': 0.8,
+            'playbackRate': 1,
         }
         function getParam() {
             // URLを取得
@@ -291,17 +290,29 @@
         */
         const mp3_bgm = new Audio('./mp3/bgm.mp3');
         const mp3_agete = new Audio('./mp3/agete.m4a');
-        const mp3_sagete = new Audio('./mp3/sagete.m4a')
+        mp3_agete.playbackRate = paramDataSet.playbackRate;
+        const mp3_sagete = new Audio('./mp3/sagete.m4a');
+        mp3_sagete.playbackRate = paramDataSet.playbackRate;
         const mp3_pinpon = new Audio('./mp3/pinpon.mp3');
+        mp3_pinpon.playbackRate = paramDataSet.playbackRate;
         const mp3_sagatte = new Audio('./mp3/sagate.mp3');
+        mp3_sagatte.playbackRate = paramDataSet.playbackRate;
         const mp3_sesuji_front = new Audio('./mp3/sesuji_front.mp3');
+        mp3_sesuji_front.playbackRate = paramDataSet.playbackRate;
         const mp3_sesuji_back = new Audio('./mp3/sesuji_back.mp3');
+        mp3_sesuji_back.playbackRate = paramDataSet.playbackRate;
         const mp3_stop = new Audio('./mp3/stop.mp3');
+        mp3_stop.playbackRate = paramDataSet.playbackRate;
         const mp3_tatte = new Audio('./mp3/tatte.m4a');
+        mp3_tatte.playbackRate = paramDataSet.playbackRate;
         const mp3_start = new Audio('./mp3/start.mp3');
+        mp3_start.playbackRate = paramDataSet.playbackRate;
         const mp3_goodposition = new Audio('./mp3/goodposition.mp3');
+        mp3_goodposition.playbackRate = paramDataSet.playbackRate;
         const mp3_hohaba = new Audio('./mp3/hohaba.mp3');
+        mp3_hohaba.playbackRate = paramDataSet.playbackRate;
         const mp3_width = new Audio('./mp3/width.mp3');
+        mp3_width.playbackRate = paramDataSet.playbackRate;
         let nowPlay = mp3_start;
 
 
@@ -851,7 +862,7 @@
 
 
 
-            }
+            } else { return; }
 
         }
 
@@ -863,7 +874,7 @@
             //タイムスタンプと共に角度とどの信頼度をセルにする
             const cellTag = {
                 0: "時刻（日本）",
-                1: "try angle",
+                1: "status",
                 2: "leftAngle",
                 3: "rightAngle",
                 4: "Angle",
@@ -911,7 +922,7 @@
 
             const cell = [
                 timeStamp(),
-                selectedAngle,
+                document.getElementById("status").textContent,
                 resultAngle.leftKnee.angle,
                 resultAngle.rightKnee.angle,
                 average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
