@@ -248,6 +248,8 @@
             'shiseiPer': 0.85,
             'shiseiVisibility': 0.7,
             'playbackRate': 1,
+            "perhohaba": 0.5,
+            "perwidth": 1.5,
         }
         function getParam() {
             // URLを取得
@@ -491,8 +493,8 @@
             const shoulder_haba = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER]);
             const knee_haba = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE]);
             const ankle_haba = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
-            if (shoulder_haba * 0.5 > ankle_haba && whatCheck === "hohaba") return "hohaba";
-            else if (shoulder_haba * 1.5 < knee_haba && whatCheck === "width") return "width";
+            if (shoulder_haba * paramDataSet["perhohaba"] > ankle_haba && whatCheck === "hohaba") return "hohaba";
+            else if (shoulder_haba * paramDataSet["perwidth"] < knee_haba && whatCheck === "width") return "width";
             else return;
         }
 
@@ -531,6 +533,7 @@
                 const res = [];
                 for (let set in coordinates) {
                     res.push(coordinates[set]);
+                    res.push({ x: coordinates[set].x - stockData["falseDataSet"]["min"]["knee"] / 2, y: coordinates[set].y - stockData["falseDataSet"]["min"]["hip"] / 2 });
                     res.push({ x: coordinates[set].x - stockData["falseDataSet"]["min"]["knee"], y: coordinates[set].y - stockData["falseDataSet"]["min"]["hip"] });
                 }
                 return res;
@@ -538,6 +541,7 @@
                 const res = [];
                 for (let set in coordinates) {
                     res.push(coordinates[set]);
+                    res.push({ x: coordinates[set].x - stockData["falseDataSet"]["max"]["knee"] / 2, y: coordinates[set].y - stockData["falseDataSet"]["max"]["hip"] / 2 });
                     res.push({ x: coordinates[set].x - stockData["falseDataSet"]["max"]["knee"], y: coordinates[set].y - stockData["falseDataSet"]["max"]["hip"] });
                 }
                 return res;
