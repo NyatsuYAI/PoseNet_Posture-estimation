@@ -730,19 +730,24 @@
                 textSet("please look forward front");
                 document.getElementById("status").textContent = "please look forward front";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
-                flgSqwat = false;
+                if (flgSqwat) {
+                    flgSqwat = false;
+                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                }
                 if (nowPlay !== mp3_sesuji_front) {
                     resetMusic(nowPlay);
                     mp3_sesuji_front.play();
                     mp3_sesuji_front.loop = true;
                     nowPlay = mp3_sesuji_front;
                 }
-
             } else if (set === "back") {
                 textSet("please look forward back");
                 document.getElementById("status").textContent = "please look forward back";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
-                flgSqwat = false;
+                if (flgSqwat) {
+                    flgSqwat = false;
+                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                }
                 if (nowPlay !== mp3_sesuji_back) {
                     resetMusic(nowPlay);
                     mp3_sesuji_back.play();
@@ -752,7 +757,10 @@
             } else if (set === "hohaba") {
                 textSet("please open ankle");
                 document.getElementById("board").style.backgroundColor = '#ff0000';
-                flgSqwat = false;
+                if (flgSqwat) {
+                    flgSqwat = false;
+                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                }
                 if (nowPlay !== mp3_hohaba) {
                     resetMusic(nowPlay);
                     mp3_hohaba.play();
@@ -762,7 +770,10 @@
             } else if (set === "width") {
                 textSet("width squat");
                 document.getElementById("board").style.backgroundColor = '#ff0000';
-                flgSqwat = false;
+                if (flgSqwat) {
+                    flgSqwat = false;
+                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                }
                 if (nowPlay !== mp3_width) {
                     resetMusic(nowPlay);
                     mp3_width.play();
