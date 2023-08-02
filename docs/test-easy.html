@@ -821,7 +821,7 @@
 
         //11/15
         const cells = []
-        const items = 24;
+        const items = 26;
         const coordinates = [];
         function cellMake() {
             //タイムスタンプと共に角度とどの信頼度をセルにする
@@ -847,9 +847,11 @@
                 18: " ankle y",
                 19: " ankle z",
                 20: "slope_min",
-                21: "angle_average",
-                22: "slope_max",
-                23: "count",
+                21: "slope_min_hipangle",
+                22: "hipangle_average",
+                23: "slope_max_hipangle",
+                24: "slope_max",
+                25: "count",
 
             };
             console.log(cellTag)
@@ -894,9 +896,11 @@
                 average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x),
                 average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y),
                 average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z),
+                stockData["slopeMin"]["a_min"],
                 stockData["slopeKneeAngle"] * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"],
                 stockData["slopeHipAngle"],
                 stockData["slopeKneeAngle"] * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"],
+                stockData["slopeMax"]["a_max"],
                 document.getElementById("counter").value,
             ];
             cells.push(cell);
