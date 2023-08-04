@@ -586,6 +586,7 @@
         function setImage(canvasElement, poseLandmarks, what) {
             let width = canvasElement.width * (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) * 2);
             let status = document.getElementById("status").style.textContent;
+            let nowTime = Date.now();
             if (status === "please stand up") {
                 return;
             } else if (what === "fire") {
