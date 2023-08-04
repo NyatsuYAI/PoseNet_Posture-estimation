@@ -343,8 +343,8 @@
             "falseDataSet": { "min": { "knee": 60, "hip": 40 }, "max": { "knee": 60, "hip": 80 } },
             "slopeHipAngle": 0,
             "slopeKneeAngle": 0,
-            "slopeMin": { "a_min": 0, "b_min": 0 },
-            "slopeMax": { "a_max": 0, "b_max": 0 },
+            "slopeMin": { "a_min": 0.8, "b_min": 0 },
+            "slopeMax": { "a_max": 1.4, "b_max": 0 },
         };
 
         // document.addEventListener('DOMContentLoaded', function () {
@@ -571,15 +571,12 @@
             let maxB = 0;
 
             for (const item of coordinates) {
-                console.log(minB);
-                if (status === "min") {
-                    if (minB === 0) minB = item.y - item.x * minA;
-                    else { minB = average(minB, item.y - item.x * minA); }
-                } else if (status === "max") {
-                    if (maxB === 0) maxB = item.y - item.x * maxA;
-                    else maxB = average(maxB, item.y - item.x * maxA);
-                }
-                else return;
+                if (minB === 0) minB = item.y - item.x * minA;
+                else minB = average(minB, item.y - item.x * minA);
+
+                if (maxB === 0) maxB = item.y - item.x * maxA;
+                else maxB = average(maxB, item.y - item.x * maxA);
+
             }
             return [minB, maxB];
         }
@@ -990,16 +987,14 @@
 
             }
             if (coordinates.length % 30 === 0 && coordinates.length !== 0) {
-                const coordinates_min = addCoordinates(coordinates, "min");
-                const coordinates_max = addCoordinates(coordinates, "max");
-                const [a_min, b_min] = lsm(coordinates_min);
-                const [a_max, b_max] = lsm(coordinates_max);
-                stockData["slopeMin"]["a_min"] = a_min;
+                console.log(calcSlope(coordinates))
+                console.log(calcSlope(coordinates, "max"))
+                let [b_min, b_max] = calcSlope(coordinates);
+
                 stockData["slopeMin"]["b_min"] = b_min;
-                stockData["slopeMax"]["a_max"] = a_max;
                 stockData["slopeMax"]["b_max"] = b_max;
 
-                console.log("Ahoy", a_min, b_min, a_max, b_max, coordinates.length)
+                console.log("Ahoy", b_min, b_max, coordinates.length)
             }
 
 
