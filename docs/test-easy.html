@@ -190,7 +190,7 @@
             $(".btn_area button").click(function () {
                 $(".overlay").fadeOut();
                 document.documentElement.requestFullscreen();
-                nowPlay.play();
+                allowMusic();
             });
         });
         const videoElement = document.getElementsByClassName('input_video')[0];
@@ -285,8 +285,8 @@
 
 
         /**音声の設定
-             * 
-            */
+           * 
+          */
         const mp3_bgm = new Audio('./mp3/bgm.mp3');
         const mp3_agete = new Audio('./mp3/agete.m4a');
         mp3_agete.playbackRate = paramDataSet.playbackRate;
@@ -308,8 +308,12 @@
         mp3_start.playbackRate = paramDataSet.playbackRate;
         const mp3_goodposition = new Audio('./mp3/goodposition.mp3');
         mp3_goodposition.playbackRate = paramDataSet.playbackRate;
-
+        const mp3_hohaba = new Audio('./mp3/hohaba.mp3');
+        mp3_hohaba.playbackRate = paramDataSet.playbackRate;
+        const mp3_width = new Audio('./mp3/width.mp3');
+        mp3_width.playbackRate = paramDataSet.playbackRate;
         let nowPlay = mp3_start;
+        let flgMusic = false;
 
 
 
@@ -362,6 +366,25 @@
         function resetMusic(music) {
             music.pause();
             music.currentTime = 0;
+        }
+        function stopMusic() {
+            if (flgMusic) nowPlay.pause();
+            flgMusic = false;
+        }
+
+        function allowMusic() {
+            if (!flgMusic) nowPlay.play();
+            flgMusic = true;
+        }
+
+        function startMusic(music) {
+            if (flgMusic) {
+                nowPlay.pause();
+                music.currentTime = 0;
+                music.play();
+                music.loop = true;
+                nowPlay = music;
+            }
         }
 
         const bgmButton = document.getElementById("bgm");
@@ -549,6 +572,23 @@
             return [a, b]
         }
 
+        function calcSlope(coordinates, status = 0) {
+            let minA = stockData["slopeMin"]["a_min"];
+            let maxA = stockData["slopeMax"]["a_max"];
+            let minB = 0;
+            let maxB = 0;
+
+            for (const item of coordinates) {
+                if (minB === 0) minB = item.y - item.x * minA;
+                else minB = average(minB, item.y - item.x * minA);
+
+                if (maxB === 0) maxB = item.y - item.x * maxA;
+                else maxB = average(maxB, item.y - item.x * maxA);
+
+            }
+            return [minB, maxB];
+        }
+
 
 
 
@@ -580,6 +620,12 @@
                 case "out":
                     document.getElementById("board").textContent = "画面に全身が映っていません。画面を確認してください";
                     break;
+                case "please open ankle":
+                    document.getElementById("board").textContent = "肩幅まで足を開いてください";
+                    break;
+                case "width squat":
+                    document.getElementById("board").textContent = "膝を正面で曲げてください";
+
             }
         }
 
@@ -696,10 +742,7 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_sesuji_front) {
-                    resetMusic(nowPlay);
-                    mp3_sesuji_front.play();
-                    mp3_sesuji_front.loop = true;
-                    nowPlay = mp3_sesuji_front;
+                    startMusic(mp3_sesuji_front);
                 }
 
             } else if (set === "back") {
@@ -711,10 +754,7 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_sesuji_back) {
-                    resetMusic(nowPlay);
-                    mp3_sesuji_back.play();
-                    mp3_sesuji_back.loop = true;
-                    nowPlay = mp3_sesuji_back;
+                    startMusic(mp3_sesuji_back);
                 }
 
             } else if (flgSqwat && set === "ok") {
@@ -730,9 +770,7 @@
                         mp3_pinpon.loop = false;
                         nowPlay = mp3_pinpon;
                         setTimeout(function () {
-                            mp3_tatte.play();
-                            mp3_tatte.loop = true;
-                            nowPlay = mp3_tatte;
+                            startMusic(mp3_tatte);
                         }, 1000);
                     }
                 } else {
@@ -740,10 +778,7 @@
                     document.getElementById("status").textContent = "keep";
                     document.getElementById("board").style.backgroundColor = '#00ff00';
                     if (nowPlay !== mp3_stop) {
-                        resetMusic(nowPlay);
-                        mp3_stop.play();
-                        mp3_stop.loop = false;
-                        nowPlay = mp3_stop;
+                        startMusic(mp3_stop);
                     }
                 }
 
@@ -774,26 +809,18 @@
                         mp3_goodposition.loop = false;
                         nowPlay = mp3_goodposition;
                         setTimeout(function () {
-                            mp3_sagete.play();
-                            mp3_sagete.loop = true;
-                            nowPlay = mp3_sagete;
+                            startMusic(mp3_sagete);
                         }, 2000);
                     }
                 } else if (nowPlay !== mp3_sagete) {
-                    resetMusic(nowPlay);
-                    mp3_sagete.play();
-                    mp3_sagete.loop = true;
-                    nowPlay = mp3_sagete;
+                    startMusic(mp3_sagete);
                 }
             } else if (set === "up") {
                 textSet("too squat");
                 document.getElementById("status").textContent = "too squat";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 if (nowPlay !== mp3_agete) {
-                    resetMusic(nowPlay);
-                    mp3_agete.play();
-                    mp3_agete.loop = true;
-                    nowPlay = mp3_agete;
+                    startMusic(mp3_agete);
                 }
                 if (flgSqwat) {
                     flgSqwat = false;
@@ -808,10 +835,7 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_sagatte) {
-                    resetMusic(nowPlay);
-                    mp3_sagatte.play();
-                    mp3_sagatte.loop = true;
-                    nowPlay = mp3_sagatte;
+                    startMusic(mp3_sagatte);
                 }
 
 
@@ -822,19 +846,19 @@
 
         //11/15
         const cells = []
-        const items = 26;
+        const items = 30;
         const coordinates = [];
         function cellMake() {
             //タイムスタンプと共に角度とどの信頼度をセルにする
             const cellTag = {
                 0: "時刻（日本）",
                 1: "status",
-                2: "leftAngle",
-                3: "rightAngle",
-                4: "Angle",
-                5: "hipAngle",
-                6: "visibility(left)",
-                7: "visibility(right)",
+                2: "kneeAngle",
+                3: "kneeAngle visivility",
+                4: "hipAngle",
+                5: "hipAngle visivility",
+                6: "slope a",
+                7: " slope b",
                 8: " shoulder x",
                 9: " shoulder y",
                 10: " shoulder z",
@@ -853,6 +877,10 @@
                 23: "slope_max_hipangle",
                 24: "slope_max",
                 25: "count",
+                26: "ankle angle",
+                27: "ankle angle visivility",
+                28: "heel angle",
+                29: "heel angle visivility ",
 
             };
             console.log(cellTag)
@@ -879,12 +907,12 @@
             const cell = [
                 timeStamp(),
                 document.getElementById("status").textContent,
-                resultAngle.leftKnee.angle,
-                resultAngle.rightKnee.angle,
                 average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
+                average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility),
                 average(resultAngle.leftHip.angle, resultAngle.rightHip.angle),
-                resultAngle.leftKnee.visibility,
-                resultAngle.rightKnee.visibility,
+                average(resultAngle.leftHip.visibility, resultAngle.rightHip.visibility),
+                stockData["slpoes"]["a"],
+                stockData["slpoes"]["b"],
                 average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x),
                 average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y),
                 average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z),
@@ -903,23 +931,27 @@
                 stockData["slopeKneeAngle"] * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"],
                 stockData["slopeMax"]["a_max"],
                 document.getElementById("counter").value,
+                average(resultAngle.leftAnkle.angle, resultAngle.rightAnkle.angle),
+                average(resultAngle.leftAnkle.visibility, resultAngle.rightAnkle.visibility),
+                average(resultAngle.leftHeel.angle, resultAngle.rightHeel.angle),
+                average(resultAngle.leftHeel.visibility, resultAngle.rightHeel.visibility),
             ];
             cells.push(cell);
             if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 150) {
                 coordinates.push({ x: average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), y: average(resultAngle.leftHip.angle, resultAngle.rightHip.angle) });
+
             }
             if (coordinates.length % 30 === 0 && coordinates.length !== 0) {
-                const coordinates_min = addCoordinates(resultAngle, coordinates, "min");
-                const coordinates_max = addCoordinates(resultAngle, coordinates, "max");
-                const [a_min, b_min] = lsm(coordinates_min);
-                const [a_max, b_max] = lsm(coordinates_max);
-                stockData["slopeMin"]["a_min"] = a_min;
-                stockData["slopeMin"]["b_min"] = b_min;
-                stockData["slopeMax"]["a_max"] = a_max;
-                stockData["slopeMax"]["b_max"] = b_max;
 
-                console.log("Ahoy", a_min, b_min, a_max, b_max, coordinates.length)
+                let [b_min, b_max] = calcSlope(coordinates);
+                const [a, b] = lsm(coordinates);
+                stockData["slopeMin"]["b_min"] = b_min;
+                stockData["slopeMax"]["b_max"] = b_max;
+                stockData["slpoes"]["a"] = a;
+                stockData["slpoes"]["b"] = b;
+                console.log("Ahoy", b_min, b_max, coordinates.length)
             }
+
 
 
 

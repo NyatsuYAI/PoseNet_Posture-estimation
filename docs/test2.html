@@ -191,7 +191,7 @@
             $(".btn_area button").click(function () {
                 $(".overlay").fadeOut();
                 document.documentElement.requestFullscreen();
-                nowPlay.play();
+                allowMusic();
             });
         });
         const videoElement = document.getElementsByClassName('input_video')[0];
@@ -318,6 +318,7 @@
         let nowPlay = mp3_start;
 
 
+
         /**取得したい角度のポイント
          * もちろん真ん中が原点となるポイントになるように書いてね
          * 関節スコアの参照 -> https://google.github.io/mediapipe/solutions/pose.html#pose-landmark-model-blazepose-ghum-3d
@@ -368,6 +369,26 @@
         function resetMusic(music) {
             music.pause();
             music.currentTime = 0;
+        }
+
+        function stopMusic() {
+            if (flgMusic) nowPlay.pause();
+            flgMusic = false;
+        }
+
+        function allowMusic() {
+            if (!flgMusic) nowPlay.play();
+            flgMusic = true;
+        }
+
+        function startMusic(music) {
+            if (flgMusic) {
+                nowPlay.pause();
+                music.currentTime = 0;
+                music.play();
+                music.loop = true;
+                nowPlay = music;
+            }
         }
 
         const bgmButton = document.getElementById("bgm");
