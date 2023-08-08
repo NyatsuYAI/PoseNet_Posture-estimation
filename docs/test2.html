@@ -345,6 +345,7 @@
             "slopeKneeAngle": 0,
             "slopeMin": { "a_min": 0.8, "b_min": 0 },
             "slopeMax": { "a_max": 1.4, "b_max": 0 },
+            "slpoes": { "a": 0, "b": 0 },
         };
 
         // document.addEventListener('DOMContentLoaded', function () {
@@ -899,7 +900,7 @@
 
         //11/15
         const cells = []
-        const items = 26;
+        const items = 30;
         const coordinates = [];
         function cellMake() {
             //タイムスタンプと共に角度とどの信頼度をセルにする
@@ -930,6 +931,10 @@
                 23: "slope_max_hipangle",
                 24: "slope_max",
                 25: "count",
+                26: "left ankle angle",
+                27: "right ankle angle",
+                28: "left heel angle",
+                29: "right heel angle",
 
             };
             console.log(cellTag)
@@ -956,12 +961,12 @@
             const cell = [
                 timeStamp(),
                 document.getElementById("status").textContent,
-                resultAngle.leftKnee.angle,
-                resultAngle.rightKnee.angle,
                 average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
+                average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility),
                 average(resultAngle.leftHip.angle, resultAngle.rightHip.angle),
-                resultAngle.leftKnee.visibility,
-                resultAngle.rightKnee.visibility,
+                average(resultAngle.leftHip.visibility, resultAngle.rightHip.visibility),
+                stockData["slpoes"]["a"],
+                stockData["slpoes"]["b"],
                 average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x),
                 average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y),
                 average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z),
@@ -980,6 +985,10 @@
                 stockData["slopeKneeAngle"] * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"],
                 stockData["slopeMax"]["a_max"],
                 document.getElementById("counter").value,
+                average(resultAngle.leftAnkle.angle, resultAngle.rightAnkle.angle),
+                average(resultAngle.leftAnkle.visibility, resultAngle.rightAnkle.visibility),
+                average(resultAngle.leftHeel.angle, resultAngle.rightHeel.angle),
+                average(resultAngle.leftHeel.visibility, resultAngle.rightHeel.visibility),
             ];
             cells.push(cell);
             if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 150) {
@@ -989,10 +998,11 @@
                 console.log(calcSlope(coordinates))
                 console.log(calcSlope(coordinates, "max"))
                 let [b_min, b_max] = calcSlope(coordinates);
-
+                const [a, b] = lsm(coordinates);
                 stockData["slopeMin"]["b_min"] = b_min;
                 stockData["slopeMax"]["b_max"] = b_max;
-
+                stockData["slpoes"]["a"] = a;
+                stockData["slpoes"]["b"] = b;
                 console.log("Ahoy", b_min, b_max, coordinates.length)
             }
 
