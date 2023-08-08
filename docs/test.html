@@ -329,6 +329,10 @@
             "leftHip": [11, 23, 25],
             "rightKnee": [24, 26, 28],
             "leftKnee": [23, 25, 27],
+            "rightAnkle": [26, 28, 32],
+            "leftAnkle": [25, 27, 31],
+            "rightHeel": [28, 30, 32],
+            "leftHeel": [27, 29, 31],
         };
 
         /**角度の選択*/
@@ -528,7 +532,6 @@
             return false;
         }
 
-
         function addCoordinates(coordinates, status = 0) {
             if (status === "min") {
                 const res = [];
@@ -583,6 +586,7 @@
             }
             return [minB, maxB];
         }
+
 
 
 
@@ -902,7 +906,7 @@
 
         //11/15
         const cells = []
-        const items = 26;
+        const items = 30;
         const coordinates = [];
         function cellMake() {
             //タイムスタンプと共に角度とどの信頼度をセルにする
@@ -933,6 +937,10 @@
                 23: "slope_max_hipangle",
                 24: "slope_max",
                 25: "count",
+                26: "left ankle angle",
+                27: "right ankle angle",
+                28: "left heel angle",
+                29: "right heel angle",
 
             };
             console.log(cellTag)
@@ -983,6 +991,10 @@
                 stockData["slopeKneeAngle"] * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"],
                 stockData["slopeMax"]["a_max"],
                 document.getElementById("counter").value,
+                resultAngle.leftAnkle.angle,
+                resultAngle.rightAnkle.angle,
+                resultAngle.leftHeel.angle,
+                resultAngle.rightHeel.angle,
             ];
             cells.push(cell);
             if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 150) {
@@ -1190,8 +1202,10 @@
                 for (let key in needVector) {
                     resultAngle[key] = calcAngle(results.poseWorldLandmarks[needVector[key][0]], results.poseWorldLandmarks[needVector[key][1]], results.poseWorldLandmarks[needVector[key][2]]);
                 }
-                // console.log("rightKnee is ", resultAngle.rightKnee)
-                // console.log("leftKnee is ", resultAngle.leftKnee)
+                console.log("rightAnkle is ", resultAngle.rightAnkle)
+                console.log("leftAnkle is ", resultAngle.leftAnkle)
+                console.log("rightHeel is ", resultAngle.rightHeel)
+                console.log("leftHeel is ", resultAngle.leftHeel)
 
                 //姿勢が判定位置にあり、人が存在している時
                 if ((selectedAngle - selectedMargin) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
