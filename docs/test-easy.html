@@ -807,7 +807,7 @@
                 document.getElementById("board").style.backgroundColor = '#00f0ff';
                 if (document.getElementById("counter").value === 0) {
                     if (nowPlay !== mp3_goodposition && nowPlay !== mp3_sagete) {
-                        rstartMusic(mp3_goodposition, false);
+                        startMusic(mp3_goodposition, false);
                         setTimeout(function () {
                             startMusic(mp3_sagete, true);
                         }, 2000);
