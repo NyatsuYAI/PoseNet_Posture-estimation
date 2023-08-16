@@ -15,7 +15,7 @@
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-    <script src="./cman.js" charset="utf-8"></script>
+
 
     <div id="status"
         style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px; display: none;">
@@ -430,6 +430,8 @@
         //     stockData["hipLineMax"] = 0;
         // }, false);
 
+
+
         function resetMusic(music) {
             if (flgMusic) music.pause();
             music.currentTime = 0;
@@ -445,12 +447,12 @@
             flgMusic = true;
         }
 
-        function startMusic(music) {
+        function startMusic(music, status = false) {
             if (flgMusic) {
                 nowPlay.pause();
                 music.currentTime = 0;
                 music.play();
-                music.loop = true;
+                music.loop = status;
                 nowPlay = music;
             }
         }
@@ -873,7 +875,7 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_sesuji_front) {
-                    startMusic(mp3_sesuji_front);
+                    startMusic(mp3_sesuji_front, true);
                 }
             } else if (set === "back") {
                 catchErr("back");
@@ -885,7 +887,7 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_sesuji_back) {
-                    startMusic(mp3_sesuji_back);
+                    startMusic(mp3_sesuji_back, true);
                 }
             } else if (set === "hohaba") {
                 catchErr("hohaba");
@@ -896,7 +898,7 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_hohaba) {
-                    startMusic(mp3_hohaba)
+                    startMusic(mp3_hohaba, true)
                 }
             } else if (set === "width") {
                 catchErr("width");
@@ -907,7 +909,7 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_width) {
-                    startMusic(mp3_width)
+                    startMusic(mp3_width, true)
                 }
             } else if (flgSqwat && set === "ok") {
                 if (nowTime - startSqwat > 2000) {
@@ -916,12 +918,9 @@
                     document.getElementById("board").style.backgroundColor = '#ffffff';
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                     if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
-                        resetMusic(nowPlay);
-                        mp3_pinpon.play();
-                        mp3_pinpon.loop = false;
-                        nowPlay = mp3_pinpon;
+                        startMusic(mp3_pinpon, false);
                         setTimeout(function () {
-                            startMusic(mp3_tatte);
+                            startMusic(mp3_tatte, true);
                         }, 1000);
                     }
                 } else {
@@ -929,7 +928,7 @@
                     document.getElementById("status").textContent = "keep";
                     document.getElementById("board").style.backgroundColor = '#00ff00';
                     if (nowPlay !== mp3_stop) {
-                        startMusic(mp3_stop);
+                        startMusic(mp3_stop, true);
                     }
                 }
             } else if (!flgSqwat && set === "ok") {
@@ -954,23 +953,20 @@
                 document.getElementById("board").style.backgroundColor = '#00f0ff';
                 if (document.getElementById("counter").value === 0) {
                     if (nowPlay !== mp3_goodposition && nowPlay !== mp3_sagete) {
-                        resetMusic(nowPlay);
-                        mp3_goodposition.play();
-                        mp3_goodposition.loop = false;
-                        nowPlay = mp3_goodposition;
+                        startMusic(mp3_goodposition, false);
                         setTimeout(function () {
-                            startMusic(mp3_sagete);
+                            startMusic(mp3_sagete, true);
                         }, 2000);
                     }
                 } else if (nowPlay !== mp3_sagete) {
-                    startMusic(mp3_sagete);
+                    startMusic(mp3_sagete, true);
                 }
             } else if (set === "up") {
                 textSet("too squat");
                 document.getElementById("status").textContent = "too squat";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 if (nowPlay !== mp3_agete) {
-                    startMusic(mp3_agete);
+                    startMusic(mp3_agete, true);
                 }
                 if (flgSqwat) {
                     flgSqwat = false;
@@ -985,7 +981,7 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_sagatte) {
-                    startMusic(mp3_sagatte);
+                    startMusic(mp3_sagatte, true);
                 }
 
 
@@ -1359,7 +1355,7 @@
             minDetectionConfidence: 0.7,
             minTrackingConfidence: 0.5,
             min_pose_presence_confidence: 0.5,
-            runningMode: "VIDEO"
+            runningMode: "VIDEO",
         });
         pose.onResults(onResults);
 
