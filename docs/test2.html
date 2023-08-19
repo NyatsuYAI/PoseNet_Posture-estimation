@@ -15,7 +15,7 @@
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-    <script src="./cman.js" charset="utf-8"></script>
+
 
     <div id="status"
         style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px; display: none;">
@@ -47,6 +47,17 @@
                 一部情報をサーバーに送信いたします
             </p>
             <button>スクワットを始める</button>
+        </div>
+    </div>
+
+    <div class="overlay2" style="display: none;">
+        <div class="btn_area2">
+            <p class="ttl">簡易サイト</p>
+            <p>こちらのサイトでは判定が厳しいようです</br>
+                簡単なスクワットをしましょう
+            </p>
+            <button id="easy-site">簡単な方をやる</button>
+            <button id="button2">まだ続ける</button>
         </div>
     </div>
     <div class="container">
@@ -182,6 +193,49 @@
             background: #777
         }
 
+        .overlay2 {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            position: fixed;
+            z-index: 1
+        }
+
+        .btn_area2 {
+            width: 400px;
+            height: 300px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            text-align: center;
+            z-index: 2
+        }
+
+
+        .btn_area2 .ttl {
+            font-weight: bold
+        }
+
+        .btn_area2 p {
+            padding: 15px
+        }
+
+        .btn_area2 button {
+            display: block;
+            margin: 10px auto;
+            background: #333;
+            color: #fff;
+            padding: 10px 40px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn_area2 button:hover {
+            background: #777
+        }
 
         @keyframes b {}
     </style>
@@ -194,6 +248,9 @@
                 allowMusic();
             });
         });
+
+
+
         const videoElement = document.getElementsByClassName('input_video')[0];
         const canvasElement = document.getElementsByClassName('output_canvas')[0];
         const canvasCtx = canvasElement.getContext("2d");
@@ -316,6 +373,8 @@
         const mp3_width = new Audio('./mp3/width.mp3');
         mp3_width.playbackRate = paramDataSet.playbackRate;
         let nowPlay = mp3_start;
+        let flgMusic = false;
+
 
 
 
@@ -330,6 +389,10 @@
             "leftHip": [11, 23, 25],
             "rightKnee": [24, 26, 28],
             "leftKnee": [23, 25, 27],
+            "rightAnkle": [26, 28, 32],
+            "leftAnkle": [25, 27, 31],
+            "rightHeel": [28, 30, 32],
+            "leftHeel": [27, 29, 31],
         };
 
         /**角度の選択*/
@@ -337,16 +400,17 @@
         let selectedMargin = 25;
 
         const stockData = {
-            "perLeft": 0,
-            "perRight": 0,
-            "hipLineMin": 0,
-            "hipLineMax": 0,
+            // "perLeft": 0,
+            // "perRight": 0,
+            // "hipLineMin": 0,
+            // "hipLineMax": 0,
             "falseDataSet": { "min": { "knee": 60, "hip": 40 }, "max": { "knee": 60, "hip": 80 } },
             "slopeHipAngle": 0,
             "slopeKneeAngle": 0,
             "slopeMin": { "a_min": 0.8, "b_min": 0 },
             "slopeMax": { "a_max": 1.4, "b_max": 0 },
             "slpoes": { "a": 0, "b": 0 },
+            "err": 0,
         };
 
         // document.addEventListener('DOMContentLoaded', function () {
@@ -366,8 +430,10 @@
         //     stockData["hipLineMax"] = 0;
         // }, false);
 
+
+
         function resetMusic(music) {
-            music.pause();
+            if (flgMusic) music.pause();
             music.currentTime = 0;
         }
 
@@ -381,12 +447,12 @@
             flgMusic = true;
         }
 
-        function startMusic(music) {
+        function startMusic(music, status = false) {
             if (flgMusic) {
                 nowPlay.pause();
                 music.currentTime = 0;
                 music.play();
-                music.loop = true;
+                music.loop = status;
                 nowPlay = music;
             }
         }
@@ -509,7 +575,9 @@
         }
 
         function calcLength2point(point1, point2) {
-            return Math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2 + (point1.z - point2.z) ** 2);
+            const length = Math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2);
+            if (length > 0.05) return length;
+            else return 0.05;
         }
         function habaCheck(results, whatCheck) {
             const shoulder_haba = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER]);
@@ -550,7 +618,6 @@
             return false;
         }
 
-
         function addCoordinates(coordinates, status = 0) {
             if (status === "min") {
                 const res = [];
@@ -586,9 +653,10 @@
 
             return [a, b]
         }
+
         function calcSlope(coordinates, status = 0) {
-            let minA = 0.8;
-            let maxA = 1.4;
+            let minA = stockData["slopeMin"]["a_min"];
+            let maxA = stockData["slopeMax"]["a_max"];
             let minB = 0;
             let maxB = 0;
 
@@ -602,6 +670,8 @@
             }
             return [minB, maxB];
         }
+
+
 
 
 
@@ -754,6 +824,39 @@
             document.getElementById("counter").value = num;
         }
 
+        /*err counter*/
+        function catchErr(e) {
+
+            if (stockData["err"] > 200) {
+                document.getElementsByClassName("overlay2")[0].style.display = "block";
+                const easySite = document.getElementById("easy-site");
+                const button2 = document.getElementById("button2");
+                stopMusic();
+                easySite.addEventListener('click', function () {
+                    location.replace("https://nyatsuyai.github.io/PoseNet_Posture-estimation/test-easy.html");
+
+                });
+                button2.addEventListener('click', function () {
+                    document.getElementsByClassName("overlay2")[0].style.display = "none";
+                    allowMusic();
+                });
+            }
+            else {
+                if (e === "front") {
+                    stockData["err"] += 1;
+                } else if (e === "back") {
+                    stockData["err"] += 1;
+                }
+                else if (e === "hohaba") {
+                    stockData["err"] += 0.5;
+                }
+                else if (e === "width") {
+                    stockData["err"] += 0.5;
+                }
+                else { returtn; }
+            }
+        }
+
         /**2秒間
          *　スクワットキープしているかの確認
         */
@@ -765,6 +868,7 @@
             let nowTime = Date.now();
 
             if (set === "front") {
+                catchErr("front");
                 textSet("please look forward front");
                 document.getElementById("status").textContent = "please look forward front";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
@@ -773,12 +877,10 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_sesuji_front) {
-                    resetMusic(nowPlay);
-                    mp3_sesuji_front.play();
-                    mp3_sesuji_front.loop = true;
-                    nowPlay = mp3_sesuji_front;
+                    startMusic(mp3_sesuji_front, true);
                 }
             } else if (set === "back") {
+                catchErr("back");
                 textSet("please look forward back");
                 document.getElementById("status").textContent = "please look forward back";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
@@ -787,12 +889,10 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_sesuji_back) {
-                    resetMusic(nowPlay);
-                    mp3_sesuji_back.play();
-                    mp3_sesuji_back.loop = true;
-                    nowPlay = mp3_sesuji_back;
+                    startMusic(mp3_sesuji_back, true);
                 }
             } else if (set === "hohaba") {
+                catchErr("hohaba");
                 textSet("please open ankle");
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 if (flgSqwat) {
@@ -800,12 +900,10 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_hohaba) {
-                    resetMusic(nowPlay);
-                    mp3_hohaba.play();
-                    mp3_hohaba.loop = true;
-                    nowPlay = mp3_hohaba;
+                    startMusic(mp3_hohaba, true)
                 }
             } else if (set === "width") {
+                catchErr("width");
                 textSet("width squat");
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 if (flgSqwat) {
@@ -813,10 +911,7 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_width) {
-                    resetMusic(nowPlay);
-                    mp3_width.play();
-                    mp3_width.loop = true;
-                    nowPlay = mp3_width;
+                    startMusic(mp3_width, true)
                 }
             } else if (flgSqwat && set === "ok") {
                 if (nowTime - startSqwat > 2000) {
@@ -825,14 +920,9 @@
                     document.getElementById("board").style.backgroundColor = '#ffffff';
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                     if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
-                        resetMusic(nowPlay);
-                        mp3_pinpon.play();
-                        mp3_pinpon.loop = false;
-                        nowPlay = mp3_pinpon;
+                        startMusic(mp3_pinpon, false);
                         setTimeout(function () {
-                            mp3_tatte.play();
-                            mp3_tatte.loop = true;
-                            nowPlay = mp3_tatte;
+                            startMusic(mp3_tatte, true);
                         }, 1000);
                     }
                 } else {
@@ -840,10 +930,7 @@
                     document.getElementById("status").textContent = "keep";
                     document.getElementById("board").style.backgroundColor = '#00ff00';
                     if (nowPlay !== mp3_stop) {
-                        resetMusic(nowPlay);
-                        mp3_stop.play();
-                        mp3_stop.loop = false;
-                        nowPlay = mp3_stop;
+                        startMusic(mp3_stop, true);
                     }
                 }
             } else if (!flgSqwat && set === "ok") {
@@ -868,31 +955,20 @@
                 document.getElementById("board").style.backgroundColor = '#00f0ff';
                 if (document.getElementById("counter").value === 0) {
                     if (nowPlay !== mp3_goodposition && nowPlay !== mp3_sagete) {
-                        resetMusic(nowPlay);
-                        mp3_goodposition.play();
-                        mp3_goodposition.loop = false;
-                        nowPlay = mp3_goodposition;
+                        startMusic(mp3_goodposition, false);
                         setTimeout(function () {
-                            mp3_sagete.play();
-                            mp3_sagete.loop = true;
-                            nowPlay = mp3_sagete;
+                            startMusic(mp3_sagete, true);
                         }, 2000);
                     }
                 } else if (nowPlay !== mp3_sagete) {
-                    resetMusic(nowPlay);
-                    mp3_sagete.play();
-                    mp3_sagete.loop = true;
-                    nowPlay = mp3_sagete;
+                    startMusic(mp3_sagete, true);
                 }
             } else if (set === "up") {
                 textSet("too squat");
                 document.getElementById("status").textContent = "too squat";
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 if (nowPlay !== mp3_agete) {
-                    resetMusic(nowPlay);
-                    mp3_agete.play();
-                    mp3_agete.loop = true;
-                    nowPlay = mp3_agete;
+                    startMusic(mp3_agete, true);
                 }
                 if (flgSqwat) {
                     flgSqwat = false;
@@ -907,10 +983,7 @@
                     document.getElementsByClassName("gauge")[0].style.display = "none";
                 }
                 if (nowPlay !== mp3_sagatte) {
-                    resetMusic(nowPlay);
-                    mp3_sagatte.play();
-                    mp3_sagatte.loop = true;
-                    nowPlay = mp3_sagatte;
+                    startMusic(mp3_sagatte, true);
                 }
 
 
@@ -928,12 +1001,12 @@
             const cellTag = {
                 0: "時刻（日本）",
                 1: "status",
-                2: "leftAngle",
-                3: "rightAngle",
-                4: "Angle",
-                5: "hipAngle",
-                6: "visibility(left)",
-                7: "visibility(right)",
+                2: "kneeAngle",
+                3: "kneeAngle visivility",
+                4: "hipAngle",
+                5: "hipAngle visivility",
+                6: "slope a",
+                7: " slope b",
                 8: " shoulder x",
                 9: " shoulder y",
                 10: " shoulder z",
@@ -952,10 +1025,10 @@
                 23: "slope_max_hipangle",
                 24: "slope_max",
                 25: "count",
-                26: "left ankle angle",
-                27: "right ankle angle",
-                28: "left heel angle",
-                29: "right heel angle",
+                26: "ankle angle",
+                27: "ankle angle visivility",
+                28: "heel angle",
+                29: "heel angle visivility ",
 
             };
             console.log(cellTag)
@@ -1014,10 +1087,10 @@
             cells.push(cell);
             if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 150) {
                 coordinates.push({ x: average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), y: average(resultAngle.leftHip.angle, resultAngle.rightHip.angle) });
+
             }
             if (coordinates.length % 30 === 0 && coordinates.length !== 0) {
-                console.log(calcSlope(coordinates))
-                console.log(calcSlope(coordinates, "max"))
+
                 let [b_min, b_max] = calcSlope(coordinates);
                 const [a, b] = lsm(coordinates);
                 stockData["slopeMin"]["b_min"] = b_min;
@@ -1026,6 +1099,7 @@
                 stockData["slpoes"]["b"] = b;
                 console.log("Ahoy", b_min, b_max, coordinates.length)
             }
+
 
 
 
@@ -1090,6 +1164,7 @@
         //ボタンを押したらCSV出力
         const finButton = document.getElementById('fin');
         finButton.addEventListener('click', function () {
+            stopMusic();
             document.exitFullscreen();
             $(function () {
                 $(".overlay").show();
@@ -1215,8 +1290,6 @@
                 for (let key in needVector) {
                     resultAngle[key] = calcAngle(results.poseWorldLandmarks[needVector[key][0]], results.poseWorldLandmarks[needVector[key][1]], results.poseWorldLandmarks[needVector[key][2]]);
                 }
-                // console.log("rightKnee is ", resultAngle.rightKnee)
-                // console.log("leftKnee is ", resultAngle.leftKnee)
 
                 //姿勢が判定位置にあり、人が存在している時
                 if ((selectedAngle - selectedMargin) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (selectedAngle + selectedMargin) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
@@ -1284,7 +1357,7 @@
             minDetectionConfidence: 0.7,
             minTrackingConfidence: 0.5,
             min_pose_presence_confidence: 0.5,
-            runningMode: "VIDEO"
+            runningMode: "VIDEO",
         });
         pose.onResults(onResults);
 
