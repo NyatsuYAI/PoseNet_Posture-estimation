@@ -293,6 +293,7 @@
                 canvasElement.style.width = '100vw';
             } else {
                 canvasElement.style.width = '100vw';
+                
             }
         }
 
@@ -927,11 +928,17 @@
                     startMusic(mp3_width, true)
                 }
             } else if (flgSqwat && set === "ok") {
-                if (nowTime - startSqwat > 2000) {
+                if (nowTime - startSqwat >= 2000) {
                     textSet("please stand up");
                     document.getElementById("status").textContent = "please stand up";
                     document.getElementById("board").style.backgroundColor = '#ffffff';
                     document.getElementsByClassName("gauge")[0].style.display = "none";
+                   
+                    let countNum = document.getElementById("counter").value;
+                    counter(countNum);
+                    textSet("sqwat done");
+                    document.getElementById("status").textContent = "sqwat done";
+
                     if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
                         startMusic(mp3_pinpon, false);
                         setTimeout(function () {
@@ -950,16 +957,10 @@
                 startSqwat = Date.now();
                 flgSqwat = true;
             } else if (flgSqwat && set === "down") {
-                if (nowTime - startSqwat > 2000) {
-                    let countNum = document.getElementById("counter").value;
-                    counter(countNum);
-                    textSet("sqwat done");
-                    document.getElementById("status").textContent = "sqwat done";
-
-                } else {
+               
                     textSet("sqwat reset");
                     document.getElementById("status").textContent = "sqwat reset";
-                }
+                
                 flgSqwat = false;
                 document.getElementsByClassName("gauge")[0].style.display = "none";
             } else if (!flgSqwat && set === "down") {
@@ -1387,9 +1388,27 @@
         const camera = new Camera(videoElement, {
             onFrame: async () => {
                 await pose.send({ image: videoElement });
-            },
-            width: 1280,
+                // // Canvasにカメラの映像を描画
+                // const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
+                // const canvasHeight = 720; // 期待するCanvasの高さ
+                // const canvasWidth = canvasHeight * aspectRatio; // アスペクト比を保った幅を計算
+
+                // // カメラの映像を中央に描画するための座標を計算
+                // const offsetX = (1280 - canvasWidth) / 2;
+                // const offsetY = 0; // キャンバスの上部に配置する場合
+
+                // canvasElement.width = 1280; // キャンバス全体の幅
+                // canvasElement.height = canvasHeight;
+                // const ctx = canvasElement.getContext('2d');
+                // ctx.fillStyle = 'white'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
+                // ctx.fillRect(0, 0, 1280, canvasHeight); // 空白部分を描画
+                // ctx.drawImage(videoElement, offsetX, offsetY, canvasWidth, canvasHeight);
+    },
+            width: 400,
             height: 720
+
+            // width: 1280,
+            // height: 720
         });
         camera.start();
         cellMake();
