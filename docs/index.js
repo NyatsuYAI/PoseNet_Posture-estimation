@@ -674,7 +674,7 @@ const statusChecker = (set) => {
                 startMusic(mp3_goodposition, false);
                 setTimeout(function () {
                     startMusic(mp3_sagete, true);
-                }, 2000);
+                }, 3000);
             }
         } else if (nowPlay !== mp3_sagete) {
             startMusic(mp3_sagete, true);
@@ -950,10 +950,10 @@ function onResults(results) {
                 statusChecker("ok");
                 setImage(canvasElement, results.poseLandmarks, "fire");
                 setImage(canvasElement, results.poseLandmarks, "gauge");
-            } else if (resultsCheck(resultAngle) === "front") {
+            } else if (checkShisei(resultAngle) === "front") {
                 statusChecker("front");
                 setImage(canvasElement, results.poseLandmarks, "front");
-            } else if (resultsCheck(resultAngle) === "back") {
+            } else if (checkShisei(resultAngle,"front") === "back") {
                 statusChecker("back");
                 setImage(canvasElement, results.poseLandmarks, "back");
             } else if (document.getElementById("status").textContent === "please stand up") {
