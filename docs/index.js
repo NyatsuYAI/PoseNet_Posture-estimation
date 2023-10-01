@@ -1022,7 +1022,7 @@ pose.setOptions({
 });
 pose.onResults(onResults);
 
-const camera = new Camera(videoElement,canvasCtx, {
+const camera = new Camera(videoElement, {
     onFrame: async () => {
         await pose.send({ image: videoElement });
         // // Canvasにカメラの映像を描画
