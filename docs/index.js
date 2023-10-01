@@ -1031,7 +1031,7 @@ const camera = new Camera(videoElement, {
         // const canvasWidth = canvasHeight * aspectRatio; // アスペクト比を保った幅を計算
 
         // カメラの映像を中央に描画するための座標を計算
-        const offsetX = (1280 - canvasWidth) / 2;
+        const offsetX = (1280 - canvasElement.width) / 2;
         const offsetY = 0; // キャンバスの上部に配置する場合
 
         // canvasElement.width = 1280; // キャンバス全体の幅
