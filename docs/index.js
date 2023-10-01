@@ -8,16 +8,24 @@ $(function () {
                 allowMusic();
             });
         });
+
+                //その他の設定
+                let shift = 0
+
+
         const videoElement = document.getElementsByClassName('input_video')[0];
         const canvasElement = document.getElementsByClassName('output_canvas')[0];
         const canvasCtx = canvasElement.getContext("2d");
 
-        // キャンバスの幅を半分に設定
-        canvasElement.width = videoElement.width / 2;
-
-        // キャンバスを水平方向に中央に配置するために、CSSでmarginを設定
-        canvasElement.style.marginLeft = "auto";
-        canvasElement.style.marginRight = "auto";
+        var video_shift = shift / videoElement.videoWidth * videoElement.clientWidth;
+        var clip = "rect(0px," + (video_shift + (videoElement.videoWidth - shift * 2) / videoElement.videoWidth * videoElement.clientWidth) + "px," + canvasElement.clientHeight + "px," + video_shift + "px)";
+        var trans = "translate(" + (-video_shift) + "px, 0px)"
+        $(function () {
+          $("#webcam").css({
+            "clip": clip,
+            "transform": trans
+          });
+        });
 
         const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
         const grid = new LandmarkGrid(landmarkContainer, {
@@ -139,6 +147,8 @@ $(function () {
         mp3_width.playbackRate = paramDataSet.playbackRate;
         let nowPlay = mp3_start;
         let flgMusic = false;
+
+
 
         /**取得したい角度のポイント
          * もちろん真ん中が原点となるポイントになるように書いてね
@@ -1020,22 +1030,13 @@ pose.onResults(onResults);
 
 const camera = new Camera(videoElement, {
     onFrame: async () => {
+        let ratio = 0.66;
+        var vwidth = videoElement.videoWidth;
+        let new_width = Math.min(Math.round(videoElement.videoHeight * ratio), videoElement.videoWidth);
+        shift = Math.round((vwidth - new_width) / 2);
+        ratio = new_width / vwidth;
+
         await pose.send({ image: videoElement });
-        // // Canvasにカメラの映像を描画
-        const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
-        const canvasHeight = canvasElement.style.height*0.9; // 期待するCanvasの高さ
-        const canvasWidth = canvasHeight * aspectRatio; // アスペクト比を保った幅を計算
-
-        // カメラの映像を中央に描画するための座標を計算
-        const offsetX = ( canvasElement.width-canvasWidth) / 2;
-        const offsetY = 0; // キャンバスの上部に配置する場合
-
-        canvasElement.width = canvasElement.width; // キャンバス全体の幅
-        canvasElement.height = canvasHeight; // キャンバス全体の高さ
-        canvasCtx.fillStyle = 'blue'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
-        canvasCtx.fillRect(0, 0, 1280, canvasElement.height); // 空白部分を描画
-        canvasCtx.drawImage(videoElement, offsetX, offsetY, canvasWidth, canvasHeight);
-        console.log(videoElement.videoWidth,videoElement.videoHeight)
 
 },
     // width: 1280,
