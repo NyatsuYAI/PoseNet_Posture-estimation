@@ -718,7 +718,7 @@ const statusChecker = (set) => {
     } else { return; }
 }
 const cells = []
-const items = 31;
+const items = 27;
 const coordinates = [];
 /**
  * excelデータのタイトルの作成
@@ -732,8 +732,8 @@ const cellMake  = ()=>{
         3: "kneeAngle visivility",
         4: "hipAngle",
         5: "hipAngle visivility",
-        6: "slope a",
-        7: " slope b",
+        6: "slopeKneeAngle",
+        7: " slopeHipAngle",
         8: " shoulder x",
         9: " shoulder y",
         10: " shoulder z",
@@ -752,10 +752,7 @@ const cellMake  = ()=>{
         23: "slope_max_hipangle",
         24: "slope_max",
         25: "count",
-        26: "ankle angle",
-        27: "ankle angle visivility",
-        28: "heel angle",
-        29: "heel angle visivility ",
+        26: "ankle shoulder length",
 
     };
     console.log(cellTag)
@@ -790,8 +787,8 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
         average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility),
         average(resultAngle.leftHip.angle, resultAngle.rightHip.angle),
         average(resultAngle.leftHip.visibility, resultAngle.rightHip.visibility),
-        stockData["slpoes"]["a"],
-        stockData["slpoes"]["b"],
+        stockData["slopeKneeAngle"],
+        stockData["slopeHipAngle"],
         average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x),
         average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y),
         average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z),
@@ -810,11 +807,8 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
         stockData["slopeKneeAngle"] * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"],
         stockData["slopeMax"]["a_max"],
         document.getElementById("counter").value,
-        average(resultAngle.leftAnkle.angle, resultAngle.rightAnkle.angle),
-        average(resultAngle.leftAnkle.visibility, resultAngle.rightAnkle.visibility),
-        average(resultAngle.leftHeel.angle, resultAngle.rightHeel.angle),
-        average(resultAngle.leftHeel.visibility, resultAngle.rightHeel.visibility),
-
+        average(calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER]), calcLength2point(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER])),
+        
     ];
     cells.push(cell);
     coordinates.push({ x: average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), y: average(resultAngle.leftHip.angle, resultAngle.rightHip.angle) });
@@ -1029,14 +1023,14 @@ const camera = new Camera(videoElement, {
         await pose.send({ image: videoElement });
         // // Canvasにカメラの映像を描画
         const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
-        const canvasHeight = videoElement.videoHeight*0.9; // 期待するCanvasの高さ
+        const canvasHeight = canvasElement.style.height*0.9; // 期待するCanvasの高さ
         const canvasWidth = canvasHeight * aspectRatio; // アスペクト比を保った幅を計算
 
         // カメラの映像を中央に描画するための座標を計算
-        const offsetX = (1280 - canvasElement.width) / 2;
+        const offsetX = ( canvasElement.width-canvasWidth) / 2;
         const offsetY = 0; // キャンバスの上部に配置する場合
 
-        canvasElement.width = 1280; // キャンバス全体の幅
+        canvasElement.width = canvasElement.width; // キャンバス全体の幅
         canvasElement.height = canvasHeight; // キャンバス全体の高さ
         canvasCtx.fillStyle = 'blue'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
         canvasCtx.fillRect(0, 0, 1280, canvasElement.height); // 空白部分を描画
@@ -1053,5 +1047,5 @@ const camera = new Camera(videoElement, {
 camera.start();
 cellMake();
 counter("start");
-// window.onresize = resizeWindow;
+window.onresize = resizeWindow;
 getParam();
