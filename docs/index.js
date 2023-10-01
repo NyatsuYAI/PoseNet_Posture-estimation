@@ -8,9 +8,15 @@ $(function () {
                 allowMusic();
             });
         });
-const videoElement = document.getElementsByClassName('input_video')[0];
+        const videoElement = document.getElementsByClassName('input_video')[0];
         const canvasElement = document.getElementsByClassName('output_canvas')[0];
         const canvasCtx = canvasElement.getContext("2d");
+
+                // キャンバスの幅を半分に設定
+        canvasElement.width = videoElement.width / 2;
+
+        // キャンバスを画面の中央に表示するために、marginを自動的に設定
+        canvasElement.style.margin = "auto";
 
         const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
         const grid = new LandmarkGrid(landmarkContainer, {
@@ -39,7 +45,7 @@ const videoElement = document.getElementsByClassName('input_video')[0];
             canvasElement.setAttribute("height", window.outerHeight);
         } else {
             document.getElementById("log").textContent = ("Personal Computer");
-            canvasElement.setAttribute("width", window.outerWidth);
+            canvasElement.setAttribute("width", window.outerHeight * 0.75);
             canvasElement.setAttribute("height", window.outerHeight);
         }
 
@@ -1023,21 +1029,22 @@ const camera = new Camera(videoElement, {
         // const canvasHeight = videoElement.videoHeight; // 期待するCanvasの高さ
         // const canvasWidth = canvasHeight * aspectRatio; // アスペクト比を保った幅を計算
 
-        // // カメラの映像を中央に描画するための座標を計算
-        // const offsetX = (1280 - canvasWidth) / 2;
-        // const offsetY = 0; // キャンバスの上部に配置する場合
+        // カメラの映像を中央に描画するための座標を計算
+        const offsetX = (1280 - canvasWidth) / 2;
+        const offsetY = 0; // キャンバスの上部に配置する場合
 
         // canvasElement.width = 1280; // キャンバス全体の幅
         // canvasElement.height = canvasHeight;
         // const ctx = canvasElement.getContext('2d');
-        // ctx.fillStyle = 'white'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
-        // ctx.fillRect(0, 0, 1280, canvasHeight); // 空白部分を描画
+        ctx.fillStyle = 'white'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
+        ctx.fillRect(0, 0, 1280, canvasHeight); // 空白部分を描画
         // ctx.drawImage(videoElement, offsetX, offsetY, canvasWidth, canvasHeight);
 },
     // width: 600,
     // height: 1332,
-    width: 1280,
-            height: 720
+
+    width: videoElement.videoHeight,
+    height: videoElement.videoWidth,
 });
 camera.start();
 cellMake();
