@@ -1025,21 +1025,20 @@ pose.onResults(onResults);
 const camera = new Camera(videoElement, {
     onFrame: async () => {
         await pose.send({ image: videoElement });
-        // // // Canvasにカメラの映像を描画
-        // // const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
-        // // const canvasHeight = videoElement.videoHeight; // 期待するCanvasの高さ
-        // // const canvasWidth = canvasHeight * aspectRatio; // アスペクト比を保った幅を計算
+        // // Canvasにカメラの映像を描画
+        const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
+        const canvasHeight = videoElement.videoHeight*0.9; // 期待するCanvasの高さ
+        const canvasWidth = canvasHeight * aspectRatio; // アスペクト比を保った幅を計算
 
-        // // カメラの映像を中央に描画するための座標を計算
-        // const offsetX = (1280 - canvasElement.width) / 2;
-        // const offsetY = 0; // キャンバスの上部に配置する場合
+        // カメラの映像を中央に描画するための座標を計算
+        const offsetX = (1280 - canvasElement.width) / 2;
+        const offsetY = 0; // キャンバスの上部に配置する場合
 
-        // // canvasElement.width = 1280; // キャンバス全体の幅
-        // // canvasElement.height = canvasHeight;
-        // // const ctx = canvasElement.getContext('2d');
-        // canvasCtx.fillStyle = 'white'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
-        // canvasCtx.fillRect(0, 0, 1280, canvasElement.height); // 空白部分を描画
-        // // ctx.drawImage(videoElement, offsetX, offsetY, canvasWidth, canvasHeight);
+        canvasElement.width = 1280; // キャンバス全体の幅
+        canvasElement.height = canvasHeight; // キャンバス全体の高さ
+        canvasCtx.fillStyle = 'white'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
+        canvasCtx.fillRect(0, 0, 1280, canvasElement.height); // 空白部分を描画
+        canvasCtx.drawImage(videoElement, offsetX, offsetY, canvasWidth, canvasHeight);
         console.log(videoElement.videoWidth,videoElement.videoHeight)
 
 },
