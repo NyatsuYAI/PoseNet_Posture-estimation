@@ -74,10 +74,25 @@
 </body> 
 
 <style>
-    body {
+      body {
+      height: 100%;
+      margin: 0%;
+      padding: 0;
+    }
+
+
+    video {
       position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      place-content: center;
+      height: 80vh;
+
+    }
+
+    canvas {
+      position: absolute;
+      place-content: center;
+      z-index: 10;
+      height: 80vh;
     }
     
     .gauge {
