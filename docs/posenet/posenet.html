@@ -956,13 +956,15 @@
     var video_shift = shift / webcamElement.videoWidth * webcamElement.clientWidth;
     var clip = "rect(0px," + (video_shift + (webcamElement.videoWidth - shift * 2) / webcamElement.videoWidth * webcamElement.clientWidth) + "px," + canvas.clientHeight + "px," + video_shift + "px)";
     var trans = "translate(" + (-video_shift) + "px, 0px)"
+
+    console
     $(function () {
       $("#webcam").css({
         "clip": clip,
         "transform": trans
       });
     });
-
+console.log(clip,trans)
 
     // キャンバスの描画
     const ctx = canvas.getContext('2d')
