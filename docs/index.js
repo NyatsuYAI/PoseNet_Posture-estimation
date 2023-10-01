@@ -173,8 +173,8 @@ $(function () {
             "selectedMargin" : 40,//スクワットの角度の許容範囲
             "slopeHipAngle": 0,//キャリブレーション用の角度
             "slopeKneeAngle": 0,//キャリブレーション用の角度
-            "slopeMin": { "a_min": 0.6, "b_min": 0 },//傾きと切片の最小値（後傾）
-            "slopeMax": { "a_max": 1.15, "b_max": 0 },//傾きと切片の最大値（前傾）
+            "slopeMin": { "a_min": 0.8, "b_min": 0 },//傾きと切片の最小値（後傾）
+            "slopeMax": { "a_max": 1.3, "b_max": 0 },//傾きと切片の最大値（前傾）
             "slpoes": { "a": 0, "b": 0 },//傾きと切片
             "err": 0,//エラーの値
         };
@@ -362,6 +362,21 @@ $(function () {
         }
 
         /**
+         * キャリブレーションを行う
+         * @param {coordinates} coordinates
+         * @returns
+         */
+
+        const calivration = (coordinates) => {
+            const n = coordinates.length;
+            const sigX = coordinates.reduce((acc, c) => acc + c.x, 0);
+            const sigY = coordinates.reduce((acc, c) => acc + c.y, 0);
+            const x = sigX/n;
+            const y =sigY/n;
+            return [x, y];            
+        }
+
+        /**
          * キャリブレーションされた値から、姿勢の傾きの判定を行う
          * @param {*} resultAngle
          * @returns
@@ -371,6 +386,7 @@ const checkShisei = (resultAngle) => {
     const hipAngle =average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
     const kneeAngle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
     const slope  = (stockData["slopeHipAngle"] - hipAngle)/(stockData["slopeKneeAngle"] -kneeAngle);
+    stockData["slpoes"]["a"] = slope;
     if (slope >stockData["slopeMax"]["a_max"] ){
         return "front";
     }else if (slope <stockData["slopeMin"]["a_min"]){
@@ -819,12 +835,13 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
         
     ];
     cells.push(cell);
-    coordinates.push({ x: average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), y: average(resultAngle.leftHip.angle, resultAngle.rightHip.angle) });
-    if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 150) {
-        if (stockData["slopeKneeAngle"] === 0)stockData["slopeKneeAngle"] = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
-        if (stockData["slopeHipAngle"] === 0)stockData["slopeHipAngle"] = average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
-        stockData["slopeKneeAngle"] = average(stockData["slopeKneeAngle"], average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle));
-        stockData["slopeHipAngle"] = average(stockData["slopeHipAngle"], average(resultAngle.leftHip.angle, resultAngle.rightHip.angle));
+   
+    if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 160) {
+        coordinates.push({ x: average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), y: average(resultAngle.leftHip.angle, resultAngle.rightHip.angle) });
+        const [x,y] = calivration(coordinates);
+        console.log(x,y)
+        stockData["slopeKneeAngle"] =x;
+        stockData["slopeHipAngle"] = y;
     }
 }
 
