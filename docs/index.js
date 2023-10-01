@@ -903,7 +903,6 @@ function onResults(results) {
         grid.updateLandmarks([]);
         return;
     }
-    resizeWindow();
 
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
