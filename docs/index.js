@@ -57,6 +57,9 @@ $(function () {
                 canvasElement.style.width = '100vw';
             } else {
                 canvasElement.style.height = '100vw';
+                console.log(canvasElement.style.height, canvasElement.style.width);
+                console.log(window.outerHeight, window.outerWidth);
+                console.log(videoElement.videoHeight, videoElement.videoWidth);
             }
             
           }
@@ -159,7 +162,7 @@ $(function () {
          */
         const stockData = {
             "selectedAngle" : 90,//スクワットの角度
-            "selectedMargin" : 30,//スクワットの角度の許容範囲
+            "selectedMargin" : 40,//スクワットの角度の許容範囲
             "slopeHipAngle": 0,//キャリブレーション用の角度
             "slopeKneeAngle": 0,//キャリブレーション用の角度
             "slopeMin": { "a_min": 0.6, "b_min": 0 },//傾きと切片の最小値（後傾）
@@ -1036,7 +1039,7 @@ const camera = new Camera(videoElement, {
 
         canvasElement.width = 1280; // キャンバス全体の幅
         canvasElement.height = canvasHeight; // キャンバス全体の高さ
-        canvasCtx.fillStyle = 'white'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
+        canvasCtx.fillStyle = 'blue'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
         canvasCtx.fillRect(0, 0, 1280, canvasElement.height); // 空白部分を描画
         canvasCtx.drawImage(videoElement, offsetX, offsetY, canvasWidth, canvasHeight);
         console.log(videoElement.videoWidth,videoElement.videoHeight)
