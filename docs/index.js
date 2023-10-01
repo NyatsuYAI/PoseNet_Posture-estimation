@@ -20,12 +20,10 @@ $(function () {
         var video_shift = shift / videoElement.videoWidth * videoElement.clientWidth;
         var clip = "rect(0px," + (video_shift + (videoElement.videoWidth - shift * 2) / videoElement.videoWidth * videoElement.clientWidth) + "px," + canvasElement.clientHeight + "px," + video_shift + "px)";
         var trans = "translate(" + (-video_shift) + "px, 0px)"
-        $(function () {
-          $("#webcam").css({
-            "clip": clip,
-            "transform": trans
-          });
-        });
+        canvasElement.style.clip = clip;
+        canvasElement.style.trans = trans;
+
+        console.log(clip,trans)
 
         const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
         const grid = new LandmarkGrid(landmarkContainer, {
