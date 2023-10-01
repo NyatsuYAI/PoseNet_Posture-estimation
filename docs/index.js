@@ -1041,13 +1041,13 @@ const camera = new Camera(videoElement, {
         // canvasCtx.fillRect(0, 0, 1280, canvasElement.height); // 空白部分を描画
         // // ctx.drawImage(videoElement, offsetX, offsetY, canvasWidth, canvasHeight);
         console.log(videoElement.videoWidth,videoElement.videoHeight)
-        console.log(canvasElement.videoWidth,canvasElement.videoHeight)
+
 },
     // width: 600,
     // height: 1332,
 
-    width: videoElement.videoWidth/2,
-    height: videoElement.videoHeight,
+    width: 600,
+    height: 1320,
 });
 camera.start();
 cellMake();
