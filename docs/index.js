@@ -713,7 +713,6 @@ const statusChecker = (set) => {
 
 
     } else { return; }
-    console.log(startSqwat, nowTime, errTime, document.getElementById("status").textContent)
 }
 const cells = []
 const items = 31;
