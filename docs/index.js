@@ -1044,11 +1044,11 @@ const camera = new Camera(videoElement, {
         console.log(videoElement.videoWidth,videoElement.videoHeight)
 
 },
-    // width: 600,
-    // height: 1332,
+    // width: 1280,
+    // height: 720,
 
-    width: 1280,
-    height: 720,
+    width: 720,
+    height: 1280,
 });
 camera.start();
 cellMake();
