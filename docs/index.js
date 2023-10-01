@@ -1047,8 +1047,8 @@ const camera = new Camera(videoElement, {
     // width: 600,
     // height: 1332,
 
-    width: 600,
-    height: 1320,
+    width: 1280,
+    height: 720,
 });
 camera.start();
 cellMake();
