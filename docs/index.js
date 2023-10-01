@@ -1041,6 +1041,8 @@ const camera = new Camera(videoElement, {
         // canvasCtx.fillStyle = 'white'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
         // canvasCtx.fillRect(0, 0, 1280, canvasElement.height); // 空白部分を描画
         // // ctx.drawImage(videoElement, offsetX, offsetY, canvasWidth, canvasHeight);
+        console.log(videoElement.videoWidth,videoElement.videoHeight)
+        console.log(canvasElement.videoWidth,canvasElement.videoHeight)
 },
     // width: 600,
     // height: 1332,
