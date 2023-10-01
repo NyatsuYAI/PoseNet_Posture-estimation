@@ -1022,7 +1022,7 @@ pose.setOptions({
 });
 pose.onResults(onResults);
 
-const camera = new Camera(videoElement,ctx, {
+const camera = new Camera(videoElement,canvasCtx, {
     onFrame: async () => {
         await pose.send({ image: videoElement });
         // // Canvasにカメラの映像を描画
@@ -1037,8 +1037,8 @@ const camera = new Camera(videoElement,ctx, {
         // canvasElement.width = 1280; // キャンバス全体の幅
         // canvasElement.height = canvasHeight;
         // const ctx = canvasElement.getContext('2d');
-        ctx.fillStyle = 'white'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
-        ctx.fillRect(0, 0, 1280, canvasHeight); // 空白部分を描画
+        canvasCtx.fillStyle = 'white'; // 空白部分を黒で塗りつぶす（任意の背景色に変更可能）
+        canvasCtx.fillRect(0, 0, 1280, canvasElement.height); // 空白部分を描画
         // ctx.drawImage(videoElement, offsetX, offsetY, canvasWidth, canvasHeight);
 },
     // width: 600,
