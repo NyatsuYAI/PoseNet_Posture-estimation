@@ -56,7 +56,7 @@ $(function () {
             } else if (ut.indexOf('iPad') > 0 || ut.indexOf('Android') > 0) {
                 canvasElement.style.width = '100vw';
             } else {
-                canvasElement.style.width = '100vw';
+                canvasElement.style.height = '100vw';
             }
             
           }
@@ -901,6 +901,7 @@ function onResults(results) {
         grid.updateLandmarks([]);
         return;
     }
+    resizeWindow();
 
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
