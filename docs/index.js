@@ -1053,5 +1053,5 @@ const camera = new Camera(videoElement, {
 camera.start();
 cellMake();
 counter("start");
-window.onresize = resizeWindow;
+// window.onresize = resizeWindow;
 getParam();
