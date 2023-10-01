@@ -12,11 +12,12 @@ $(function () {
         const canvasElement = document.getElementsByClassName('output_canvas')[0];
         const canvasCtx = canvasElement.getContext("2d");
 
-                // キャンバスの幅を半分に設定
+        // キャンバスの幅を半分に設定
         canvasElement.width = videoElement.width / 2;
 
-        // キャンバスを画面の中央に表示するために、marginを自動的に設定
-        canvasElement.style.margin = "auto";
+        // キャンバスを水平方向に中央に配置するために、CSSでmarginを設定
+        canvasElement.style.marginLeft = "auto";
+        canvasElement.style.marginRight = "auto";
 
         const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
         const grid = new LandmarkGrid(landmarkContainer, {
