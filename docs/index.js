@@ -598,8 +598,8 @@ const catchErr = (e) => {
 
 
 let flgSqwat = false;
-let startSqwat;
-let errTime;
+let squatTime={start:0,end:0};
+let errTimes = {start:0,end:0};
 /**
  *SetとflgSquatに応じて画像音声の設定を行う
  * @param {string} set 
@@ -613,7 +613,7 @@ const statusChecker = (set) => {
         document.getElementById("board").style.backgroundColor = '#ff0000';
     } else if (set === "front") {
         catchErr("front");
-        errTime = nowTime;
+        errTimes[start] = nowTime;
         textSet("please look forward front");
         document.getElementById("status").textContent = "please look forward front";
         document.getElementById("board").style.backgroundColor = '#ff0000';
@@ -626,7 +626,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "back") {
         catchErr("back");
-        errTime = nowTime;
+        errTimes[start] = nowTime;
         textSet("please look forward back");
         document.getElementById("status").textContent = "please look forward back";
         document.getElementById("board").style.backgroundColor = '#ff0000';
@@ -639,7 +639,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "hohaba") {
         catchErr("hohaba");
-        errTime = nowTime;
+        errTimes[start] = nowTime;
         textSet("please open ankle");
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
@@ -651,7 +651,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "width") {
         catchErr("width");
-        errTime = nowTime;
+        errTimes[start] = nowTime;
         textSet("width squat");
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
@@ -662,9 +662,11 @@ const statusChecker = (set) => {
             startMusic(mp3_width, true)
         }
     } else if (flgSqwat && set === "ok") {
-        startSqwat += (nowTime-errTime);
-        errTime = 0;
-        if (nowTime - startSqwat  >= 2000) {
+        errTimes[end] = nowTime;
+        squatTime[end] = nowTime;
+        const checkTime = startSqwat[end] - startSqwat[start] - (errTimes[end] - errTimes[start]);
+
+        if (checkTime  >= 2000) {
             textSet("please stand up");
             document.getElementById("status").textContent = "please stand up";
             document.getElementById("board").style.backgroundColor = '#ffffff';
@@ -690,7 +692,7 @@ const statusChecker = (set) => {
             }
         }
     } else if (!flgSqwat && set === "ok") {
-        startSqwat = Date.now();
+        squatTime[start] = nowTime;
         flgSqwat = true;
     } else if (flgSqwat && set === "down") {
        
@@ -715,7 +717,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "up") {
         textSet("too squat");
-        errTime = nowTime;
+        errTimes[start] = nowTime;
         document.getElementById("status").textContent = "too squat";
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (nowPlay !== mp3_agete) {
@@ -742,7 +744,10 @@ const statusChecker = (set) => {
     } else { return; }
 }
 const cells = []
-const items = 27;
+/**
+ * 0から始まるから注意
+ */
+const items = 30;
 const coordinates = [];
 /**
  * excelデータのタイトルの作成
@@ -752,31 +757,34 @@ const cellMake  = ()=>{
     const cellTag = {
         0: "時刻（日本）",
         1: "status",
-        2: "kneeAngle",
-        3: "kneeAngle visivility",
-        4: "hipAngle",
-        5: "hipAngle visivility",
-        6: "slopeKneeAngle",
-        7: " slopeHipAngle",
-        8: " shoulder x",
-        9: " shoulder y",
-        10: " shoulder z",
-        11: " hip x",
-        12: " hip y",
-        13: " hip z",
-        14: " knee x",
-        15: " knee y",
-        16: " knee z",
-        17: " ankle x",
-        18: " ankle y",
-        19: " ankle z",
-        20: "slope_min",
-        21: "slope_min_hipangle",
-        22: "hipangle_average",
-        23: "slope_max_hipangle",
-        24: "slope_max",
-        25: "count",
-        26: "ankle shoulder length",
+        2: "squatTime",
+        3: "errTime",
+        4: "kneeAngle",
+        5: "kneeAngle visivility",
+        6: "hipAngle",
+        7: "hipAngle visivility",
+        8: "slopeKneeAngle",
+        9: " slopeHipAngle",
+        10: " shoulder x",
+        11: " shoulder y",
+        12: " shoulder z",
+        13: " hip x",
+        14: " hip y",
+        15: " hip z",
+        16: " knee x",
+        17: " knee y",
+        18: " knee z",
+        19: " ankle x",
+        20: " ankle y",
+        21: " ankle z",
+        22: "slope_min",
+        23: "slope_min_hipangle",
+        24: "hipangle_average",
+        25: "slope_max_hipangle",
+        26: "slope_max",
+        27: "count",
+        28: "ankle shoulder length",
+        29: "ankle shoulder angle",
 
     };
     console.log(cellTag)
@@ -806,6 +814,8 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
 
     const cell = [
         timeStamp(),
+        JSON.stringify(squatTime),
+        JSON.stringify(errTimes),
         document.getElementById("status").textContent,
         average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
         average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility),
