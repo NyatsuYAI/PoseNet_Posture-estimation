@@ -606,7 +606,7 @@ let errTimes = {"start":0,"end":0,"once":false};
  * @returns 
  */
 
- const timerSetForSquat = (time = 0,set,nowTime = 0) => {
+ const timerSetForSquat = (time = null,set,nowTime = 0) => {
     if(time === squatTime){
         switch (set) {
             case "start":
@@ -634,11 +634,20 @@ let errTimes = {"start":0,"end":0,"once":false};
                 break;
         }
     }else if (set === "reset"){
+        if(time === squatTime){
+            squatTime["start"] = 0;
+            squatTime["end"] = 0;
+        }else if(time === errTimes){
+            
+        errTimes["start"] = 0;
+        errTimes["end"] = 0;
+        errTimes["once"] = false;
+        }else{
         squatTime["start"] = 0;
         squatTime["end"] = 0;
         errTimes["start"] = 0;
         errTimes["end"] = 0;
-        errTimes["once"] = false;
+        errTimes["once"] = false;}
     }else{
         if(squatTime["start"] < errTimes["start"]){
             timerSetForSquat(squatTime,"reset",nowTime);
@@ -703,8 +712,9 @@ const statusChecker = (set) => {
             startMusic(mp3_width, true)
         }
     } else if (flgSqwat && set === "ok") {
-        timerSetForSquat(squatTime,"end",nowTime)
-        timerSetForSquat(errTimes,"end",nowTime)
+        timerSetForSquat(squatTime,"end",nowTime);
+        timerSetForSquat(errTimes,"end",nowTime);
+        if(errTimes["end"] - errTimes["start"] < 0)timerSetForSquat(errTimes,"reset");
         const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
 
         if (checkTime  >= 2000) {
