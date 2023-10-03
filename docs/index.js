@@ -664,7 +664,7 @@ const statusChecker = (set) => {
     } else if (flgSqwat && set === "ok") {
         errTimes["end"] = nowTime;
         squatTime["end"] = nowTime;
-        const checkTime = startSqwat["end"] - startSqwat["start"] - (errTimes["end"] - errTimes["start"]);
+        const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
 
         if (checkTime  >= 2000) {
             textSet("please stand up");
