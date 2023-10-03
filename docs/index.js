@@ -621,7 +621,7 @@ let errTimes = {"start":0,"end":0,"once":false};
     }else if(time === errTimes){
         switch (set) {
             case "start":
-                errTimes["start"] =nowTime;
+                if(nowTime > squatTime["start"])errTimes["start"] =nowTime;
                 errTimes["once"] = false;
                 break;
             case "end":
