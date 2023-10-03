@@ -778,7 +778,7 @@ const cells = []
 /**
  * 0から始まるから注意
  */
-const items = 30;
+const items = 29;
 const coordinates = [];
 /**
  * excelデータのタイトルの作成
@@ -815,7 +815,6 @@ const cellMake  = ()=>{
         26: "slope_max",
         27: "count",
         28: "ankle shoulder length",
-        29: "ankle shoulder angle",
 
     };
     console.log(cellTag)
@@ -845,8 +844,8 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
 
     const cell = [
         timeStamp(),
-        JSON.stringify(squatTime,",",";"),
-        JSON.stringify(errTimes,",",";"),
+        JSON.stringify(squatTime,',',"&"),
+        JSON.stringify(errTimes,',',"&"),
         document.getElementById("status").textContent,
         average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
         average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility),
