@@ -636,6 +636,10 @@ let errTimes = {"start":0,"end":0,"once":false};
     }else if (set === "reset"){
         squatTime={"start":0,"end":0};
         errTimes = {"start":0,"end":0,"once":false};
+    }else{
+        if(squatTime["start"] <= errTimes["start"]){
+            timerSetForSquat(squatTime,"reset",nowTime);
+        }
     }
  }
 
@@ -848,11 +852,11 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
         return yy + mo + dd + hh + mi + ss + ms;
     }
 
-    console.log(JSON.stringify(squatTime,',',""))
+    console.log(JSON.stringify(squatTime,",",""))
     const cell = [
         timeStamp(),
-        JSON.stringify(squatTime,",",""),
-        JSON.stringify(errTimes,",",""),
+        squatTime,
+        errTimes,
         document.getElementById("status").textContent,
         average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
         average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility),
