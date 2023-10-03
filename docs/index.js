@@ -634,8 +634,11 @@ let errTimes = {"start":0,"end":0,"once":false};
                 break;
         }
     }else if (set === "reset"){
-        squatTime={"start":0,"end":0};
-        errTimes = {"start":0,"end":0,"once":false};
+        squatTime["start"] = 0;
+        squatTime["end"] = 0;
+        errTimes["start"] = 0;
+        errTimes["end"] = 0;
+        errTimes["once"] = false;
     }else{
         if(squatTime["start"] <= errTimes["start"]){
             timerSetForSquat(squatTime,"reset",nowTime);
