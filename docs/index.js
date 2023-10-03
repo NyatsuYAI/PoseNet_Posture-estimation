@@ -845,8 +845,8 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
 
     const cell = [
         timeStamp(),
-        JSON.stringify(squatTime),
-        JSON.stringify(errTimes),
+        JSON.stringify(squatTime,",",";"),
+        JSON.stringify(errTimes,",",";"),
         document.getElementById("status").textContent,
         average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
         average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility),
