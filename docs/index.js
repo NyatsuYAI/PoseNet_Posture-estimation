@@ -173,8 +173,8 @@ $(function () {
             "selectedMargin" : 40,//スクワットの角度の許容範囲
             "slopeHipAngle": 0,//キャリブレーション用の角度
             "slopeKneeAngle": 0,//キャリブレーション用の角度
-            "slopeMin": { "a_min": 0.8, "b_min": 0 },//傾きと切片の最小値（後傾）
-            "slopeMax": { "a_max": 1.3, "b_max": 0 },//傾きと切片の最大値（前傾）
+            "slopeMin": { "a_min": 0.7, "b_min": 0 },//傾きと切片の最小値（後傾）
+            "slopeMax": { "a_max": 1.4, "b_max": 0 },//傾きと切片の最大値（前傾）
             "slpoes": { "a": 0, "b": 0 },//傾きと切片
             "err": 0,//エラーの値
         };
@@ -606,7 +606,7 @@ let errTimes = {"start":0,"end":0,"once":false};
  * @returns 
  */
 
- const timerSetForSquat = (time,set,nowTime) => {
+ const timerSetForSquat = (time = 0,set,nowTime = 0) => {
     if(time === squatTime){
         switch (set) {
             case "start":
@@ -640,7 +640,7 @@ let errTimes = {"start":0,"end":0,"once":false};
         errTimes["end"] = 0;
         errTimes["once"] = false;
     }else{
-        if(squatTime["start"] <= errTimes["start"]){
+        if(squatTime["start"] < errTimes["start"]){
             timerSetForSquat(squatTime,"reset",nowTime);
         }
     }
@@ -709,7 +709,7 @@ const statusChecker = (set) => {
 
         if (checkTime  >= 2000) {
             textSet("please stand up");
-            timerSetForSquat(squatTime,"reset",nowTime)
+            timerSetForSquat("reset")
             document.getElementById("status").textContent = "please stand up";
             document.getElementById("board").style.backgroundColor = '#ffffff';
             document.getElementsByClassName("gauge")[0].style.display = "none";
@@ -745,7 +745,7 @@ const statusChecker = (set) => {
         document.getElementsByClassName("gauge")[0].style.display = "none";
     } else if (!flgSqwat && set === "down") {
         textSet("good position start squat");
-        timerSetForSquat(squatTime,"reset",nowTime)
+        timerSetForSquat("reset")
         document.getElementById("status").textContent = "good position start squat";
         document.getElementById("board").style.backgroundColor = '#00f0ff';
         if (document.getElementById("counter").value === 0) {
@@ -772,7 +772,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "none" || set === null) {
         textSet("out")
-        timerSetForSquat(errTimes,"reset",nowTime)
+        timerSetForSquat("reset")
         document.getElementById("status").textContent = "out";
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
