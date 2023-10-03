@@ -621,7 +621,7 @@ let errTimes = {"start":0,"end":0,"once":false};
     }else if(time === errTimes){
         switch (set) {
             case "start":
-                if(nowTime > squatTime["start"])errTimes["start"] =nowTime;
+                if(nowTime >= squatTime["start"])errTimes["start"] =nowTime;
                 errTimes["once"] = false;
                 break;
             case "end":
@@ -633,6 +633,9 @@ let errTimes = {"start":0,"end":0,"once":false};
             default:
                 break;
         }
+    }else if (set === "reset"){
+        squatTime={"start":0,"end":0};
+        errTimes = {"start":0,"end":0,"once":false};
     }
  }
 
@@ -670,7 +673,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "hohaba") {
         catchErr("hohaba");
-        timerSetForSquat(errTimes,"start",nowTime);
+        timerSetForSquat(errTimes,"reset",nowTime);
         textSet("please open ankle");
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
@@ -699,6 +702,7 @@ const statusChecker = (set) => {
 
         if (checkTime  >= 2000) {
             textSet("please stand up");
+            timerSetForSquat(squatTime,"reset",nowTime)
             document.getElementById("status").textContent = "please stand up";
             document.getElementById("board").style.backgroundColor = '#ffffff';
             document.getElementsByClassName("gauge")[0].style.display = "none";
@@ -734,6 +738,7 @@ const statusChecker = (set) => {
         document.getElementsByClassName("gauge")[0].style.display = "none";
     } else if (!flgSqwat && set === "down") {
         textSet("good position start squat");
+        timerSetForSquat(squatTime,"reset",nowTime)
         document.getElementById("status").textContent = "good position start squat";
         document.getElementById("board").style.backgroundColor = '#00f0ff';
         if (document.getElementById("counter").value === 0) {
@@ -760,6 +765,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "none" || set === null) {
         textSet("out")
+        timerSetForSquat(errTimes,"reset",nowTime)
         document.getElementById("status").textContent = "out";
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
