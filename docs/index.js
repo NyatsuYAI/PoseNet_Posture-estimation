@@ -719,15 +719,11 @@ const statusChecker = (set) => {
 
         if (checkTime  >= 2000) {
             textSet("please stand up");
-            timerSetForSquat("reset")
             document.getElementById("status").textContent = "please stand up";
             document.getElementById("board").style.backgroundColor = '#ffffff';
             document.getElementsByClassName("gauge")[0].style.display = "none";
            
-            const countNum = document.getElementById("counter").value;
-            counter(countNum);
-            textSet("sqwat done");
-            document.getElementById("status").textContent = "sqwat done";
+            
 
             if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
                 startMusic(mp3_pinpon, false);
@@ -744,18 +740,28 @@ const statusChecker = (set) => {
             }
         }
     } else if (!flgSqwat && set === "ok") {
-        timerSetForSquat(squatTime,"start",nowTime)
+        timerSetForSquat(squatTime,"start",nowTime);
         flgSqwat = true;
     } else if (flgSqwat && set === "down") {
+        
+        const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
+        if(checkTime >= 2000){
+            const countNum = document.getElementById("counter").value;
+            counter(countNum);
+            textSet("sqwat done");
+            
+            timerSetForSquat("reset");
+            document.getElementById("status").textContent = "sqwat done";
        
             textSet("sqwat reset");
             document.getElementById("status").textContent = "sqwat reset";
-        
+        }else
+        {
         flgSqwat = false;
-        document.getElementsByClassName("gauge")[0].style.display = "none";
+        document.getElementsByClassName("gauge")[0].style.display = "none";}
     } else if (!flgSqwat && set === "down") {
         textSet("good position start squat");
-        timerSetForSquat("reset")
+        timerSetForSquat("reset");
         document.getElementById("status").textContent = "good position start squat";
         document.getElementById("board").style.backgroundColor = '#00f0ff';
         if (document.getElementById("counter").value === 0) {
@@ -770,7 +776,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "up") {
         textSet("too squat");
-        timerSetForSquat(errTimes,"start",nowTime)
+        timerSetForSquat(errTimes,"start",nowTime);
         document.getElementById("status").textContent = "too squat";
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (nowPlay !== mp3_agete) {
@@ -781,8 +787,8 @@ const statusChecker = (set) => {
             document.getElementsByClassName("gauge")[0].style.display = "none";
         }
     } else if (set === "none" || set === null) {
-        textSet("out")
-        timerSetForSquat("reset")
+        textSet("out");
+        timerSetForSquat("reset");
         document.getElementById("status").textContent = "out";
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
