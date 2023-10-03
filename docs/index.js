@@ -599,12 +599,43 @@ const catchErr = (e) => {
 
 let flgSqwat = false;
 let squatTime={"start":0,"end":0};
-let errTimes = {"start":0,"end":0};
+let errTimes = {"start":0,"end":0,"once":false};
 /**
  *SetとflgSquatに応じて画像音声の設定を行う
  * @param {string} set 
  * @returns 
  */
+
+ const timerSetForSquat = (time,set,nowTime) => {
+    if(time === squatTime){
+        switch (set) {
+            case "start":
+                squatTime["start"] =nowTime;
+                break;
+            case "end":
+                squatTime["end"] =nowTime;
+                break;
+            default:
+                break;
+        }
+    }else if(time === errTimes){
+        switch (set) {
+            case "start":
+                errTimes["start"] =nowTime;
+                errTimes["once"] = false;
+                break;
+            case "end":
+                if(errTimes["once"] === false){
+                errTimes["end"] =nowTime;
+                errTimes["once"] = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+ }
+
 const statusChecker = (set) => {
     const nowTime = Date.now();
 
@@ -613,7 +644,7 @@ const statusChecker = (set) => {
         document.getElementById("board").style.backgroundColor = '#ff0000';
     } else if (set === "front") {
         catchErr("front");
-        errTimes["start"] = nowTime;
+        timerSetForSquat(errTimes,"start",nowTime);
         textSet("please look forward front");
         document.getElementById("status").textContent = "please look forward front";
         document.getElementById("board").style.backgroundColor = '#ff0000';
@@ -626,7 +657,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "back") {
         catchErr("back");
-        errTimes["start"] = nowTime;
+        timerSetForSquat(errTimes,"start",nowTime);
         textSet("please look forward back");
         document.getElementById("status").textContent = "please look forward back";
         document.getElementById("board").style.backgroundColor = '#ff0000';
@@ -639,7 +670,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "hohaba") {
         catchErr("hohaba");
-        errTimes["start"] = nowTime;
+        timerSetForSquat(errTimes,"start",nowTime);
         textSet("please open ankle");
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
@@ -651,7 +682,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "width") {
         catchErr("width");
-        errTimes["start"] = nowTime;
+        timerSetForSquat(errTimes,"start",nowTime);
         textSet("width squat");
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
@@ -662,8 +693,8 @@ const statusChecker = (set) => {
             startMusic(mp3_width, true)
         }
     } else if (flgSqwat && set === "ok") {
-        errTimes["end"] = nowTime;
-        squatTime["end"] = nowTime;
+        timerSetForSquat(squatTime,"end",nowTime)
+        timerSetForSquat(errTimes,"end",nowTime)
         const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
 
         if (checkTime  >= 2000) {
@@ -692,7 +723,7 @@ const statusChecker = (set) => {
             }
         }
     } else if (!flgSqwat && set === "ok") {
-        squatTime["start"] = nowTime;
+        timerSetForSquat(squatTime,"start",nowTime)
         flgSqwat = true;
     } else if (flgSqwat && set === "down") {
        
@@ -717,7 +748,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "up") {
         textSet("too squat");
-        errTimes["start"] = nowTime;
+        timerSetForSquat(errTimes,"start",nowTime)
         document.getElementById("status").textContent = "too squat";
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (nowPlay !== mp3_agete) {
