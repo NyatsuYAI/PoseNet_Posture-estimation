@@ -1,87 +1,5 @@
-<!DOCTYPE html>
-<html lang="ja">
 
-<head>
-    <title>mediapipe pose</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=9">
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d/control_utils_3d.js"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-
-    <div id="status"
-        style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px; display: none;">
-        start
-    </div>
-    <div id="board"
-        style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px;">
-        カメラのアクセス許可をしてください
-    </div>
-
-    <div>
-        <svg class="gauge" viewBox="0 0 88 88">
-            <circle class="circle" cx="44" cy="44" r="24" />
-        </svg>
-        <div id="counter" class="counter">
-        </div>
-    </div>
-
-
-
-</head>
-
-<body>
-    <div class="overlay">
-        <div class="btn_area">
-            <p class="ttl">重要なお知らせ</p>
-            <p>本システムはスクワット運動支援サイトです</br>
-                個人情報の取り扱いに気をつけた上で</br>
-                一部情報をサーバーに送信いたします
-            </p>
-            <button>スクワットを始める</button>
-        </div>
-    </div>
-
-    <div class="overlay2" style="display: none;">
-        <div class="btn_area2">
-            <p class="ttl">簡易サイト</p>
-            <p>こちらのサイトでは判定が厳しいようです</br>
-                簡単なスクワットをしましょう
-            </p>
-            <button id="easy-site">簡単な方をやる</button>
-            <button id="button2">まだ続ける</button>
-        </div>
-    </div>
-    <div class="container">
-
-        <p id="log" style="display: none"></p>
-
-        <video class="input_video" style="display: none"></video>
-        <canvas class="output_canvas"></canvas>
-
-        <div class="landmark-grid-container" style="display:none"></div>
-        <input id="bgm" type="button" value="BGMを再生" class="audio_auto" style="z-index: 10;">
-        <button id="fin" class="fin" style="z-index: 10;">スクワットを終了する</button>
-
-    </div>
-</body> 
-
-<style>
-      body {
-      height: 100vh;
-      margin: 0%;
-      padding: 0;
-    }
-
-    
-    .gauge {
+        .gauge {
             transform: rotate(-90deg);
             position: fixed;
             min-width: 50px;
@@ -225,5 +143,3 @@
         }
 
         @keyframes b {}
-</style>
-<script defer type="module" src="index.js"> </script>
