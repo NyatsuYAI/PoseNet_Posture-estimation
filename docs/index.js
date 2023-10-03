@@ -820,7 +820,7 @@ const cellMake  = ()=>{
         21: " ankle z",
         22: "slope_min",
         23: "slope_min_hipangle",
-        24: "hipangle_average",
+        24: "slope",
         25: "slope_max_hipangle",
         26: "slope_max",
         27: "count",
@@ -855,8 +855,8 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
     console.log(JSON.stringify(squatTime,",",""))
     const cell = [
         timeStamp(),
-        squatTime,
-        errTimes,
+        squatTime["end"]-squatTime["start"],
+        errTimes["end"]-errTimes["start"],
         document.getElementById("status").textContent,
         average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
         average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility),
@@ -878,7 +878,7 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
         average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z),
         stockData["slopeMin"]["a_min"],
         stockData["slopeKneeAngle"] * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"],
-        stockData["slopeHipAngle"],
+        stockData["slpoes"]["a"],
         stockData["slopeKneeAngle"] * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"],
         stockData["slopeMax"]["a_max"],
         document.getElementById("counter").value,
