@@ -63,9 +63,6 @@ $(function () {
                 canvasElement.style.width = '100vw';
             } else {
                 canvasElement.style.height = '100vw';
-                console.log(canvasElement.style.height, canvasElement.style.width);
-                console.log(window.outerHeight, window.outerWidth);
-                console.log(videoElement.videoHeight, videoElement.videoWidth);
             }
             
           }
@@ -177,6 +174,7 @@ $(function () {
             "slopeMax": { "a_max": 1.4, "b_max": 0 },//傾きと切片の最大値（前傾）
             "slpoes": { "a": 0, "b": 0 },//傾きと切片
             "err": 0,//エラーの値
+            "lengthshouderankle":0,
         };
 
         
@@ -395,6 +393,28 @@ const checkShisei = (resultAngle) => {
         return "OK";
     }
 }
+/**
+ * 肩と踝の距離を計算して、キャリブレーションも一緒にやる
+ * @param {*} results 
+ * @param {*} resultAngle 
+ * @returns 
+ */
+const checkLengthShoulderAnkle = (results,resultAngle) => {
+    const leftLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
+    const rightLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
+    const length = average(leftLength,rightLength);
+    if(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)>160){
+        if(stockData["lengthshouderankle"]===0){
+            stockData["lengthshouderankle"] = length;
+        }else{
+            stockData["lengthshouderankle"] = average(stockData["lengthshouderankle"],length);
+        }
+        return "stand";
+    }else{
+        return length/stockData["lengthshouderankle"];
+    }
+}
+
 
 /**
  * statusからboardに表示するテキストを設定する
@@ -607,7 +627,22 @@ let errTimes = {"start":0,"end":0,"once":false};
  */
 
  const timerSetForSquat = (time = null,set,nowTime = 0) => {
-    if(time === squatTime){
+    if (set === "reset"){
+        if(time === squatTime){
+            squatTime["start"] = 0;
+            squatTime["end"] = 0;
+        }else if(time === errTimes){
+            
+        errTimes["start"] = 0;
+        errTimes["end"] = 0;
+        errTimes["once"] = false;
+        }else{
+        squatTime["start"] = 0;
+        squatTime["end"] = 0;
+        errTimes["start"] = 0;
+        errTimes["end"] = 0;
+        errTimes["once"] = false;}
+    }else if(time === squatTime){
         switch (set) {
             case "start":
                 squatTime["start"] =nowTime;
@@ -633,24 +668,9 @@ let errTimes = {"start":0,"end":0,"once":false};
             default:
                 break;
         }
-    }else if (set === "reset"){
-        if(time === squatTime){
-            squatTime["start"] = 0;
-            squatTime["end"] = 0;
-        }else if(time === errTimes){
-            
-        errTimes["start"] = 0;
-        errTimes["end"] = 0;
-        errTimes["once"] = false;
-        }else{
-        squatTime["start"] = 0;
-        squatTime["end"] = 0;
-        errTimes["start"] = 0;
-        errTimes["end"] = 0;
-        errTimes["once"] = false;}
-    }else{
+    }else {
         if(squatTime["start"] < errTimes["start"]){
-            timerSetForSquat(squatTime,"reset",nowTime);
+            timerSetForSquat("reset");
         }
     }
  }
@@ -871,7 +891,6 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
         return yy + mo + dd + hh + mi + ss + ms;
     }
 
-    console.log(JSON.stringify(squatTime,",",""))
     const cell = [
         timeStamp(),
         squatTime["end"]-squatTime["start"],
@@ -909,7 +928,6 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
     if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 160) {
         coordinates.push({ x: average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), y: average(resultAngle.leftHip.angle, resultAngle.rightHip.angle) });
         const [x,y] = calivration(coordinates);
-        console.log(x,y)
         stockData["slopeKneeAngle"] =x;
         stockData["slopeHipAngle"] = y;
     }
@@ -1030,12 +1048,13 @@ function onResults(results) {
     canvasCtx.restore();
 
     if (results.poseWorldLandmarks) {
+
         const resultAngle = {};
         for (let key in needVector) {
             resultAngle[key] = calcAngleFrom3Point(results.poseWorldLandmarks[needVector[key][0]], results.poseWorldLandmarks[needVector[key][1]], results.poseWorldLandmarks[needVector[key][2]]);
         }
 
-
+console.log(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),stockData["lengthshouderankle"],checkLengthShoulderAnkle(results,resultAngle));
 
         //姿勢が判定位置にあり、人が存在している時
         if ((stockData["selectedAngle"] - stockData["selectedMargin"]) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (stockData["selectedAngle"] + stockData["selectedMargin"]) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
