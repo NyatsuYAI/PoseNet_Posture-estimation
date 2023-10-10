@@ -62,7 +62,8 @@ $(function () {
             } else if (ut.indexOf('iPad') > 0 || ut.indexOf('Android') > 0) {
                 canvasElement.style.width = '100vw';
             } else {
-                canvasElement.style.height = '100vw';
+                canvasElement.width = document.body.clientWidth*2/3;
+                canvasElement.height = canvasElement.width/16*9;
             }
             
           }
@@ -403,13 +404,13 @@ const checkLengthShoulderAnkle = (results,resultAngle) => {
     const leftLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
     const rightLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
     const length = average(leftLength,rightLength);
-    if(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)>160){
+    if(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)>150){
         if(stockData["lengthshouderankle"]===0){
-            stockData["lengthshouderankle"] = length;
+            stockData["lengthshouderankle"] = length;s
         }else{
             stockData["lengthshouderankle"] = average(stockData["lengthshouderankle"],length);
         }
-        return "stand";
+        return 1;
     }else{
         return length/stockData["lengthshouderankle"];
     }
