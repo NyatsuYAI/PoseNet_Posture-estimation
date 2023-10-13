@@ -653,7 +653,7 @@ const checkLengthShoulderAnkle = (results,resultAngle) => {
         }
         return 1;
     }else{
-        return length/stockData["lengthshouderankle"];
+        return length-(stockData["lengthshouderankle"]-1);
     }
 }
 
