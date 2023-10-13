@@ -1065,7 +1065,7 @@ const cells = []
 /**
  * 0から始まるから注意
  */
-const items = 29;
+const items = 30;
 const coordinates = [];
 /**
  * excelデータのタイトルの作成
@@ -1102,6 +1102,7 @@ const cellMake  = ()=>{
         26: "slope_max",
         27: "count",
         28: "ankle shoulder length",
+        29: "ankle shoulder length calibration",
 
     };
     console.log(cellTag)
@@ -1159,7 +1160,7 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
         stockData["slopeMax"]["a_max"],
         document.getElementById("counter").value,
         average(calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER]), calcLength2point(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER])),
-        
+        stockData["lengthshouderankle"],
     ];
     cells.push(cell);
    
