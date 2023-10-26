@@ -645,6 +645,7 @@ const checkLengthShoulderAnkle = (results,resultAngle) => {
     const leftLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
     const rightLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
     const length = average(leftLength,rightLength);
+    console.log(stockData["lengthshouderankle"],length,1-(stockData["lengthshouderankle"]-length));
     if(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)>150){
         if(stockData["lengthshouderankle"]===0){
             stockData["lengthshouderankle"] = length;
@@ -653,7 +654,7 @@ const checkLengthShoulderAnkle = (results,resultAngle) => {
         }
         return 1;
     }else{
-        return length-(stockData["lengthshouderankle"]-1);
+        return length/stockData["lengthshouderankle"];
     }
 }
 
@@ -1114,7 +1115,7 @@ const cellMake  = ()=>{
  * @param {*} resultAngle 
  * @param {poseLandmarks} poseLandmarks 
  */
-const cellUpdate = (resultAngle,poseLandmarks) =>{
+const cellUpdate = (resultAngle,poseLandmarks,per) =>{
     //cellMakeにデータをぶち込む
     const timeStamp = () => {
         const today = new Date();
@@ -1159,7 +1160,7 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
         stockData["slopeKneeAngle"] * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"],
         stockData["slopeMax"]["a_max"],
         document.getElementById("counter").value,
-        average(calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER]), calcLength2point(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER])),
+        per,
         stockData["lengthshouderankle"],
     ];
     cells.push(cell);
@@ -1293,8 +1294,6 @@ function onResults(results) {
             resultAngle[key] = calcAngleFrom3Point(results.poseWorldLandmarks[needVector[key][0]], results.poseWorldLandmarks[needVector[key][1]], results.poseWorldLandmarks[needVector[key][2]]);
         }
 
-console.log(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),stockData["lengthshouderankle"],checkLengthShoulderAnkle(results,resultAngle));
-
         //姿勢が判定位置にあり、人が存在している時
         if ( checkLengthShoulderAnkle(results,resultAngle) < 0.9 && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
 
@@ -1345,7 +1344,7 @@ console.log(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),sto
 
         }
 
-        cellUpdate(resultAngle, results.poseWorldLandmarks);
+        cellUpdate(resultAngle, results.poseWorldLandmarks,checkLengthShoulderAnkle(results,resultAngle));
     }
 
     // grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
