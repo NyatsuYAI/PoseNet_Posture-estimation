@@ -9,21 +9,10 @@ $(function () {
             });
         });
 
-                //その他の設定
-                let shift = 0
-
-
         const videoElement = document.getElementsByClassName('input_video')[0];
         const canvasElement = document.getElementsByClassName('output_canvas')[0];
         const canvasCtx = canvasElement.getContext("2d");
 
-        var video_shift = shift / videoElement.videoWidth * videoElement.clientWidth;
-        var clip = "rect(0px," + (video_shift + (videoElement.videoWidth - shift * 2) / videoElement.videoWidth * videoElement.clientWidth) + "px," + canvasElement.clientHeight + "px," + video_shift + "px)";
-        var trans = "translate(" + (-video_shift) + "px, 0px)"
-        canvasElement.style.clip = clip;
-        canvasElement.style.trans = trans;
-
-        console.log(clip,trans)
 
         const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
         const grid = new LandmarkGrid(landmarkContainer, {
@@ -167,15 +156,15 @@ $(function () {
          * その他フレームを超えて保持したいデータ
          */
         const stockData = {
-            "selectedAngle" : 90,//スクワットの角度
-            "selectedMargin" : 40,//スクワットの角度の許容範囲
+            "selectedAngle" : 50,//スクワットの角度
+            "selectedMargin" : 20,//スクワットの角度の許容範囲
             "slopeHipAngle": 0,//キャリブレーション用の角度
             "slopeKneeAngle": 0,//キャリブレーション用の角度
             "slopeMin": { "a_min": 0.7, "b_min": 0 },//傾きと切片の最小値（後傾）
             "slopeMax": { "a_max": 1.4, "b_max": 0 },//傾きと切片の最大値（前傾）
             "slpoes": { "a": 0, "b": 0 },//傾きと切片
             "err": 0,//エラーの値
-            "lengthshouderankle":0,
+            "lengthshouderankle":[],
         };
 
         
@@ -375,6 +364,12 @@ $(function () {
             return [x, y];            
         }
 
+        const averageFromData = (data) => {
+            const n = data.length;
+            const sig = data.reduce((acc, c) => acc + c, 0);
+            return sig/n;
+        }
+
         /**
          * キャリブレーションされた値から、姿勢の傾きの判定を行う
          * @param {*} resultAngle
@@ -400,20 +395,37 @@ const checkShisei = (resultAngle) => {
  * @param {*} resultAngle 
  * @returns 
  */
-const checkLengthShoulderAnkle = (results,resultAngle) => {
+const desideAngle = (results,resultAngle) => {
     const leftLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
     const rightLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
     const length = average(leftLength,rightLength);
     if(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)>150){
-        if(stockData["lengthshouderankle"]===0){
-            stockData["lengthshouderankle"] = length;s
-        }else{
-            stockData["lengthshouderankle"] = average(stockData["lengthshouderankle"],length);
-        }
-        return 1;
+        stockData["lengthshouderankle"].push(length);
+        return {
+            angle : stockData["slopeKneeAngle"] -average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
+            length :length,
+            calivrationLength: averageFromData(stockData["lengthshouderankle"]),
+            };
     }else{
-        return length/stockData["lengthshouderankle"];
+        const calivrationLength = averageFromData(stockData["lengthshouderankle"])
+        if (length/averageFromData(stockData["lengthshouderankle"]) > 0.9){
+            const angle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
+            return {
+            angle: stockData["slopeKneeAngle"] -angle,
+            length :length,
+            calivrationLength:calivrationLength,
+        };
+        }else{
+            const angle = Math.min(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),60+120*(length/calivrationLength-0.6));
+            return {
+            angle: stockData["slopeKneeAngle"] -angle,
+            length :length,
+            calivrationLength:calivrationLength,
+        };
+        }
+        
     }
+
 }
 
 
@@ -423,6 +435,7 @@ const checkLengthShoulderAnkle = (results,resultAngle) => {
  * @returns
  */
 const textSet = (status) =>{
+            document.getElementById("status").textContent = status;
             switch (status) {
                 case "please look forward front":
                     document.getElementById("board").textContent = "背筋に力を入れましょう";
@@ -649,7 +662,7 @@ let errTimes = {"start":0,"end":0,"once":false};
                 squatTime["start"] =nowTime;
                 break;
             case "end":
-                squatTime["end"] =nowTime;
+                if(squatTime["start"] !== 0)squatTime["end"] =nowTime;
                 break;
             default:
                 break;
@@ -658,26 +671,26 @@ let errTimes = {"start":0,"end":0,"once":false};
         switch (set) {
             case "start":
                 if(nowTime >= squatTime["start"])errTimes["start"] =nowTime;
-                errTimes["once"] = false;
+                errTimes["once"] = true;
                 break;
             case "end":
-                if(errTimes["once"] === false){
+                if(errTimes["once"] && errTimes["start"] !== 0){
                 errTimes["end"] =nowTime;
-                errTimes["once"] = true;
+                errTimes["once"] = false;
                 }
                 break;
             default:
                 break;
         }
     }else {
-        if(squatTime["start"] < errTimes["start"]){
-            timerSetForSquat("reset");
-        }
+        // if(squatTime["start"] < errTimes["start"]){
+        //     timerSetForSquat("reset");
+        // }
     }
  }
-
-const statusChecker = (set) => {
+ const statusChecker = (set) => {
     const nowTime = Date.now();
+    const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
 
     if (set === "HDS") {
         textSet("HDS");
@@ -686,7 +699,6 @@ const statusChecker = (set) => {
         catchErr("front");
         timerSetForSquat(errTimes,"start",nowTime);
         textSet("please look forward front");
-        document.getElementById("status").textContent = "please look forward front";
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
             flgSqwat = false;
@@ -699,7 +711,6 @@ const statusChecker = (set) => {
         catchErr("back");
         timerSetForSquat(errTimes,"start",nowTime);
         textSet("please look forward back");
-        document.getElementById("status").textContent = "please look forward back";
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
             flgSqwat = false;
@@ -710,7 +721,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "hohaba") {
         catchErr("hohaba");
-        timerSetForSquat(errTimes,"reset",nowTime);
+        timerSetForSquat(errTimes,"start",nowTime);
         textSet("please open ankle");
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
@@ -735,12 +746,10 @@ const statusChecker = (set) => {
     } else if (flgSqwat && set === "ok") {
         timerSetForSquat(squatTime,"end",nowTime);
         timerSetForSquat(errTimes,"end",nowTime);
-        if(errTimes["end"] - errTimes["start"] < 0)timerSetForSquat(errTimes,"reset");
-        const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
+        if(errTimes["end"] - errTimes["start"] < 0)timerSetForSquat(errTimes,"reset",nowTime);
 
         if (checkTime  >= 2000) {
             textSet("please stand up");
-            document.getElementById("status").textContent = "please stand up";
             document.getElementById("board").style.backgroundColor = '#ffffff';
             document.getElementsByClassName("gauge")[0].style.display = "none";
            
@@ -754,7 +763,6 @@ const statusChecker = (set) => {
             }
         } else {
             textSet("keep");
-            document.getElementById("status").textContent = "keep";
             document.getElementById("board").style.backgroundColor = '#00ff00';
             if (nowPlay !== mp3_stop) {
                 startMusic(mp3_stop, true);
@@ -765,25 +773,23 @@ const statusChecker = (set) => {
         flgSqwat = true;
     } else if (flgSqwat && set === "down") {
         
-        const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
         if(checkTime >= 2000){
             const countNum = document.getElementById("counter").value;
             counter(countNum);
             textSet("sqwat done");
             
-            timerSetForSquat("reset");
-            document.getElementById("status").textContent = "sqwat done";
+            timerSetForSquat(null,"reset",nowTime);
        
-            textSet("sqwat reset");
-            document.getElementById("status").textContent = "sqwat reset";
+           
         }else
         {
         flgSqwat = false;
-        document.getElementsByClassName("gauge")[0].style.display = "none";}
+        document.getElementsByClassName("gauge")[0].style.display = "none";
+        textSet("sqwat reset");
+        timerSetForSquat(null,"reset",nowTime);}
     } else if (!flgSqwat && set === "down") {
         textSet("good position start squat");
-        timerSetForSquat("reset");
-        document.getElementById("status").textContent = "good position start squat";
+        timerSetForSquat(null,"reset",nowTime);
         document.getElementById("board").style.backgroundColor = '#00f0ff';
         if (document.getElementById("counter").value === 0) {
             if (nowPlay !== mp3_goodposition && nowPlay !== mp3_sagete) {
@@ -798,7 +804,6 @@ const statusChecker = (set) => {
     } else if (set === "up") {
         textSet("too squat");
         timerSetForSquat(errTimes,"start",nowTime);
-        document.getElementById("status").textContent = "too squat";
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (nowPlay !== mp3_agete) {
             startMusic(mp3_agete, true);
@@ -809,8 +814,7 @@ const statusChecker = (set) => {
         }
     } else if (set === "none" || set === null) {
         textSet("out");
-        timerSetForSquat("reset");
-        document.getElementById("status").textContent = "out";
+        timerSetForSquat(null,"reset",nowTime);
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
             flgSqwat = false;
@@ -828,7 +832,7 @@ const cells = []
 /**
  * 0から始まるから注意
  */
-const items = 29;
+const items = 26;
 const coordinates = [];
 /**
  * excelデータのタイトルの作成
@@ -858,13 +862,10 @@ const cellMake  = ()=>{
         19: " ankle x",
         20: " ankle y",
         21: " ankle z",
-        22: "slope_min",
-        23: "slope_min_hipangle",
-        24: "slope",
-        25: "slope_max_hipangle",
-        26: "slope_max",
-        27: "count",
-        28: "ankle shoulder length",
+        22: "count",
+        23: "ankle shoulder length",
+        24: "ankle shoulder length calibration",
+        25: "deside angle",
 
     };
     console.log(cellTag)
@@ -876,7 +877,7 @@ const cellMake  = ()=>{
  * @param {*} resultAngle 
  * @param {poseLandmarks} poseLandmarks 
  */
-const cellUpdate = (resultAngle,poseLandmarks) =>{
+const cellUpdate = (resultAngle,poseLandmarks,desideAngleInfo = {angle: null, length :null,calivrationLength:null,}) =>{
     //cellMakeにデータをぶち込む
     const timeStamp = () => {
         const today = new Date();
@@ -894,9 +895,9 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
 
     const cell = [
         timeStamp(),
+        document.getElementById("status").textContent,
         squatTime["end"]-squatTime["start"],
         errTimes["end"]-errTimes["start"],
-        document.getElementById("status").textContent,
         average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
         average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility),
         average(resultAngle.leftHip.angle, resultAngle.rightHip.angle),
@@ -915,15 +916,13 @@ const cellUpdate = (resultAngle,poseLandmarks) =>{
         average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].x),
         average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y),
         average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z),
-        stockData["slopeMin"]["a_min"],
-        stockData["slopeKneeAngle"] * stockData["slopeMin"]["a_min"] + stockData["slopeMin"]["b_min"],
-        stockData["slpoes"]["a"],
-        stockData["slopeKneeAngle"] * stockData["slopeMax"]["a_max"] + stockData["slopeMax"]["b_max"],
-        stockData["slopeMax"]["a_max"],
         document.getElementById("counter").value,
-        average(calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER]), calcLength2point(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER])),
+        desideAngleInfo.length,
+        desideAngleInfo.calivrationLength,
+        desideAngleInfo.angle,
         
     ];
+    console.log(cell)
     cells.push(cell);
    
     if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 160) {
@@ -1054,60 +1053,56 @@ function onResults(results) {
         for (let key in needVector) {
             resultAngle[key] = calcAngleFrom3Point(results.poseWorldLandmarks[needVector[key][0]], results.poseWorldLandmarks[needVector[key][1]], results.poseWorldLandmarks[needVector[key][2]]);
         }
-
-console.log(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),stockData["lengthshouderankle"],checkLengthShoulderAnkle(results,resultAngle));
-
-        //姿勢が判定位置にあり、人が存在している時
-        if ((stockData["selectedAngle"] - stockData["selectedMargin"]) < average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) && average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < (stockData["selectedAngle"] + stockData["selectedMargin"]) && Math.min(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet['humanJudge']) {
-
-            if (resultsCheck(results, "width") === "width") {
-                statusChecker("width");
-                setImage(canvasElement, results.poseLandmarks, "width");
-            } else if (resultsCheck(results, "HDS") === "HDS") {
-                statusChecker("HDS");
-                statusChecker("ok");
-                setImage(canvasElement, results.poseLandmarks, "fire");
-                setImage(canvasElement, results.poseLandmarks, "gauge");
-            } else if (checkShisei(resultAngle) === "front") {
-                statusChecker("front");
-                setImage(canvasElement, results.poseLandmarks, "front");
-            } else if (checkShisei(resultAngle,"front") === "back") {
-                statusChecker("back");
-                setImage(canvasElement, results.poseLandmarks, "back");
-            } else if (document.getElementById("status").textContent === "please stand up") {
-                statusChecker("ok");
-                setImage(canvasElement, results.poseLandmarks, "up");
-
-            } else {
-                statusChecker("ok");
-                setImage(canvasElement, results.poseLandmarks, "fire");
-                setImage(canvasElement, results.poseLandmarks, "gauge");
-            }
-
-        } else {
-            if (paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility)) {
-
+         //姿勢が判定位置にあり、人が存在している時
+         if(paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility) && paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].visibility)){
+            const desideAngleInfo = desideAngle(results,resultAngle);
+            console.log(desideAngleInfo)
+            //判定内に入ってるかどうか
+            if(stockData["selectedAngle"] + stockData["selectedMargin"] > desideAngleInfo.angle && desideAngleInfo.angle > stockData["selectedAngle"] - stockData["selectedMargin"]){
+                if (resultsCheck(results, "width") === "width") {
+                    statusChecker("width");
+                    setImage(canvasElement, results.poseLandmarks, "width");
+                } else if (resultsCheck(results, "HDS") === "HDS") {
+                    statusChecker("HDS");
+                    statusChecker("ok");
+                    setImage(canvasElement, results.poseLandmarks, "fire");
+                    setImage(canvasElement, results.poseLandmarks, "gauge");
+                // } else if (checkShisei(resultAngle) === "front") {
+                //     statusChecker("front");
+                //     setImage(canvasElement, results.poseLandmarks, "front");
+                // } else if (checkShisei(resultAngle,"front") === "back") {
+                //     statusChecker("back");
+                //     setImage(canvasElement, results.poseLandmarks, "back");
+                } else if (document.getElementById("status").textContent === "please stand up") {
+                    statusChecker("ok");
+                    setImage(canvasElement, results.poseLandmarks, "up");
+    
+                } else {
+                    statusChecker("ok");
+                    setImage(canvasElement, results.poseLandmarks, "fire");
+                    setImage(canvasElement, results.poseLandmarks, "gauge");
+                }    
+            }else if(desideAngleInfo.angle < stockData["selectedAngle"] - stockData["selectedMargin"] || desideAngleInfo.angle > stockData["selectedAngle"] + stockData["selectedMargin"]){
                 if (resultsCheck(results, "hohaba") === "hohaba") {
                     statusChecker("hohaba")
                     setImage(canvasElement, results.poseLandmarks, "hohaba");
-                } else if ((stockData["selectedAngle"] - stockData["selectedMargin"]) > average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)) {
+                } else if (desideAngleInfo.angle > stockData["selectedAngle"] + stockData["selectedMargin"]) {
                     statusChecker("up");
                     setImage(canvasElement, results.poseLandmarks, "counter");
                     setImage(canvasElement, results.poseLandmarks, "up");
-                } else if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) > (stockData["selectedAngle"] + stockData["selectedMargin"])) {
+                } else if (desideAngleInfo.angle < stockData["selectedAngle"] - stockData["selectedMargin"]) {
                     statusChecker("down");
                     setImage(canvasElement, results.poseLandmarks, "counter");
                     setImage(canvasElement, results.poseLandmarks, "down");
                 }
 
-            } else {
-                setImage(canvasElement, results.poseLandmarks, "counter");
-                statusChecker("none");
             }
-
+            cellUpdate(resultAngle, results.poseWorldLandmarks,desideAngleInfo);
+         } else {
+            setImage(canvasElement, results.poseLandmarks, "counter");
+            statusChecker("none");
         }
-
-        cellUpdate(resultAngle, results.poseWorldLandmarks);
+        
     }
 
     // grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
@@ -1135,20 +1130,15 @@ pose.onResults(onResults);
 
 const camera = new Camera(videoElement, {
     onFrame: async () => {
-        let ratio = 0.66;
-        var vwidth = videoElement.videoWidth;
-        let new_width = Math.min(Math.round(videoElement.videoHeight * ratio), videoElement.videoWidth);
-        shift = Math.round((vwidth - new_width) / 2);
-        ratio = new_width / vwidth;
 
         await pose.send({ image: videoElement });
 
 },
-    // width: 1280,
-    // height: 720,
+    width: 1280,
+    height: 720,
 
-    width: 720,
-    height: 1280,
+    // width: 720,
+    // height: 1280,
 });
 camera.start();
 cellMake();
