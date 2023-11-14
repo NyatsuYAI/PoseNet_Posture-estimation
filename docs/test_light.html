@@ -444,7 +444,7 @@
          * @param {boolean} status
          */
         const startMusic = (music, status = false) => {
-            if (flgMusic) {
+            if (flgMusic && nowPlay != music) {
                 nowPlay.pause();
                 music.currentTime = 0;
                 music.loop = status;
