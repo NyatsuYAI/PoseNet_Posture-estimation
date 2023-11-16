@@ -51,12 +51,14 @@
 
     <div class="overlay2" style="display: none;">
         <div class="btn_area2">
-            <p class="ttl">簡易サイト</p>
-            <p>こちらのサイトでは判定が厳しいようです</br>
-                簡単なスクワットをしましょう
-            </p>
-            <button id="easy-site">簡単な方をやる</button>
-            <button id="button2">まだ続ける</button>
+            <p class="ttl">Claer</p>
+            <button id="button2">もう一回</button>
+        </div>
+    </div>
+    <div class="overlay3" style="display: none;">
+        <div class="btn_area3">
+            <p class="ttl">Game Over</p>
+            <button id="button3">もう一回</button>
         </div>
     </div>
     <div class="container">
@@ -215,7 +217,9 @@
 
 
         .btn_area2 .ttl {
-            font-weight: bold
+            color: red;
+            font-weight: bold;
+            font-size: 30px;
         }
 
         .btn_area2 p {
@@ -233,6 +237,52 @@
         }
 
         .btn_area2 button:hover {
+            background: #777
+        }
+
+        .overlay3 {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            position: fixed;
+            z-index: 1
+        }
+
+        .btn_area3 {
+            width: 400px;
+            height: 300px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            text-align: center;
+            z-index: 2
+        }
+
+
+        .btn_area3 .ttl {
+            color: red;
+            font-weight: bold;
+            font-size: 30px;
+        }
+
+        .btn_area3 p {
+            padding: 15px
+        }
+
+        .btn_area3 button {
+            display: block;
+            margin: 10px auto;
+            background: #333;
+            color: #fff;
+            padding: 10px 40px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn_area3 button:hover {
             background: #777
         }
 
@@ -855,6 +905,15 @@
             }
             document.getElementById("counter").value = num;
             document.getElementById("counter").textContent = "回数:" + num;
+            if(num === 15){
+                document.getElementsByClassName("overlay2")[0].style.display = "block";
+                    const button2 = document.getElementById("button2");
+                    stopMusic();
+
+                    button2.addEventListener('click', function () {
+                        window.location.reload();
+                    });
+            }
         }
 
         /**
@@ -864,17 +923,12 @@
          */
         const catchErr = (e) => {
             if (stockData["err"] > 200) {
-                document.getElementsByClassName("overlay2")[0].style.display = "block";
-                const easySite = document.getElementById("easy-site");
-                const button2 = document.getElementById("button2");
+                document.getElementsByClassName("overlay3")[0].style.display = "block";
+                const button3 = document.getElementById("button3");
                 stopMusic();
-                easySite.addEventListener('click', function () {
-                    location.replace("https://nyatsuyai.github.io/PoseNet_Posture-estimation/test-easy.html");
 
-                });
-                button2.addEventListener('click', function () {
-                    document.getElementsByClassName("overlay2")[0].style.display = "none";
-                    allowMusic();
+                button3.addEventListener('click', function () {
+                    window.location.reload();
                 });
             }
             else {
@@ -901,11 +955,20 @@
 
         const checkLevelUP = () => {
             const nowCount = document.getElementById("counter").value;
-            if (stockData["selectedAngle"] >= 60) {
-                console.log("maximum value")
-                return false;
-            } else if (nowCount % 5 == 0 && nowCount !== 0) {
+            if (nowCount % 5 == 0 && nowCount !== 0) {
+                if (stockData["selectedAngle"] >= 60) {
+                    console.log("maximum value")
+                    document.getElementsByClassName("overlay2")[0].style.display = "block";
+                    const button2 = document.getElementById("button2");
+                    stopMusic();
+
+                    button2.addEventListener('click', function () {
+                        window.location.reload();
+                    });
+                }
                 stockData["selectedAngle"] += 20;
+                if (stockData["selectedAngle"] === 45) stockData["selectedMargin"] = 20;
+                else stockData["selectedMargin"] = 15;
                 document.getElementById("counter").value = 0;
                 console.log("levelUP count reset")
                 return true;
@@ -1388,10 +1451,10 @@
                         if (resultsCheck(results, "hohaba") === "hohaba") {
                             statusChecker("hohaba")
                             setImage(canvasElement, results.poseLandmarks, "hohaba");
-                        } else if (checkLevelUP()) {
-                            statusChecker("levelUP");
-                            setImage(canvasElement, results.poseLandmarks, "levelUP");
-                            console.log("levelUP")
+                        // } else if (checkLevelUP()) {
+                        //     statusChecker("levelUP");
+                        //     setImage(canvasElement, results.poseLandmarks, "levelUP");
+                        //     console.log("levelUP")
                         } else if (desideAngleInfo.angle > stockData["selectedAngle"] + stockData["selectedMargin"]) {
                             statusChecker("up");
                             setImage(canvasElement, results.poseLandmarks, "counter");
