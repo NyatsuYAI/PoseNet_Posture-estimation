@@ -669,20 +669,21 @@
             return sig / n;
         }
 
-        /**
+         /**
          * キャリブレーションされた値から、姿勢の傾きの判定を行う
          * @param {*} resultAngle
          * @returns
          */
-        const checkShisei = (resultAngle) => {
+         const checkShisei = (resultAngle) => {
             if (stockData["slopeHipAngle"] === 0 || stockData["slopeKneeAngle"] === 0) return;
             const hipAngle = average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
             const kneeAngle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
-            const slope = (stockData["slopeHipAngle"] - hipAngle) / (stockData["slopeKneeAngle"] - kneeAngle);
-            stockData["slpoes"]["a"] = slope;
-            if (slope > stockData["slopeMax"]["a_max"]) {
+            const kneeAngleBending = stockData["slopeKneeAngle"] - kneeAngle;
+            const hipAngleBending = stockData["slopeHipAngle"] - hipAngle;
+            console.log(kneeAngleBending, hipAngleBending);
+            if (kneeAngleBending+stockData["selectedMargin"] <hipAngleBending) {
                 return "front";
-            } else if (slope < stockData["slopeMin"]["a_min"]) {
+            } else if (kneeAngleBending-stockData["selectedMargin"]  > hipAngleBending) {
                 return "back";
             } else {
                 return "OK";
@@ -1432,12 +1433,12 @@
                             //     statusChecker("ok");
                             //     setImage(canvasElement, results.poseLandmarks, "fire");
                             //     setImage(canvasElement, results.poseLandmarks, "gauge");
-                            // } else if (checkShisei(resultAngle) === "front") {
-                            //     statusChecker("front");
-                            //     setImage(canvasElement, results.poseLandmarks, "front");
-                            // } else if (checkShisei(resultAngle,"front") === "back") {
-                            //     statusChecker("back");
-                            //     setImage(canvasElement, results.poseLandmarks, "back");
+                            } else if (checkShisei(resultAngle) === "front") {
+                                statusChecker("front");
+                                setImage(canvasElement, results.poseLandmarks, "front");
+                            } else if (checkShisei(resultAngle,"front") === "back") {
+                                statusChecker("back");
+                                setImage(canvasElement, results.poseLandmarks, "back");
                         } else if (document.getElementById("status").textContent === "please stand up") {
                             statusChecker("ok");
                             setImage(canvasElement, results.poseLandmarks, "up");
