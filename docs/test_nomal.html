@@ -680,10 +680,9 @@
             const kneeAngle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
             const kneeAngleBending = stockData["slopeKneeAngle"] - kneeAngle;
             const hipAngleBending = stockData["slopeHipAngle"] - hipAngle;
-            console.log(kneeAngleBending, hipAngleBending);
-            if (kneeAngleBending+stockData["selectedMargin"] <hipAngleBending) {
+            if (kneeAngleBending+15 <hipAngleBending) {
                 return "front";
-            } else if (kneeAngleBending-stockData["selectedMargin"]  > hipAngleBending) {
+            } else if (kneeAngleBending-15  > hipAngleBending) {
                 return "back";
             } else {
                 return "OK";
@@ -1037,7 +1036,7 @@
                 // }
             }
         }
-        const statusChecker = (set) => {
+        const statusChecker = (set,resultAngle=null) => {
             const nowTime = Date.now();
             const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
 
@@ -1140,8 +1139,15 @@
                 timerSetForSquat(squatTime, "start", nowTime);
                 flgSqwat = true;
             } else if (flgSqwat && set === "down") {
+                if(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle)<150 && checkTime>= 2000){
+                    textSet("please stand up");
+                    document.getElementById("board").style.backgroundColor = '#ffffff';
+                    document.getElementsByClassName("gauge")[0].style.display = "none";
 
-                if (checkTime >= 2000) {
+                    if ( nowPlay !== mp3_tatte) {
+                        startMusic(mp3_tatte, true);
+                        }
+                } else if (checkTime >= 2000) {
                     const countNum = document.getElementById("counter").value;
                     counter(countNum);
                     textSet("sqwat done");
@@ -1475,7 +1481,7 @@
                             setImage(canvasElement, results.poseLandmarks, "counter");
                             setImage(canvasElement, results.poseLandmarks, "up");
                         } else if (desideAngleInfo.angle < stockData["selectedAngle"] - stockData["selectedMargin"]) {
-                            statusChecker("down");
+                            statusChecker("down",resultAngle);
                             setImage(canvasElement, results.poseLandmarks, "counter");
                             setImage(canvasElement, results.poseLandmarks, "down");
                         }
