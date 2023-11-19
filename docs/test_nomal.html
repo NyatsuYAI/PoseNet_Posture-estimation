@@ -942,6 +942,8 @@
                 }
                 else if (e === "width") {
                     stockData["err"] += 0.5;
+                }else if(e === "too squat"){
+                    stockData["err"] += 0.5;
                 }
                 else { returtn; }
             }
@@ -1176,6 +1178,7 @@
                     startMusic(mp3_sagete, true);
                 }
             } else if (set === "up") {
+                catchErr("too squat");
                 textSet("too squat");
                 timerSetForSquat(errTimes, "start", nowTime);
                 document.getElementById("board").style.backgroundColor = '#ff0000';
