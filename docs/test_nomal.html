@@ -1041,6 +1041,20 @@
             const nowTime = Date.now();
             const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
 
+            if( document.getElementById("status").textContent === "keep") {
+                if(stockData["selectedAngle"]===45){
+                    stockData["selectedMargin"] = 20;
+                }else{
+                    stockData["selectedMargin"] = 15;
+                }
+            }else{
+                if(stockData["selectedAngle"]===45){
+                    stockData["selectedMargin"] = 15;
+                }else{
+                    stockData["selectedMargin"] = 10;
+                }
+            }
+
             if (set === "levelUP") {
                 timerSetForSquat(levelUPTime, "start", nowTime);
                 textSet("levelUP");

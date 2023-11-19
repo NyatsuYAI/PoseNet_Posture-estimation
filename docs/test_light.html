@@ -452,7 +452,7 @@
          */
         const stockData = {
             "selectedAngle": 25,//スクワットの角度
-            "selectedMargin": 15,//スクワットの角度の許容範囲
+            "selectedMargin": 10,//スクワットの角度の許容範囲
             "slopeHipAngle": 0,//キャリブレーション用の角度
             "slopeKneeAngle": 0,//キャリブレーション用の角度
             "slopeMin": { "a_min": 0.7, "b_min": 0 },//傾きと切片の最小値（後傾）
@@ -965,8 +965,8 @@
                     });
                 }
                 stockData["selectedAngle"] += 20;
-                if (stockData["selectedAngle"] === 45) stockData["selectedMargin"] = 20;
-                else stockData["selectedMargin"] = 15;
+                if (stockData["selectedAngle"] === 45) stockData["selectedMargin"] = 15;
+                else stockData["selectedMargin"] = 10;
                 document.getElementById("counter").value = 0;
                 console.log("levelUP count reset")
                 return true;
@@ -1037,6 +1037,20 @@
         const statusChecker = (set) => {
             const nowTime = Date.now();
             const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
+
+            if( document.getElementById("status").textContent === "keep") {
+                if(stockData["selectedAngle"]===45){
+                    stockData["selectedMargin"] = 20;
+                }else{
+                    stockData["selectedMargin"] = 15;
+                }
+            }else{
+                if(stockData["selectedAngle"]===45){
+                    stockData["selectedMargin"] = 15;
+                }else{
+                    stockData["selectedMargin"] = 10;
+                }
+            }
 
             if (set === "levelUP") {
                 timerSetForSquat(levelUPTime, "start", nowTime);
