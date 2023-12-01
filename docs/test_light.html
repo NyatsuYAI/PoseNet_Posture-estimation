@@ -545,19 +545,26 @@
             };
         }
 
-        /**
+         /**
          * 2点間の距離を計算する(小さくなりすぎないよう保証付き)
          * pose　=　{x,y,z,visibility}
          * 
          */
-        const calcLength2point = (point1, point2) => {
+         const calcLength2point = (point1, point2) => {
             const length = Math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2);
-            if (length > 0.05) return length;
-            else {
-                return 0.05;
-            }
+            return length;
         }
 
+
+                /**
+         * 3点間の距離を計算する(小さくなりすぎないよう保証付き)
+         * pose　=　{x,y,z,visibility}
+         * 
+         */
+         const calcLength3point = (point1, point2) => {
+            const length = Math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2 + (point1.z - point2.z) ** 2);
+            return length;
+        }
         /**
          * 顔隠す猫ちゃん
          * @param {canvasElement} canvasElement
@@ -595,9 +602,10 @@
             const hip_depth = average(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].z, results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].z);
             const knee_depth = average(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z, results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z);
             const nose_depth = average(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z , results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z )- results.poseWorldLandmarks[POSE_LANDMARKS.NOSE].z;
-            
+            const hip_wrist_length = average(calcLength3point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_WRIST], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP]), calcLength3point(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_WRIST], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP]));
             if (shoulder_haba * paramDataSet["perhohaba"] > ankle_haba && whatCheck === "hohaba") return "hohaba";
             else if (shoulder_haba * paramDataSet["perwidth"] < knee_haba && whatCheck === "width") return "width";
+            else if (hip_wrist_length > 0.25 && whatCheck === "hip_wrist") return "hip_wrist";
             // else if (Math.abs(shoulder_depth - hip_depth) < paramDataSet["HDSCheck"] && whatCheck === "HDS") return "HDS";
             // else if (Math.abs(shoulder_depth -knee_depth)<paramDataSet["frontCheck"] && whatCheck === "front") return "front";
         }
@@ -674,12 +682,12 @@
             return sig / n;
         }
 
-        /**
+         /**
          * キャリブレーションされた値から、姿勢の傾きの判定を行う
          * @param {*} resultAngle
          * @returns
          */
-        const checkShisei = (resultAngle) => {
+         const checkShisei = (resultAngle,desideAngleInfo) => {
             if (stockData["slopeHipAngle"] === 0 || stockData["slopeKneeAngle"] === 0) return;
             const hipAngle = average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
             const kneeAngle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
@@ -795,7 +803,9 @@
          * @returns 
          */
         const setImage = (canvasElement, poseLandmarks, what) => {
-            const width = canvasElement.width * (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) * 2);
+            let width=0;
+            if(calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR])>0.05)width = canvasElement.width * (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) * 2);
+            else width = canvasElement.width * 0.05 * 2;
             const status = document.getElementById("status").textContent;
             const nowTime = Date.now();
             if (status === "please stand up") {
@@ -1141,7 +1151,7 @@
                     document.getElementById("board").style.backgroundColor = '#ffffff';
                     document.getElementsByClassName("gauge")[0].style.display = "none";
 
-                    if ( nowPlay !== mp3_tatte) {
+                    if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
                         startMusic(mp3_tatte, true);
                         }
                 } else if (checkTime >= 2000) {
@@ -1208,7 +1218,7 @@
         /**
          * 0から始まるから注意
          */
-        const items = 32;
+        const items = 34;
         const coordinates = [];
         /**
          * excelデータのタイトルの作成
@@ -1248,6 +1258,8 @@
                 29: "ankle shoulder length",
                 30: "ankle shoulder length calibration",
                 31: "deside angle",
+                32: "knee angle bending",
+                33: "hip angle bending",
 
             };
             console.log(cellTag)
@@ -1308,6 +1320,8 @@
                 desideAngleInfo.length,
                 desideAngleInfo.calivrationLength,
                 desideAngleInfo.angle,
+                stockData["slopeKneeAngle"]- average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
+                stockData["slopeHipAngle"]- average(resultAngle.leftHip.angle, resultAngle.rightHip.angle),
 
             ];
             cells.push(cell);
@@ -1421,17 +1435,17 @@
 
             canvasCtx.globalCompositeOperation = 'source-over';
             // console.log(results.poseLandmarks)
-            drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
-                { color: '#00FF00', lineWidth: 2 });
-            drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_NEUTRAL)
-                .map(index => results.poseLandmarks[index]),
-                { color: '#00FF00', lineWidth: 3 });
-            drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_LEFT)
-                .map(index => results.poseLandmarks[index]),
-                { color: '#FF0000', lineWidth: 3 });
-            drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_RIGHT)
-                .map(index => results.poseLandmarks[index]),
-                { color: '#0000FF', lineWidth: 3 });
+            // drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
+            //     { color: '#00FF00', lineWidth: 2 });
+            // drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_NEUTRAL)
+            //     .map(index => results.poseLandmarks[index]),
+            //     { color: '#00FF00', lineWidth: 3 });
+            // drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_LEFT)
+            //     .map(index => results.poseLandmarks[index]),
+            //     { color: '#FF0000', lineWidth: 3 });
+            // drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_RIGHT)
+            //     .map(index => results.poseLandmarks[index]),
+            //     { color: '#0000FF', lineWidth: 3 });
 
             // const faceSize = facecat(canvasElement, img_img1, results.poseLandmarks[POSE_LANDMARKS.NOSE], results.poseLandmarks[POSE_LANDMARKS.LEFT_EAR], results.poseLandmarks[POSE_LANDMARKS.RIGHT_EAR]);
             // canvasCtx.drawImage(
@@ -1456,10 +1470,10 @@
                         // } else if (resultsCheck(results, "HDS") === "HDS") {
                         //     statusChecker("back");
                         //     setImage(canvasElement, results.poseLandmarks, "back");
-                        } else if (checkShisei(resultAngle) === "front") {
+                        } else if (checkShisei(resultAngle,desideAngleInfo) === "front") {
                             statusChecker("front");
                             setImage(canvasElement, results.poseLandmarks, "front");
-                        } else if (checkShisei(resultAngle) === "back") {
+                        } else if (checkShisei(resultAngle,desideAngleInfo) === "back") {
                                 statusChecker("back");
                                 setImage(canvasElement, results.poseLandmarks, "back");
                         } else if (document.getElementById("status").textContent === "please stand up") {
