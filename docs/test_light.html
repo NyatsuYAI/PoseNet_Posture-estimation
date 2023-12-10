@@ -603,9 +603,10 @@
             const knee_depth = average(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z, results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z);
             const nose_depth = average(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z, results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z) - results.poseWorldLandmarks[POSE_LANDMARKS.NOSE].z;
             const hip_wrist_length = average(calcLength3point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_WRIST], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP]), calcLength3point(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_WRIST], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP]));
+           console.log(hip_wrist_length);
             if (shoulder_haba * paramDataSet["perhohaba"] > ankle_haba && whatCheck === "hohaba") return "hohaba";
             else if (shoulder_haba * paramDataSet["perwidth"] < knee_haba && whatCheck === "width") return "width";
-            else if (hip_wrist_length > 0.25 && whatCheck === "hip_wrist") return "hip_wrist";
+            else if (hip_wrist_length > 0.3 && whatCheck === "wrist") return "wrist";
             // else if (Math.abs(shoulder_depth - hip_depth) < paramDataSet["HDSCheck"] && whatCheck === "HDS") return "HDS";
             // else if (Math.abs(shoulder_depth -knee_depth)<paramDataSet["frontCheck"] && whatCheck === "front") return "front";
         }
@@ -711,7 +712,7 @@
             const leftLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
             const rightLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
             const length = average(leftLength, rightLength);
-            if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) > 150) {
+            if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) > 150 && stockData["slopeKneeAngle"] -average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < 10) {
                 stockData["lengthshouderankle"].push(length);
                 return {
                     angle: stockData["slopeKneeAngle"] - average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
@@ -791,7 +792,9 @@
                 case "levelUP":
                     document.getElementById("board").textContent = "レベルアップ！スクワットが厳しくなります";
                     break;
-
+                case "please wrist to hip":
+                    document.getElementById("board").textContent = "腰に手を当てて";
+                    break;
             }
         }
 
@@ -804,8 +807,8 @@
          */
         const setImage = (canvasElement, poseLandmarks, what, desideAngleInfo = null) => {
             let width = 0;
-            if (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) > 0.05) width = canvasElement.width * (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) * 2);
-            else width = canvasElement.width * 0.05 * 2;
+            if (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) > 0.05) width = canvasElement.width * (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) * 1.5);
+            else width = canvasElement.width * 0.05 * 1.5;
             const status = document.getElementById("status").textContent;
             const nowTime = Date.now();
             if (status === "please stand up") {
@@ -901,6 +904,15 @@
                 if (Math.floor(nowTime / 1000) % 2 === 0) canvasCtx.drawImage(img_back, x, y, width * 3, height * 3);
                 else canvasCtx.drawImage(img_shisei_ok, x, y, width * 3, height * 3);
 
+            } else if (what === "wrist") {
+                document.getElementsByClassName("gauge")[0].style.display = "none";
+                const height = width * Math.round(img_right.height / img_right.width);
+                const left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_WRIST].x * canvasElement.width) - (width / 2);
+                const left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_WRIST].y * canvasElement.height) - (height / 2);
+                canvasCtx.drawImage(img_left, left_x, left_y, width, height);
+                const right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_WRIST].x * canvasElement.width) - (width / 2);
+                const right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_WRIST].y * canvasElement.height) - (height / 2);
+                canvasCtx.drawImage(img_right, right_x, right_y, width, height);
             } else {
                 document.getElementsByClassName("gauge")[0].style.display = "none";
                 return;
@@ -1096,6 +1108,17 @@
                 }
                 if (nowPlay !== mp3_sesuji_back) {
                     startMusic(mp3_sesuji_back, true);
+                }
+            } else if (set === "wrist") {
+                timerSetForSquat(errTimes, "start", nowTime);
+                textSet("please wrist to hip");
+                document.getElementById("board").style.backgroundColor = '#ff0000';
+                if (flgSqwat) {
+                    flgSqwat = false;
+                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                }
+                if (nowPlay !== mp3_hohaba) {
+                    startMusic(mp3_hohaba, true)
                 }
             } else if (set === "hohaba") {
                 catchErr("hohaba");
@@ -1467,7 +1490,13 @@
                 if (paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility) && paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].visibility)) {
                     const desideAngleInfo = desideAngle(results, resultAngle);
                     //判定内に入ってるかどうか
-                    if (stockData["selectedAngle"] + stockData["selectedMargin"] >= desideAngleInfo.angle && desideAngleInfo.angle >= stockData["selectedAngle"] - stockData["selectedMargin"]) {
+                    if (resultsCheck(results, "hohaba") === "hohaba") {
+                            statusChecker("hohaba")
+                            setImage(canvasElement, results.poseLandmarks, "hohaba");
+                    } else if (resultsCheck(results, "wrist") === "wrist") {
+                            statusChecker("wrist")
+                            setImage(canvasElement, results.poseLandmarks, "wrist");
+                    } else if (stockData["selectedAngle"] + stockData["selectedMargin"] >= desideAngleInfo.angle && desideAngleInfo.angle >= stockData["selectedAngle"] - stockData["selectedMargin"]) {
                         // if (resultsCheck(results, "width") === "width") {
                         //     statusChecker("width");
                         //     setImage(canvasElement, results.poseLandmarks, "width");
@@ -1491,10 +1520,7 @@
                             setImage(canvasElement, results.poseLandmarks, "gauge");
                         }
                     } else if (desideAngleInfo.angle < stockData["selectedAngle"] - stockData["selectedMargin"] || desideAngleInfo.angle > stockData["selectedAngle"] + stockData["selectedMargin"]) {
-                        if (resultsCheck(results, "hohaba") === "hohaba") {
-                            statusChecker("hohaba")
-                            setImage(canvasElement, results.poseLandmarks, "hohaba");
-                        } else if (checkLevelUP()) {
+                         if (checkLevelUP()) {
                             statusChecker("levelUP");
                             setImage(canvasElement, results.poseLandmarks, "levelUP");
                             console.log("levelUP")
