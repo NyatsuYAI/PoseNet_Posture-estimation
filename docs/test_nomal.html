@@ -90,7 +90,7 @@
         <canvas class="output_canvas"></canvas>
 
         <div class="landmark-grid-container" style="display:none"></div>
-        <input id="camera_change" type="button" value="カメラを変更" class="audio_auto" style="z-index: 10;">
+        <input id="bgm" type="button" value="BGMを再生" class="audio_auto" style="z-index: 10;">
         <button id="fin" class="fin" style="z-index: 10;">スクワットを終了する</button>
 
     </div>
@@ -303,41 +303,6 @@
         const videoElement = document.getElementsByClassName('input_video')[0];
         const canvasElement = document.getElementsByClassName('output_canvas')[0];
         const canvasCtx = canvasElement.getContext("2d");
-        const device_id = [];
-
-        if (typeof navigator.mediaDevices.getUserMedia !== 'function') {
-            const err = new Error('getUserMedia()が利用できないブラウザです！');
-            alert(`${err.name} ${err.message}`);
-            throw err;
-        }
-        if (!navigator.mediaDevices?.enumerateDevices) {
-            console.log("enumerateDevices() not supported.");
-        } else {
-            navigator.mediaDevices.enumerateDevices().then((devices) => {
-                devices.forEach((device) => {
-                    if (device.kind === "videoinput") {
-                        device_id.push(device.deviceId);
-                    }
-                })
-            })
-        }
-        const camera_change_button = document.getElementById("camera_change");
-        camera_change_button.addEventListener('click', function () {
-            console.log(device_id[0]);
-            navigator.mediaDevices.getUserMedia({
-                video: {
-                    deviceId: device_id[0],
-                    width: { min: 640, ideal: 1280, max: 1920 },
-                    height: { min: 480, ideal: 720, max: 1080 },
-                }
-            }).then(stream => videoElement.srcObject = stream);
-        }, false);
-
-
-
-
-
-
 
 
         const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0];
@@ -432,6 +397,7 @@
         /**音声の設定
          * 
         */
+        const mp3_bgm = new Audio('./mp3/bgm.mp3');
         const mp3_agete = new Audio('./mp3/agete.m4a');
         mp3_agete.playbackRate = paramDataSet.playbackRate;
         const mp3_sagete = new Audio('./mp3/sagete.m4a');
@@ -537,6 +503,17 @@
             }
         }
 
+        const bgmButton = document.getElementById("bgm").addEventListener("click", () => {
+            if (bgmButton.value === 'BGMを再生') {
+                bgmButton.value = 'BGMを停止';
+                mp3_bgm.play();
+                mp3_bgm.volume = 0.2;
+                mp3_bgm.loop = true;
+            } else {
+                bgmButton.value = 'BGMを再生';
+                resetMusic(mp3_bgm);
+            }
+        });
 
         /**
          * 角度の計算
