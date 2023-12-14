@@ -26,9 +26,7 @@
     </div>
 
     <div>
-        <svg class="gauge" viewBox="0 0 88 88">
-            <circle class="circle" cx="44" cy="44" r="24" />
-        </svg>
+        <div class="shape"></div>
         <div id="counter" class="counter">
         </div>
     </div>
@@ -95,30 +93,23 @@
 
     </div>
     <style>
-        .gauge {
-            transform: rotate(-90deg);
-            position: fixed;
+         .shape {
             min-width: 50px;
             min-height: 50px;
             width: 100px;
             height: 100px;
-            top: 10%;
-            display: none;
+            background-image: conic-gradient(rgb(0, 247, 255) 0deg, white 0deg);
+            clip-path: circle();
+            position: fixed;
+            place-items: center;
+            display: block;
         }
 
-        .circle {
-            stroke: rgb(0, 247, 255);
-            stroke-width: 20px;
-            animation: circleAnim 3s forwards;
-            fill: transparent;
-            stroke-dasharray: 264px;
-            stroke-dashoffset: 264px;
-        }
-
-        @keyframes circleAnim {
-            to {
-                stroke-dashoffset: 0;
-            }
+        .shape::before {
+            content: "";
+            width: 70px;
+            height: 70px;
+            clip-path: circle();
         }
 
         .audio_auto {
@@ -561,28 +552,7 @@
             const length = Math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2 + (point1.z - point2.z) ** 2);
             return length;
         }
-        /**
-         * 顔隠す猫ちゃん
-         * @param {canvasElement} canvasElement
-         * @param {HTMLImageElement} img
-         * @param {pose} nose
-         * @param {pose} left_ear
-         * @param {pose} right_ear
-         * @returns
-         */
-        const facecat = (canvasElement, img, nose, left_ear, right_ear) => {
-            const width = canvasElement.width * calcLength2point(left_ear, right_ear) * 3;
-            const height = width * Math.round(img.height / img.width);
-            const x = Math.round(nose.x * canvasElement.width) - (width / 2);
-            const y = Math.round(nose.y * canvasElement.height) - (height / 2);
-
-            return {
-                'x': x,
-                'y': y,
-                'width': width,
-                'height': height,
-            };
-        }
+        
         /**
          * 肩幅・歩幅・HDSの判定
          * @param {pose} results 
@@ -743,6 +713,35 @@
 
         }
 
+        /**円ゲージの描画
+         * 
+         * @param {canvasElement} canvasElement 
+         * @param {poseLandmarks} poseLandmarks 
+         * @param {string} what 
+         * @returns 
+         */
+
+        const shape = document.querySelector(".shape");
+        let angle = 0;
+
+        const drawCircle = (checkTime)=> {
+
+                if(checkTime>1000){
+                    angle = (checkTime-1000)/2000*360;
+                }else{
+                    angle = 0;
+                }
+                //角度をconic-gradientの角度に代入
+                shape.style.backgroundImage = `conic-gradient(rgb(0, 247, 255) ${angle}deg, white ${angle}deg)`;
+                console.log(checkTime,angle);
+
+        }
+        //アニメーションを開始
+        const startAnimation =()=> {
+            //角度の初期状態(0°)
+            angle=0;
+            requestAnimationFrame(drawCircle);
+        }
 
 
         /**
@@ -814,7 +813,6 @@
                 canvasCtx.drawImage(img_level_up, x, y, width, height);
             } else if (what === "fire") {
                 let height = width * Math.round(img_fire.height / img_fire.width);
-                console.log((stockData["selectedAngle"] - desideAngleInfo.angle) / stockData["selectedMargin"]);
                 width = width * (1.2 - Math.abs((stockData["selectedAngle"] - desideAngleInfo.angle) / stockData["selectedMargin"]));
                 height = height * (1.2 - Math.abs((stockData["selectedAngle"] - desideAngleInfo.angle) / stockData["selectedMargin"]));
 
@@ -840,20 +838,19 @@
                 const right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
                 const right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
                 canvasCtx.drawImage(img_up, right_x, right_y, width, height);
-            } else if (what === "gauge") {
+            } else if (what === "shape") {
                 document.getElementsByClassName("counter")[0].style.display = "none";
-                document.getElementsByClassName("gauge")[0].style.display = "block";
-                document.getElementsByClassName("gauge")[0].style.display = "block";
-                document.getElementsByClassName("gauge")[0].style.width = width;
-                document.getElementsByClassName("gauge")[0].style.height = width;
-                document.getElementsByClassName("gauge")[0].style.left = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width);
+                shape.style.display = "block";
+                shape.style.width = width;
+                shape.style.height = width;
+                shape.style.left = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width);
             } else if (what === "counter") {
-                document.getElementsByClassName("gauge")[0].style.display = "none";
+                shape.style.display = "none";
                 document.getElementsByClassName("counter")[0].style.display = "block";
                 document.getElementsByClassName("counter")[0].style.left = (Math.round(poseLandmarks[POSE_LANDMARKS.NOSE].x * canvasElement.width) - (width / 2)) + "px";
 
             } else if (what === "hohaba") {
-                document.getElementsByClassName("gauge")[0].style.display = "none";
+                shape.style.display = "none";
                 const height = width * Math.round(img_left.height / img_left.width);
                 const left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x * canvasElement.width) - (width / 2);
                 const left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y * canvasElement.height) - (height);
@@ -862,7 +859,7 @@
                 const right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y * canvasElement.height) - (height);
                 canvasCtx.drawImage(img_left, right_x, right_y, width, height);
             } else if (what === "width") {
-                document.getElementsByClassName("gauge")[0].style.display = "none";
+                shape.style.display = "none";
                 const height = width * Math.round(img_right.height / img_right.width);
                 const left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
                 const left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
@@ -871,7 +868,7 @@
                 const right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
                 canvasCtx.drawImage(img_right, right_x, right_y, width, height);
             } else if (what === "front") {
-                document.getElementsByClassName("gauge")[0].style.display = "none";
+                shape.style.display = "none";
                 const height = width * Math.round(img_front.height / img_front.width);
                 let x, y;
                 if (poseLandmarks[POSE_LANDMARKS.NOSE].x < 0.5) {
@@ -884,7 +881,7 @@
                 if (Math.floor(nowTime / 1000) % 2 === 0) canvasCtx.drawImage(img_front, x, y, width * 3, height * 3);
                 else canvasCtx.drawImage(img_shisei_ok, x, y, width * 3, height * 3);
             } else if (what === "back") {
-                document.getElementsByClassName("gauge")[0].style.display = "none";
+                shape.style.display = "none";
                 const height = width * Math.round(img_back.height / img_back.width);
                 let x, y;
                 if (poseLandmarks[POSE_LANDMARKS.NOSE].x < 0.5) {
@@ -898,7 +895,7 @@
                 else canvasCtx.drawImage(img_shisei_ok, x, y, width * 3, height * 3);
 
             } else {
-                document.getElementsByClassName("gauge")[0].style.display = "none";
+                shape.style.display = "none";
                 return;
             }
 
@@ -1076,7 +1073,7 @@
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 if (flgSqwat) {
                     flgSqwat = false;
-                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                    shape.style.display = "none";
                 }
                 if (nowPlay !== mp3_sesuji_front) {
                     startMusic(mp3_sesuji_front, true);
@@ -1088,7 +1085,7 @@
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 if (flgSqwat) {
                     flgSqwat = false;
-                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                    shape.style.display = "none";
                 }
                 if (nowPlay !== mp3_sesuji_back) {
                     startMusic(mp3_sesuji_back, true);
@@ -1100,7 +1097,7 @@
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 if (flgSqwat) {
                     flgSqwat = false;
-                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                    shape.style.display = "none";
                 }
                 if (nowPlay !== mp3_hohaba) {
                     startMusic(mp3_hohaba, true)
@@ -1112,7 +1109,7 @@
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 if (flgSqwat) {
                     flgSqwat = false;
-                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                    shape.style.display = "none";
                 }
                 if (nowPlay !== mp3_width) {
                     startMusic(mp3_width, true)
@@ -1120,12 +1117,13 @@
             } else if (flgSqwat && set === "ok") {
                 timerSetForSquat(squatTime, "end", nowTime);
                 timerSetForSquat(errTimes, "end", nowTime);
+                drawCircle(checkTime);
                 if (errTimes["end"] - errTimes["start"] < 0) timerSetForSquat(errTimes, "reset", nowTime);
 
-                if (checkTime >= 2000) {
+                if (checkTime >= 3000) {
                     textSet("please stand up");
                     document.getElementById("board").style.backgroundColor = '#ffffff';
-                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                    shape.style.display = "none";
 
 
 
@@ -1146,15 +1144,15 @@
                 timerSetForSquat(squatTime, "start", nowTime);
                 flgSqwat = true;
             } else if (flgSqwat && set === "down") {
-                if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < 150 && checkTime >= 2000) {
+                if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < 150 && checkTime >= 3000) {
                     textSet("please stand up");
                     document.getElementById("board").style.backgroundColor = '#ffffff';
-                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                    shape.style.display = "none";
 
                     if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
                         startMusic(mp3_tatte, true);
                     }
-                } else if (checkTime >= 2000) {
+                } else if (checkTime >= 3000) {
                     const countNum = document.getElementById("counter").value;
                     counter(countNum);
                     textSet("sqwat done");
@@ -1164,7 +1162,7 @@
 
                 } else {
                     flgSqwat = false;
-                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                    shape.style.display = "none";
                     textSet("sqwat reset");
                     timerSetForSquat(null, "reset", nowTime);
                 }
@@ -1193,7 +1191,7 @@
                 }
                 if (flgSqwat) {
                     flgSqwat = false;
-                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                    shape.style.display = "none";
                 }
             } else if (set === "none" || set === null) {
                 textSet("out");
@@ -1201,7 +1199,7 @@
                 document.getElementById("board").style.backgroundColor = '#ff0000';
                 if (flgSqwat) {
                     flgSqwat = false;
-                    document.getElementsByClassName("gauge")[0].style.display = "none";
+                    shape.style.display = "none";
                 }
                 if (nowPlay !== mp3_sagatte) {
                     startMusic(mp3_sagatte, true);
@@ -1447,10 +1445,6 @@
             //     .map(index => results.poseLandmarks[index]),
             //     { color: '#0000FF', lineWidth: 3 });
 
-            // const faceSize = facecat(canvasElement, img_img1, results.poseLandmarks[POSE_LANDMARKS.NOSE], results.poseLandmarks[POSE_LANDMARKS.LEFT_EAR], results.poseLandmarks[POSE_LANDMARKS.RIGHT_EAR]);
-            // canvasCtx.drawImage(
-            //     img_img1, faceSize.x, faceSize.y, faceSize.width, faceSize.height);
-
             canvasCtx.restore();
 
             if (results.poseWorldLandmarks) {
@@ -1484,7 +1478,7 @@
                         } else {
                             statusChecker("ok");
                             setImage(canvasElement, results.poseLandmarks, "fire", desideAngleInfo);
-                            setImage(canvasElement, results.poseLandmarks, "gauge");
+                            setImage(canvasElement, results.poseLandmarks, "shape");
                         }
                     } else if (desideAngleInfo.angle < stockData["selectedAngle"] - stockData["selectedMargin"] || desideAngleInfo.angle > stockData["selectedAngle"] + stockData["selectedMargin"]) {
                         if (resultsCheck(results, "hohaba") === "hohaba") {
