@@ -441,10 +441,6 @@
             "leftHip": [11, 23, 25],
             "rightKnee": [24, 26, 28],
             "leftKnee": [23, 25, 27],
-            "rightAnkle": [26, 28, 32],
-            "leftAnkle": [25, 27, 31],
-            "rightHeel": [28, 30, 32],
-            "leftHeel": [27, 29, 31],
         };
 
         /**
@@ -557,7 +553,7 @@
 
 
         /**
- * 3点間の距離を計算する(小さくなりすぎないよう保証付き)
+ * 3点間の距離を計算する
  * pose　=　{x,y,z,visibility}
  * 
  */
@@ -604,7 +600,7 @@
             const nose_depth = average(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z, results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z) - results.poseWorldLandmarks[POSE_LANDMARKS.NOSE].z;
 
             if (shoulder_haba * paramDataSet["perhohaba"] > ankle_haba && whatCheck === "hohaba") return "hohaba";
-            else if (shoulder_haba * paramDataSet["perwidth"] < knee_haba && whatCheck === "width") return "width";
+            // else if (shoulder_haba * paramDataSet["perwidth"] < knee_haba && whatCheck === "width") return "width";
             // else if (Math.abs(shoulder_depth - hip_depth) < paramDataSet["HDSCheck"] && whatCheck === "HDS") return "HDS";
             // else if (Math.abs(shoulder_depth -knee_depth)<paramDataSet["frontCheck"] && whatCheck === "front") return "front";
         }
@@ -656,7 +652,7 @@
         }
 
         /**
-         * キャリブレーションを行う
+         * X,Y coordinatesから平均値を求める
          * @param {coordinates} coordinates
          * @returns
          */
@@ -684,6 +680,7 @@
         /**
         * キャリブレーションされた値から、姿勢の傾きの判定を行う
         * @param {*} resultAngle
+        * @param {*} desideAngleInfo
         * @returns
         */
         const checkShisei = (resultAngle, desideAngleInfo) => {
