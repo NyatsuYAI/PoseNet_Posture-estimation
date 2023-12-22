@@ -677,7 +677,7 @@
             const leftLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
             const rightLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
             const length = average(leftLength, rightLength);
-            if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) > 150 && stockData["slopeKneeAngle"] - average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < 10) {
+            if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) > 150 && stockData["slopeKneeAngle"] - average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < 5) {
                 stockData["lengthshouderankle"].push(length);
                 return {
                     angle: stockData["slopeKneeAngle"] - average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
