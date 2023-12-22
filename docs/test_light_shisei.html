@@ -1450,14 +1450,13 @@
                         //     statusChecker("back");
                         //     setImage(canvasElement, results.poseLandmarks, "back");
                         // } else 
-                        // if (checkShisei(resultAngle, desideAngleInfo) === "front") {
-                        //     statusChecker("front");
-                        //     setImage(canvasElement, results.poseLandmarks, "front");
-                        // } else if (checkShisei(resultAngle, desideAngleInfo) === "back") {
-                        //     statusChecker("back");
-                        //     setImage(canvasElement, results.poseLandmarks, "back");
-                        // } else 
-                        if (document.getElementById("status").textContent === "please stand up") {
+                        if (checkShisei(resultAngle, desideAngleInfo) === "front") {
+                            statusChecker("front");
+                            setImage(canvasElement, results.poseLandmarks, "front");
+                        } else if (checkShisei(resultAngle, desideAngleInfo) === "back") {
+                            statusChecker("back");
+                            setImage(canvasElement, results.poseLandmarks, "back");
+                        } else if (document.getElementById("status").textContent === "please stand up") {
                             statusChecker("ok");
                             setImage(canvasElement, results.poseLandmarks, "up");
 
