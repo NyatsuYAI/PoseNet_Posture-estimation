@@ -16,17 +16,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 
+
     <div id="status"
-        style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px; display: none;">start</div>
+        style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px; display: none;">
+        start</div>
     <div id="board"
         style="font-size: xx-large; position: fixed; width:100vw; height: 35px; background-color: aliceblue; padding: 10px;">
         カメラのアクセス許可をしてください
     </div>
 
     <div>
-        <svg class="gauge" viewBox="0 0 88 88">
-            <circle class="circle" cx="44" cy="44" r="24" />
-        </svg>
+        <div class="shape"></div>
         <div id="counter" class="counter">
         </div>
     </div>
@@ -49,17 +49,40 @@
 
     <div class="overlay2" style="display: none;">
         <div class="btn_area2">
-            <p class="ttl">簡易サイト</p>
-            <p>こちらのサイトでは判定が厳しいようです</br>
-                簡単なスクワットをしましょう
-            </p>
-            <button id="easy-site">簡単な方をやる</button>
-            <button id="button2">まだ続ける</button>
+            <p class="ttl">Claer</p>
+            <button id="button2">もう一回</button>
+        </div>
+    </div>
+    <div class="overlay3" style="display: none;">
+        <div class="btn_area3">
+            <p class="ttl">Game Over</p>
+            <button id="button3">もう一回</button>
         </div>
     </div>
     <div class="container">
 
         <p id="log" style="display: none"></p>
+        <!-- <div>
+            <label for="angle">角度を選択してください</label>
+            <select id="angle">
+                <option value='80' selected>80</option>
+                <option value='90'>90</option>
+                <option value='100'>100</option>
+                <option value='110'>110</option>
+                <option value='120'>120</option>
+                <option value='130'>130</option>
+            </select>
+            <label for="angle">遊び角度を選択してください</label>
+            <select id="margin">
+                <option value='0'>0</option>
+                <option value='5'>5</option>
+                <option value='10'>10</option>
+                <option value='15'>15</option>
+                <option value='20' selected>20</option>
+                <option value='30'>30</option>
+            </select>
+        </div> -->
+
 
         <video class="input_video" style="display: none"></video>
         <canvas class="output_canvas"></canvas>
@@ -69,40 +92,24 @@
         <button id="fin" class="fin" style="z-index: 10;">スクワットを終了する</button>
 
     </div>
-</body> 
-
-<style>
-      body {
-      height: 100vh;
-      margin: 0%;
-      padding: 0;
-    }
-
-    
-    .gauge {
-            transform: rotate(-90deg);
-            position: fixed;
+    <style>
+        .shape {
             min-width: 50px;
             min-height: 50px;
             width: 100px;
             height: 100px;
-            top: 10%;
-            display: none;
+            background-image: conic-gradient(rgb(0, 247, 255) 0deg, white 0deg);
+            clip-path: circle();
+            position: fixed;
+            place-items: center;
+            display: block;
         }
 
-        .circle {
-            stroke: rgb(0, 247, 255);
-            stroke-width: 20px;
-            animation: circleAnim 3s forwards;
-            fill: transparent;
-            stroke-dasharray: 264px;
-            stroke-dashoffset: 264px;
-        }
-
-        @keyframes circleAnim {
-            to {
-                stroke-dashoffset: 0;
-            }
+        .shape::before {
+            content: "";
+            width: 70px;
+            height: 70px;
+            clip-path: circle();
         }
 
         .audio_auto {
@@ -188,8 +195,8 @@
         }
 
         .btn_area2 {
-            width: 400px;
-            height: 300px;
+            width: 800px;
+            height: 600px;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -201,19 +208,21 @@
 
 
         .btn_area2 .ttl {
-            font-weight: bold
+            color: red;
+            font-weight: bold;
+            font-size: 90px;
         }
 
         .btn_area2 p {
-            padding: 15px
+            padding: 40px
         }
 
         .btn_area2 button {
             display: block;
-            margin: 10px auto;
+            margin: 20px auto;
             background: #333;
             color: #fff;
-            padding: 10px 40px;
+            padding: 20px 40px;
             border: none;
             cursor: pointer;
         }
@@ -222,6 +231,52 @@
             background: #777
         }
 
+        .overlay3 {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            position: fixed;
+            z-index: 1
+        }
+
+        .btn_area3 {
+            width: 800px;
+            height: 600px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            text-align: center;
+            z-index: 2
+        }
+
+
+        .btn_area3 .ttl {
+            color: red;
+            font-weight: bold;
+            font-size: 90px;
+        }
+
+        .btn_area3 p {
+            padding: 40px
+        }
+
+        .btn_area3 button {
+            display: block;
+            margin: 20px auto;
+            background: #333;
+            color: #fff;
+            padding: 20px 40px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn_area3 button:hover {
+            background: #777
+        }
+
         @keyframes b {}
-</style>
-<script defer type="module" src="index.js"> </script>
+    </style>
+    <script defer type="module" src="index.js"> </script>

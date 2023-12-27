@@ -52,7 +52,6 @@ const resizeWindow = async () => {
         canvasElement.style.width = '100vw';
     } else {
         canvasElement.style.width = '100vw';
-        console.log(videoElement, canvasElement.width, canvasElement.height);
     }
 
 }
@@ -62,9 +61,10 @@ const resizeWindow = async () => {
 const paramDataSet = {
     'humanJudge': 0.7,//人判定の閾値
     'playbackRate': 1,//再生速度
-    "perhohaba": 0.5,//歩幅の割合
+    "perhohaba": 0.7,//歩幅の割合
     "perwidth": 1.5,//ワイドスクワットを判定する幅の割合
     'HDSCheck': 0.1,//膝を過度に利用するHipDriveSquatの判定閾値
+    "frontCheck": 0,//前傾姿勢の判定閾値
 }
 const getParam = () => {
     // URLを取得
@@ -101,6 +101,8 @@ let img_back = new Image();
 img_back.src = './img/back.png';
 let img_shisei_ok = new Image();
 img_shisei_ok.src = './img/shiseiOK.png';
+let img_level_up = new Image();
+img_level_up.src = './img/level_up.png';
 
 /**音声の設定
  * 
@@ -130,6 +132,8 @@ const mp3_hohaba = new Audio('./mp3/hohaba.mp3');
 mp3_hohaba.playbackRate = paramDataSet.playbackRate;
 const mp3_width = new Audio('./mp3/width.mp3');
 mp3_width.playbackRate = paramDataSet.playbackRate;
+const mp3_levelUP = new Audio('./mp3/levelUP.mp3');
+mp3_levelUP.playbackRate = paramDataSet.playbackRate;
 let nowPlay = mp3_start;
 let flgMusic = false;
 
@@ -146,18 +150,14 @@ const needVector = {
     "leftHip": [11, 23, 25],
     "rightKnee": [24, 26, 28],
     "leftKnee": [23, 25, 27],
-    "rightAnkle": [26, 28, 32],
-    "leftAnkle": [25, 27, 31],
-    "rightHeel": [28, 30, 32],
-    "leftHeel": [27, 29, 31],
 };
 
 /**
  * その他フレームを超えて保持したいデータ
  */
 const stockData = {
-    "selectedAngle": 70,//スクワットの角度
-    "selectedMargin": 10,//スクワットの角度の許容範囲
+    "selectedAngle": 30,//スクワットの角度
+    "selectedMargin": 20,//スクワットの角度の許容範囲
     "slopeHipAngle": 0,//キャリブレーション用の角度
     "slopeKneeAngle": 0,//キャリブレーション用の角度
     "slopeMin": { "a_min": 0.7, "b_min": 0 },//傾きと切片の最小値（後傾）
@@ -200,7 +200,7 @@ const allowMusic = () => {
  * @param {boolean} status
  */
 const startMusic = (music, status = false) => {
-    if (flgMusic) {
+    if (flgMusic && nowPlay != music) {
         nowPlay.pause();
         music.currentTime = 0;
         music.loop = status;
@@ -251,40 +251,26 @@ const calcAngleFrom3Point = (pose1, pose2, pose3) => {
 }
 
 /**
- * 2点間の距離を計算する(小さくなりすぎないよう保証付き)
- * pose　=　{x,y,z,visibility}
- * 
- */
+* 2点間の距離を計算する(小さくなりすぎないよう保証付き)
+* pose　=　{x,y,z,visibility}
+* 
+*/
 const calcLength2point = (point1, point2) => {
     const length = Math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2);
-    if (length > 0.05) return length;
-    else {
-        return 0.05;
-    }
+    return length;
 }
+
 
 /**
- * 顔隠す猫ちゃん
- * @param {canvasElement} canvasElement
- * @param {HTMLImageElement} img
- * @param {pose} nose
- * @param {pose} left_ear
- * @param {pose} right_ear
- * @returns
- */
-const facecat = (canvasElement, img, nose, left_ear, right_ear) => {
-    const width = canvasElement.width * calcLength2point(left_ear, right_ear) * 3;
-    const height = width * Math.round(img.height / img.width);
-    const x = Math.round(nose.x * canvasElement.width) - (width / 2);
-    const y = Math.round(nose.y * canvasElement.height) - (height / 2);
-
-    return {
-        'x': x,
-        'y': y,
-        'width': width,
-        'height': height,
-    };
+* 3点間の距離を計算する
+* pose　=　{x,y,z,visibility}
+* 
+*/
+const calcLength3point = (point1, point2) => {
+    const length = Math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2 + (point1.z - point2.z) ** 2);
+    return length;
 }
+
 /**
  * 肩幅・歩幅・HDSの判定
  * @param {pose} results 
@@ -298,9 +284,13 @@ const resultsCheck = (results, whatCheck) => {
     const ankle_haba = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
     const shoulder_depth = average(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z, results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z);
     const hip_depth = average(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_HIP].z, results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_HIP].z);
+    const knee_depth = average(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].z, results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z - results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].z);
+    const nose_depth = average(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].z, results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].z) - results.poseWorldLandmarks[POSE_LANDMARKS.NOSE].z;
+
     if (shoulder_haba * paramDataSet["perhohaba"] > ankle_haba && whatCheck === "hohaba") return "hohaba";
-    else if (shoulder_haba * paramDataSet["perwidth"] < knee_haba && whatCheck === "width") return "width";
-    else if (Math.abs(shoulder_depth - hip_depth) < paramDataSet["HDSCheck"] && whatCheck === "HDS") return "HDS";
+    // else if (shoulder_haba * paramDataSet["perwidth"] < knee_haba && whatCheck === "width") return "width";
+    // else if (Math.abs(shoulder_depth - hip_depth) < paramDataSet["HDSCheck"] && whatCheck === "HDS") return "HDS";
+    // else if (Math.abs(shoulder_depth -knee_depth)<paramDataSet["frontCheck"] && whatCheck === "front") return "front";
 }
 
 /**
@@ -350,7 +340,7 @@ const lsm = coordinates => {
 }
 
 /**
- * キャリブレーションを行う
+ * X,Y coordinatesから平均値を求める
  * @param {coordinates} coordinates
  * @returns
  */
@@ -376,19 +366,20 @@ const averageFromData = (data) => {
 }
 
 /**
- * キャリブレーションされた値から、姿勢の傾きの判定を行う
- * @param {*} resultAngle
- * @returns
- */
-const checkShisei = (resultAngle) => {
+* キャリブレーションされた値から、姿勢の傾きの判定を行う
+* @param {*} resultAngle
+* @param {*} desideAngleInfo
+* @returns
+*/
+const checkShisei = (resultAngle, desideAngleInfo) => {
     if (stockData["slopeHipAngle"] === 0 || stockData["slopeKneeAngle"] === 0) return;
     const hipAngle = average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
     const kneeAngle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
-    const slope = (stockData["slopeHipAngle"] - hipAngle) / (stockData["slopeKneeAngle"] - kneeAngle);
-    stockData["slpoes"]["a"] = slope;
-    if (slope > stockData["slopeMax"]["a_max"]) {
+    const kneeAngleBending = stockData["slopeKneeAngle"] - kneeAngle;
+    const hipAngleBending = stockData["slopeHipAngle"] - hipAngle;
+    if (kneeAngleBending + 15 < hipAngleBending) {
         return "front";
-    } else if (slope < stockData["slopeMin"]["a_min"]) {
+    } else if (kneeAngleBending - 15 > hipAngleBending) {
         return "back";
     } else {
         return "OK";
@@ -404,7 +395,7 @@ const desideAngle = (results, resultAngle) => {
     const leftLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE]);
     const rightLength = calcLength2point(results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER], results.poseWorldLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE]);
     const length = average(leftLength, rightLength);
-    if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) > 150) {
+    if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) > 150 && stockData["slopeKneeAngle"] - average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < 5) {
         stockData["lengthshouderankle"].push(length);
         return {
             angle: stockData["slopeKneeAngle"] - average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
@@ -412,18 +403,26 @@ const desideAngle = (results, resultAngle) => {
             calivrationLength: averageFromData(stockData["lengthshouderankle"]),
         };
     } else {
-        const calivrationLength = averageFromData(stockData["lengthshouderankle"])
-        if (length / averageFromData(stockData["lengthshouderankle"]) > 0.9) {
-            const angle = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
+        const calivrationLength = averageFromData(stockData["lengthshouderankle"]);
+        const kneeAngle_blaze = average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle);
+        const hipAngle_blaze = average(resultAngle.leftHip.angle, resultAngle.rightHip.angle);
+        if (length / calivrationLength >= 0.9) {
             return {
-                angle: stockData["slopeKneeAngle"] - angle,
+                angle: stockData["slopeKneeAngle"] - kneeAngle_blaze,
+                length: length,
+                calivrationLength: calivrationLength,
+            };
+        } else if (0.9 > length / calivrationLength && length / calivrationLength >= 0.7) {
+            const angleKnee = kneeAngle_blaze * ((length / calivrationLength - 0.7) / 0.2) + (80 + 100 * (length / calivrationLength - 0.7)) * (1 - (length / calivrationLength - 0.7) / 0.2);
+            return {
+                angle: stockData["slopeKneeAngle"] - angleKnee,
                 length: length,
                 calivrationLength: calivrationLength,
             };
         } else {
-            const angle = Math.min(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), 60 + 120 * (length / calivrationLength - 0.6));
+            const angleknee = 80 + 100 * (length / calivrationLength - 0.7);
             return {
-                angle: stockData["slopeKneeAngle"] - angle,
+                angle: stockData["slopeKneeAngle"] - angleKnee,
                 length: length,
                 calivrationLength: calivrationLength,
             };
@@ -431,6 +430,36 @@ const desideAngle = (results, resultAngle) => {
 
     }
 
+}
+
+/**円ゲージの描画
+ * 
+ * @param {canvasElement} canvasElement 
+ * @param {poseLandmarks} poseLandmarks 
+ * @param {string} what 
+ * @returns 
+ */
+
+const shape = document.querySelector(".shape");
+let angle = 0;
+
+const drawCircle = (checkTime) => {
+
+    if (checkTime > 500) {
+        angle = (checkTime - 500) / 2000 * 360;
+    } else {
+        angle = 0;
+    }
+    //角度をconic-gradientの角度に代入
+    shape.style.backgroundImage = `conic-gradient(rgb(0, 247, 255) ${angle}deg, white ${angle}deg)`;
+    console.log(checkTime, angle);
+
+}
+//アニメーションを開始
+const startAnimation = () => {
+    //角度の初期状態(0°)
+    angle = 0;
+    requestAnimationFrame(drawCircle);
 }
 
 
@@ -473,8 +502,8 @@ const textSet = (status) => {
         case "width squat":
             document.getElementById("board").textContent = "膝を正面で曲げてください";
             break;
-        case "HDS":
-
+        case "levelUP":
+            document.getElementById("board").textContent = "レベルアップ！スクワットが厳しくなります";
             break;
 
     }
@@ -487,14 +516,25 @@ const textSet = (status) => {
  * @param {string} what 
  * @returns 
  */
-const setImage = (canvasElement, poseLandmarks, what) => {
-    const width = canvasElement.width * (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) * 2);
-    const status = document.getElementById("status").style.textContent;
+const setImage = (canvasElement, poseLandmarks, what, desideAngleInfo = null) => {
+    let width = 0;
+    if (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) > 0.05) width = canvasElement.width * (calcLength2point(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_EAR], poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_EAR]) * 1.5);
+    else width = canvasElement.width * 0.05 * 1.5;
+    const status = document.getElementById("status").textContent;
     const nowTime = Date.now();
     if (status === "please stand up") {
         return;
+    } else if (status === "levelUP") {
+        const height = canvasElement.height * 0.7;
+        const width = height * Math.round(img_level_up.width / img_level_up.height);
+        const x = canvasElement.width * 0.5 - (width / 2);
+        const y = canvasElement.height * 0.5 - (height / 2);
+        canvasCtx.drawImage(img_level_up, x, y, width, height);
     } else if (what === "fire") {
-        const height = width * Math.round(img_fire.height / img_fire.width);
+        let height = width * Math.round(img_fire.height / img_fire.width);
+        width = width * (1.2 - Math.abs((stockData["selectedAngle"] - desideAngleInfo.angle) / stockData["selectedMargin"]));
+        height = height * (1.2 - Math.abs((stockData["selectedAngle"] - desideAngleInfo.angle) / stockData["selectedMargin"]));
+
         const left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
         const left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
         canvasCtx.drawImage(img_fire, left_x, left_y, width, height);
@@ -517,20 +557,19 @@ const setImage = (canvasElement, poseLandmarks, what) => {
         const right_x = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width) - (width / 2);
         const right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
         canvasCtx.drawImage(img_up, right_x, right_y, width, height);
-    } else if (what === "gauge") {
+    } else if (what === "shape") {
         document.getElementsByClassName("counter")[0].style.display = "none";
-        document.getElementsByClassName("gauge")[0].style.display = "block";
-        document.getElementsByClassName("gauge")[0].style.display = "block";
-        document.getElementsByClassName("gauge")[0].style.width = width;
-        document.getElementsByClassName("gauge")[0].style.height = width;
-        document.getElementsByClassName("gauge")[0].style.left = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width);
+        shape.style.display = "block";
+        shape.style.width = width;
+        shape.style.height = width;
+        shape.style.left = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width);
     } else if (what === "counter") {
-        document.getElementsByClassName("gauge")[0].style.display = "none";
+        shape.style.display = "none";
         document.getElementsByClassName("counter")[0].style.display = "block";
         document.getElementsByClassName("counter")[0].style.left = (Math.round(poseLandmarks[POSE_LANDMARKS.NOSE].x * canvasElement.width) - (width / 2)) + "px";
 
     } else if (what === "hohaba") {
-        document.getElementsByClassName("gauge")[0].style.display = "none";
+        shape.style.display = "none";
         const height = width * Math.round(img_left.height / img_left.width);
         const left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].x * canvasElement.width) - (width / 2);
         const left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ANKLE].y * canvasElement.height) - (height);
@@ -539,7 +578,7 @@ const setImage = (canvasElement, poseLandmarks, what) => {
         const right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_ANKLE].y * canvasElement.height) - (height);
         canvasCtx.drawImage(img_left, right_x, right_y, width, height);
     } else if (what === "width") {
-        document.getElementsByClassName("gauge")[0].style.display = "none";
+        shape.style.display = "none";
         const height = width * Math.round(img_right.height / img_right.width);
         const left_x = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].x * canvasElement.width) - (width / 2);
         const left_y = Math.round(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_KNEE].y * canvasElement.height) - (height / 2);
@@ -548,10 +587,10 @@ const setImage = (canvasElement, poseLandmarks, what) => {
         const right_y = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].y * canvasElement.height) - (height / 2);
         canvasCtx.drawImage(img_right, right_x, right_y, width, height);
     } else if (what === "front") {
-        document.getElementsByClassName("gauge")[0].style.display = "none";
+        shape.style.display = "none";
         const height = width * Math.round(img_front.height / img_front.width);
         let x, y;
-        if (poseLandmarks[POSE_LANDMARKS_NEUTRAL.NOSE].x < 0.5) {
+        if (poseLandmarks[POSE_LANDMARKS.NOSE].x < 0.5) {
             x = canvasElement.width * 0.75 - (width / 2);
             y = canvasElement.height * 0.5 - (height / 2);
         } else {
@@ -561,10 +600,10 @@ const setImage = (canvasElement, poseLandmarks, what) => {
         if (Math.floor(nowTime / 1000) % 2 === 0) canvasCtx.drawImage(img_front, x, y, width * 3, height * 3);
         else canvasCtx.drawImage(img_shisei_ok, x, y, width * 3, height * 3);
     } else if (what === "back") {
-        document.getElementsByClassName("gauge")[0].style.display = "none";
+        shape.style.display = "none";
         const height = width * Math.round(img_back.height / img_back.width);
         let x, y;
-        if (poseLandmarks[POSE_LANDMARKS_NEUTRAL.NOSE].x < 0.5) {
+        if (poseLandmarks[POSE_LANDMARKS.NOSE].x < 0.5) {
             x = canvasElement.width * 0.75 - (width / 2);
             y = canvasElement.height * 0.5 - (height / 2);
         } else {
@@ -573,8 +612,9 @@ const setImage = (canvasElement, poseLandmarks, what) => {
         }
         if (Math.floor(nowTime / 1000) % 2 === 0) canvasCtx.drawImage(img_back, x, y, width * 3, height * 3);
         else canvasCtx.drawImage(img_shisei_ok, x, y, width * 3, height * 3);
+
     } else {
-        document.getElementsByClassName("gauge")[0].style.display = "none";
+        shape.style.display = "none";
         return;
     }
 
@@ -595,28 +635,23 @@ const counter = (any) => {
     } else {
         throw (Error);
     }
-    document.getElementById("counter").textContent = "回数:" + num;
     document.getElementById("counter").value = num;
+    document.getElementById("counter").textContent = "回数:" + num;
 }
 
 /**
  * errのカウント
- * stockData["err"]が200を超えるとeasy-siteに飛ばす
+ * stockData["err"]が200を超えるとgame over
  * @param {string} e 
  */
 const catchErr = (e) => {
     if (stockData["err"] > 200) {
-        document.getElementsByClassName("overlay2")[0].style.display = "block";
-        const easySite = document.getElementById("easy-site");
-        const button2 = document.getElementById("button2");
+        document.getElementsByClassName("overlay3")[0].style.display = "block";
+        const button3 = document.getElementById("button3");
         stopMusic();
-        easySite.addEventListener('click', function () {
-            location.replace("https://nyatsuyai.github.io/PoseNet_Posture-estimation/test-easy.html");
 
-        });
-        button2.addEventListener('click', function () {
-            document.getElementsByClassName("overlay2")[0].style.display = "none";
-            allowMusic();
+        button3.addEventListener('click', function () {
+            window.location.reload();
         });
     }
     else {
@@ -639,6 +674,28 @@ const catchErr = (e) => {
 let flgSqwat = false;
 let squatTime = { "start": 0, "end": 0 };
 let errTimes = { "start": 0, "end": 0, "once": false };
+let levelUPTime = { "start": 0, "end": 0 };
+
+const checkLevelUP = () => {
+    const nowCount = document.getElementById("counter").value;
+    if (nowCount % 5 == 0 && nowCount !== 0) {
+        if (stockData["selectedAngle"] >= 60) {
+            console.log("maximum value")
+            document.getElementsByClassName("overlay2")[0].style.display = "block";
+            const button2 = document.getElementById("button2");
+            stopMusic();
+
+            button2.addEventListener('click', function () {
+                window.location.reload();
+            });
+        }
+        stockData["selectedAngle"] += 20;
+        document.getElementById("counter").value = 0;
+        console.log("levelUP count reset")
+        return true;
+    }
+}
+
 /**
  *SetとflgSquatに応じて画像音声の設定を行う
  * @param {string} set 
@@ -655,6 +712,9 @@ const timerSetForSquat = (time = null, set, nowTime = 0) => {
             errTimes["start"] = 0;
             errTimes["end"] = 0;
             errTimes["once"] = false;
+        } else if (time === levelUPTime) {
+            levelUPTime["start"] = 0;
+            levelUPTime["end"] = 0;
         } else {
             squatTime["start"] = 0;
             squatTime["end"] = 0;
@@ -688,19 +748,27 @@ const timerSetForSquat = (time = null, set, nowTime = 0) => {
             default:
                 break;
         }
+    } else if (time === levelUPTime) {
+        levelUPTime["start"] = nowTime;
+        levelUPTime["end"] = nowTime + 5000;
     } else {
         // if(squatTime["start"] < errTimes["start"]){
         //     timerSetForSquat("reset");
         // }
     }
 }
-const statusChecker = (set) => {
+const statusChecker = (set, resultAngle = null) => {
     const nowTime = Date.now();
     const checkTime = squatTime["end"] - squatTime["start"] - (errTimes["end"] - errTimes["start"]);
 
-    if (set === "HDS") {
-        textSet("HDS");
-        document.getElementById("board").style.backgroundColor = '#ff0000';
+    if (set === "levelUP") {
+        timerSetForSquat(levelUPTime, "start", nowTime);
+        textSet("levelUP");
+        document.getElementById("board").style.backgroundColor = '#ffffff';
+    } else if (levelUPTime["end"] > nowTime) {
+        textSet("levelUP");
+        startMusic(mp3_levelUP, false);
+        document.getElementById("board").style.backgroundColor = '#ffffff';
     } else if (set === "front") {
         catchErr("front");
         timerSetForSquat(errTimes, "start", nowTime);
@@ -708,7 +776,7 @@ const statusChecker = (set) => {
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
             flgSqwat = false;
-            document.getElementsByClassName("gauge")[0].style.display = "none";
+            shape.style.display = "none";
         }
         if (nowPlay !== mp3_sesuji_front) {
             startMusic(mp3_sesuji_front, true);
@@ -720,7 +788,7 @@ const statusChecker = (set) => {
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
             flgSqwat = false;
-            document.getElementsByClassName("gauge")[0].style.display = "none";
+            shape.style.display = "none";
         }
         if (nowPlay !== mp3_sesuji_back) {
             startMusic(mp3_sesuji_back, true);
@@ -732,7 +800,7 @@ const statusChecker = (set) => {
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
             flgSqwat = false;
-            document.getElementsByClassName("gauge")[0].style.display = "none";
+            shape.style.display = "none";
         }
         if (nowPlay !== mp3_hohaba) {
             startMusic(mp3_hohaba, true)
@@ -744,7 +812,7 @@ const statusChecker = (set) => {
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
             flgSqwat = false;
-            document.getElementsByClassName("gauge")[0].style.display = "none";
+            shape.style.display = "none";
         }
         if (nowPlay !== mp3_width) {
             startMusic(mp3_width, true)
@@ -752,12 +820,13 @@ const statusChecker = (set) => {
     } else if (flgSqwat && set === "ok") {
         timerSetForSquat(squatTime, "end", nowTime);
         timerSetForSquat(errTimes, "end", nowTime);
+        drawCircle(checkTime);
         if (errTimes["end"] - errTimes["start"] < 0) timerSetForSquat(errTimes, "reset", nowTime);
 
-        if (checkTime >= 2000) {
+        if (checkTime >= 2500) {
             textSet("please stand up");
             document.getElementById("board").style.backgroundColor = '#ffffff';
-            document.getElementsByClassName("gauge")[0].style.display = "none";
+            shape.style.display = "none";
 
 
 
@@ -778,8 +847,15 @@ const statusChecker = (set) => {
         timerSetForSquat(squatTime, "start", nowTime);
         flgSqwat = true;
     } else if (flgSqwat && set === "down") {
+        if (average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle) < 150 && checkTime >= 3000) {
+            textSet("please stand up");
+            document.getElementById("board").style.backgroundColor = '#ffffff';
+            shape.style.display = "none";
 
-        if (checkTime >= 2000) {
+            if (nowPlay !== mp3_pinpon && nowPlay !== mp3_tatte) {
+                startMusic(mp3_tatte, true);
+            }
+        } else if (checkTime >= 3000) {
             const countNum = document.getElementById("counter").value;
             counter(countNum);
             textSet("sqwat done");
@@ -789,10 +865,11 @@ const statusChecker = (set) => {
 
         } else {
             flgSqwat = false;
-            document.getElementsByClassName("gauge")[0].style.display = "none";
+            shape.style.display = "none";
             textSet("sqwat reset");
             timerSetForSquat(null, "reset", nowTime);
         }
+
     } else if (!flgSqwat && set === "down") {
         textSet("good position start squat");
         timerSetForSquat(null, "reset", nowTime);
@@ -808,6 +885,7 @@ const statusChecker = (set) => {
             startMusic(mp3_sagete, true);
         }
     } else if (set === "up") {
+
         textSet("too squat");
         timerSetForSquat(errTimes, "start", nowTime);
         document.getElementById("board").style.backgroundColor = '#ff0000';
@@ -816,7 +894,7 @@ const statusChecker = (set) => {
         }
         if (flgSqwat) {
             flgSqwat = false;
-            document.getElementsByClassName("gauge")[0].style.display = "none";
+            shape.style.display = "none";
         }
     } else if (set === "none" || set === null) {
         textSet("out");
@@ -824,7 +902,7 @@ const statusChecker = (set) => {
         document.getElementById("board").style.backgroundColor = '#ff0000';
         if (flgSqwat) {
             flgSqwat = false;
-            document.getElementsByClassName("gauge")[0].style.display = "none";
+            shape.style.display = "none";
         }
         if (nowPlay !== mp3_sagatte) {
             startMusic(mp3_sagatte, true);
@@ -835,21 +913,13 @@ const statusChecker = (set) => {
     } else { return; }
 }
 
-const checkLevelUP = () => {
-    const nowCount = document.getElementById("counter").value;
-    if (nowCount % 5 == 0 && nowCount !== 0) {
-        stockData["selectedAngle"] += 15;
-        documentElement.getElementById("counter").value = 0;
-        // return "levelUP";
-        console.log("levelUP")
-    }
-}
+
 
 const cells = []
 /**
  * 0から始まるから注意
  */
-const items = 26;
+const items = 34;
 const coordinates = [];
 /**
  * excelデータのタイトルの作成
@@ -861,28 +931,36 @@ const cellMake = () => {
         1: "status",
         2: "squatTime",
         3: "errTime",
-        4: "kneeAngle",
-        5: "kneeAngle visivility",
-        6: "hipAngle",
-        7: "hipAngle visivility",
-        8: "slopeKneeAngle",
-        9: " slopeHipAngle",
-        10: " shoulder x",
-        11: " shoulder y",
-        12: " shoulder z",
-        13: " hip x",
-        14: " hip y",
-        15: " hip z",
-        16: " knee x",
-        17: " knee y",
-        18: " knee z",
-        19: " ankle x",
-        20: " ankle y",
-        21: " ankle z",
-        22: "count",
-        23: "ankle shoulder length",
-        24: "ankle shoulder length calibration",
-        25: "deside angle",
+        4: "levelTime",
+        5: "kneeAngle",
+        6: "kneeAngle visivility",
+        7: "hipAngle",
+        8: "hipAngle visivility",
+        9: "slopeKneeAngle",
+        10: " slopeHipAngle",
+        11: "selected angle",
+        12: "selected margin",
+        13: "nose x",
+        14: "nose y",
+        15: "nose z",
+        16: " shoulder x",
+        17: " shoulder y",
+        18: " shoulder z",
+        19: " hip x",
+        20: " hip y",
+        21: " hip z",
+        22: " knee x",
+        23: " knee y",
+        24: " knee z",
+        25: " ankle x",
+        26: " ankle y",
+        27: " ankle z",
+        28: "count",
+        29: "ankle shoulder length",
+        30: "ankle shoulder length calibration",
+        31: "deside angle",
+        32: "knee angle bending",
+        33: "hip angle bending",
 
     };
     console.log(cellTag)
@@ -915,12 +993,18 @@ const cellUpdate = (resultAngle, poseLandmarks, desideAngleInfo = { angle: null,
         document.getElementById("status").textContent,
         squatTime["end"] - squatTime["start"],
         errTimes["end"] - errTimes["start"],
+        levelUPTime["end"],
         average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
         average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility),
         average(resultAngle.leftHip.angle, resultAngle.rightHip.angle),
         average(resultAngle.leftHip.visibility, resultAngle.rightHip.visibility),
         stockData["slopeKneeAngle"],
         stockData["slopeHipAngle"],
+        stockData["selectedAngle"],
+        stockData["selectedMargin"],
+        poseLandmarks[POSE_LANDMARKS.NOSE].x,
+        poseLandmarks[POSE_LANDMARKS.NOSE].y,
+        poseLandmarks[POSE_LANDMARKS.NOSE].z,
         average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].x, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].x),
         average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].y, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].y),
         average(poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].z, poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].z),
@@ -937,9 +1021,10 @@ const cellUpdate = (resultAngle, poseLandmarks, desideAngleInfo = { angle: null,
         desideAngleInfo.length,
         desideAngleInfo.calivrationLength,
         desideAngleInfo.angle,
+        stockData["slopeKneeAngle"] - average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle),
+        stockData["slopeHipAngle"] - average(resultAngle.leftHip.angle, resultAngle.rightHip.angle),
 
     ];
-    console.log(cell)
     cells.push(cell);
 
     if (average(resultAngle.leftKnee.visibility, resultAngle.rightKnee.visibility) > paramDataSet["humanJudge"] && average(average(resultAngle.leftKnee.angle, resultAngle.rightKnee.angle), average(resultAngle.leftHip.angle, resultAngle.rightHip.angle)) > 160) {
@@ -967,7 +1052,7 @@ const cellDownload = (items, cells) => {
     let blob = new Blob([str], { type: "text/csv" }); //配列に上記の文字列(str)を設定
     let link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = "squatdata.csv";
+    link.download = encodeURIComponent("squatdata.csv");
     link.click();
 }
 
@@ -1051,21 +1136,17 @@ function onResults(results) {
 
     canvasCtx.globalCompositeOperation = 'source-over';
     // console.log(results.poseLandmarks)
-    drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
-        { color: '#00FF00', lineWidth: 2 });
-    drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_NEUTRAL)
-        .map(index => results.poseLandmarks[index]),
-        { color: '#00FF00', lineWidth: 3 });
-    drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_LEFT)
-        .map(index => results.poseLandmarks[index]),
-        { color: '#FF0000', lineWidth: 3 });
-    drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_RIGHT)
-        .map(index => results.poseLandmarks[index]),
-        { color: '#0000FF', lineWidth: 3 });
-
-    const faceSize = facecat(canvasElement, img_img1, results.poseLandmarks[POSE_LANDMARKS.NOSE], results.poseLandmarks[POSE_LANDMARKS.LEFT_EAR], results.poseLandmarks[POSE_LANDMARKS.RIGHT_EAR]);
-    canvasCtx.drawImage(
-        img_img1, faceSize.x, faceSize.y, faceSize.width, faceSize.height);
+    // drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
+    //     { color: '#00FF00', lineWidth: 2 });
+    // drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_NEUTRAL)
+    //     .map(index => results.poseLandmarks[index]),
+    //     { color: '#00FF00', lineWidth: 3 });
+    // drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_LEFT)
+    //     .map(index => results.poseLandmarks[index]),
+    //     { color: '#FF0000', lineWidth: 3 });
+    // drawLandmarks(canvasCtx, Object.values(POSE_LANDMARKS_RIGHT)
+    //     .map(index => results.poseLandmarks[index]),
+    //     { color: '#0000FF', lineWidth: 3 });
 
     canvasCtx.restore();
 
@@ -1078,43 +1159,45 @@ function onResults(results) {
         //姿勢が判定位置にあり、人が存在している時
         if (paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_FOOT_INDEX].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_FOOT_INDEX].visibility) && paramDataSet['humanJudge'] < Math.min(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER].visibility, results.poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_SHOULDER].visibility)) {
             const desideAngleInfo = desideAngle(results, resultAngle);
-            checkLevelUP();
-            console.log(desideAngleInfo)
             //判定内に入ってるかどうか
-            if (stockData["selectedAngle"] + stockData["selectedMargin"] > desideAngleInfo.angle && desideAngleInfo.angle > stockData["selectedAngle"] - stockData["selectedMargin"]) {
-                if (resultsCheck(results, "width") === "width") {
-                    statusChecker("width");
-                    setImage(canvasElement, results.poseLandmarks, "width");
-                    // } else if (resultsCheck(results, "HDS") === "HDS") {
-                    //     statusChecker("HDS");
-                    //     statusChecker("ok");
-                    //     setImage(canvasElement, results.poseLandmarks, "fire");
-                    //     setImage(canvasElement, results.poseLandmarks, "gauge");
-                    // } else if (checkShisei(resultAngle) === "front") {
-                    //     statusChecker("front");
-                    //     setImage(canvasElement, results.poseLandmarks, "front");
-                    // } else if (checkShisei(resultAngle,"front") === "back") {
-                    //     statusChecker("back");
-                    //     setImage(canvasElement, results.poseLandmarks, "back");
-                } else if (document.getElementById("status").textContent === "please stand up") {
+            if (stockData["selectedAngle"] + stockData["selectedMargin"] >= desideAngleInfo.angle && desideAngleInfo.angle >= stockData["selectedAngle"] - stockData["selectedMargin"]) {
+                // if (resultsCheck(results, "width") === "width") {
+                //     statusChecker("width");
+                //     setImage(canvasElement, results.poseLandmarks, "width");
+                // } else if (resultsCheck(results, "HDS") === "HDS") {
+                //     statusChecker("back");
+                //     setImage(canvasElement, results.poseLandmarks, "back");
+                // } else 
+                // if (checkShisei(resultAngle, desideAngleInfo) === "front") {
+                //     statusChecker("front");
+                //     setImage(canvasElement, results.poseLandmarks, "front");
+                // } else if (checkShisei(resultAngle, desideAngleInfo) === "back") {
+                //     statusChecker("back");
+                //     setImage(canvasElement, results.poseLandmarks, "back");
+                // } else 
+                if (document.getElementById("status").textContent === "please stand up") {
                     statusChecker("ok");
                     setImage(canvasElement, results.poseLandmarks, "up");
 
                 } else {
                     statusChecker("ok");
-                    setImage(canvasElement, results.poseLandmarks, "fire");
-                    setImage(canvasElement, results.poseLandmarks, "gauge");
+                    setImage(canvasElement, results.poseLandmarks, "fire", desideAngleInfo);
+                    setImage(canvasElement, results.poseLandmarks, "shape");
                 }
             } else if (desideAngleInfo.angle < stockData["selectedAngle"] - stockData["selectedMargin"] || desideAngleInfo.angle > stockData["selectedAngle"] + stockData["selectedMargin"]) {
                 if (resultsCheck(results, "hohaba") === "hohaba") {
                     statusChecker("hohaba")
                     setImage(canvasElement, results.poseLandmarks, "hohaba");
+                } else if (checkLevelUP()) {
+                    statusChecker("levelUP");
+                    setImage(canvasElement, results.poseLandmarks, "levelUP");
+                    console.log("levelUP")
                 } else if (desideAngleInfo.angle > stockData["selectedAngle"] + stockData["selectedMargin"]) {
                     statusChecker("up");
                     setImage(canvasElement, results.poseLandmarks, "counter");
                     setImage(canvasElement, results.poseLandmarks, "up");
                 } else if (desideAngleInfo.angle < stockData["selectedAngle"] - stockData["selectedMargin"]) {
-                    statusChecker("down");
+                    statusChecker("down", resultAngle);
                     setImage(canvasElement, results.poseLandmarks, "counter");
                     setImage(canvasElement, results.poseLandmarks, "down");
                 }
