@@ -844,7 +844,7 @@
                 shape.style.display = "block";
                 shape.style.width = width;
                 shape.style.height = width;
-                shape.style.left = Math.round(poseLandmarks[POSE_LANDMARKS_RIGHT.RIGHT_KNEE].x * canvasElement.width);
+                shape.style.left = (Math.round(poseLandmarks[POSE_LANDMARKS.NOSE].x * canvasElement.width) - (width / 2));
             } else if (what === "counter") {
                 shape.style.display = "none";
                 document.getElementsByClassName("counter")[0].style.display = "block";
